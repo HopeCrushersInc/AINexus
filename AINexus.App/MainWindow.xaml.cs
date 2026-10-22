@@ -1,46 +1,58 @@
-using System;
-using System.Diagnostics;
 using System.Windows;
+using AINexus.App;
 
-namespace AINexus.App
+namespace AINexus.App;
+
+public partial class MainWindow : Window
 {
-    public partial class MainWindow : Window
+    public MainWindow()
     {
-        public MainWindow()
-        {
-            InitializeComponent();
-            Loaded += async (s, e) => await ScanHardwareAsync();
-        }
+        InitializeComponent();
+        Loaded += async (_, _) => await ScanHardwareAsync();
+    }
 
-        private async System.Threading.Tasks.Task ScanHardwareAsync()
+    private async void RescanButton_Click(object sender, RoutedEventArgs e) => await ScanHardwareAsync();
+
+    private async Task ScanHardwareAsync()
+    {
+        ScanStatusText.Text = "SCANNING LOCAL HARDWARE…";
+        NoticeText.Text = "Reading processor, memory, graphics adapters, and fixed storage.";
+        try
         {
-            await System.Threading.Tasks.Task.Run(() =>
+            var snapshot = await HardwareScanner.ScanAsync();
+            CpuText.Text = snapshot.CpuName;
+            RamText.Text = snapshot.RamGb > 0 ? $"{snapshot.RamGb:N1} GB" : "Unavailable";
+
+            GpuList.ItemsSource = snapshot.Gpus.Select(gpu => new
             {
-                try
-                {
-                    string psScript = "(Get-CimInstance Win32_Processor).Name + '|' + [math]::Round((Get-CimInstance Win32_ComputerSystem).TotalPhysicalMemory / 1GB, 1)";
-                    var psi = new ProcessStartInfo("powershell", $"-NoProfile -Command \"{psScript}\"")
-                    {
-                        RedirectStandardOutput = true,
-                        UseShellExecute = false,
-                        CreateNoWindow = true
-                    };
-                    using var p = Process.Start(psi);
-                    if (p != null)
-                    {
-                        string output = p.StandardOutput.ReadToEnd().Trim();
-                        p.WaitForExit();
-                        Dispatcher.Invoke(() => {
-                            var parts = output.Split('|');
-                            if (parts.Length == 2)
-                            {
-                                this.Title = $"Nexus Portal - {parts[0].Trim()} | {parts[1].Trim()} GB RAM";
-                            }
-                        });
-                    }
-                }
-                catch { }
-            });
+                gpu.Name,
+                VramDisplay = gpu.VramGb.HasValue
+                    ? $"{gpu.VramGb.Value:N1} GB VRAM · {gpu.VramSource}"
+                    : gpu.VramSource
+            }).ToList();
+            GpuCountText.Text = snapshot.Gpus.Count == 1 ? "1 adapter" : $"{snapshot.Gpus.Count} adapters";
+
+            StorageList.ItemsSource = snapshot.Storage.Select(drive => new
+            {
+                drive.Name,
+                FreeDisplay = $"{drive.FreeGb:N1} GB free",
+                CapacityDisplay = $"{drive.FreeGb:N1} GB free of {drive.TotalGb:N1} GB",
+                FreePercent = drive.TotalGb > 0 ? drive.FreeGb / drive.TotalGb * 100 : 0
+            }).ToList();
+
+            ScanStatusText.Text = $"SCAN COMPLETE · {DateTime.Now:HH:mm:ss}";
+            NoticeText.Text = snapshot.ScanNote ??
+                "Hardware scan complete. NVIDIA VRAM is read from nvidia-smi when the driver utility is available.";
+        }
+        catch (Exception ex)
+        {
+            ScanStatusText.Text = "SCAN INCOMPLETE";
+            NoticeText.Text = $"Some hardware details could not be read: {ex.Message}";
+            CpuText.Text = "Unavailable";
+            RamText.Text = "Unavailable";
+            GpuCountText.Text = "Unavailable";
+            GpuList.ItemsSource = null;
+            StorageList.ItemsSource = null;
         }
     }
 }

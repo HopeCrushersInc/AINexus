@@ -20,7 +20,9 @@ internal static class Program
             CheckPackagePlans();
             CheckProcessExecution().GetAwaiter().GetResult();
             ModelChecks.RunAsync(Check).GetAwaiter().GetResult();
-            CheckWindow();
+            AgentChecks.RunAsync(Check).GetAwaiter().GetResult();
+            EmbeddedChecks.RunPolicy(Check);
+            CheckWindow(args.Contains("--embedded-live"));
             if (args.Contains("--live")) CheckLiveDiscovery().GetAwaiter().GetResult();
             Console.WriteLine($"PASS: {_checks} checks.");
             return 0;
@@ -80,7 +82,7 @@ internal static class Program
         }
     }
 
-    private static void CheckWindow()
+    private static void CheckWindow(bool embeddedLive)
     {
         var app = new Application { ShutdownMode = ShutdownMode.OnExplicitShutdown };
         var window = new MainWindow();
@@ -97,6 +99,8 @@ internal static class Program
             "Server failure is distinguished from a real empty model list");
         window.RenderResources(new(DateTimeOffset.Now, null, null, null, [], ["Fixture: telemetry unavailable"], "Fixture scope"));
         Check(((TextBlock)window.FindName("MemoryUsageText")).Text == "Unavailable", "Unknown memory renders honestly");
+        Check(!((Button)window.FindName("AgentEnqueueButton")).IsEnabled, "Agent submission requires discovery and an explicitly selected model");
+        if (embeddedLive) EmbeddedChecks.RunLive(window, Check);
         window.Close();
         app.Shutdown();
     }

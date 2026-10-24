@@ -15,6 +15,8 @@ public partial class MainWindow : Window
         InitializeMonitoring();
         InitializePackages();
         InitializeModels();
+        InitializeEmbeddedApps();
+        InitializeAgents();
         Loaded += async (_, _) => await Task.WhenAll(ScanHardwareAsync(), ScanSoftwareAsync());
         Closed += (_, _) => _lifetime.Cancel();
     }
@@ -33,13 +35,13 @@ public partial class MainWindow : Window
             var snapshot = await HardwareScanner.ScanAsync(_lifetime.Token);
             if (_lifetime.IsCancellationRequested) return;
             CpuText.Text = snapshot.CpuName;
-            RamText.Text = snapshot.RamGb > 0 ? $"{snapshot.RamGb:N1} GB" : "Unavailable";
+            RamText.Text = snapshot.RamGb > 0 ? $"{snapshot.RamGb:N1} GiB" : "Unavailable";
 
             GpuList.ItemsSource = snapshot.Gpus.Select(gpu => new
             {
                 gpu.Name,
                 VramDisplay = gpu.VramGb.HasValue
-                    ? $"{gpu.VramGb.Value:N1} GB VRAM · {gpu.VramSource}"
+                    ? $"{gpu.VramGb.Value:N1} GiB VRAM - {gpu.VramSource}"
                     : gpu.VramSource
             }).ToList();
             GpuCountText.Text = snapshot.Gpus.Count == 1 ? "1 adapter" : $"{snapshot.Gpus.Count} adapters";
@@ -47,8 +49,8 @@ public partial class MainWindow : Window
             StorageList.ItemsSource = snapshot.Storage.Select(drive => new
             {
                 drive.Name,
-                FreeDisplay = $"{drive.FreeGb:N1} GB free",
-                CapacityDisplay = $"{drive.FreeGb:N1} GB free of {drive.TotalGb:N1} GB",
+                FreeDisplay = $"{drive.FreeGb:N1} GiB free",
+                CapacityDisplay = $"{drive.FreeGb:N1} GiB free of {drive.TotalGb:N1} GiB",
                 FreePercent = drive.TotalGb > 0 ? drive.FreeGb / drive.TotalGb * 100 : 0
             }).ToList();
 

@@ -127,6 +127,7 @@ public partial class MainWindow
             var snapshot = await new OllamaClient(_modelHttp).ScanAsync(endpoint, _lifetime.Token);
             if (_lifetime.IsCancellationRequested) return;
             RenderOllama(snapshot);
+            UpdateAgentModels(snapshot, endpoint);
             _settings = _settings with { OllamaEndpoint = endpoint.AbsoluteUri };
             await SaveSettingsAsync();
         }

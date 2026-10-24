@@ -1,6 +1,7 @@
 <Window x:Class="AINexus.App.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:AINexus.App"
         Title="AI Nexus Portal" Height="820" Width="1280"
         MinHeight="650" MinWidth="950" Background="#090D16" Foreground="#E6F7FF"
         FontFamily="Consolas" WindowStartupLocation="CenterScreen">
@@ -136,10 +137,11 @@
                 </DockPanel>
             </Border>
         </Grid>
-        <DockPanel Grid.Row="3" Margin="0,8,0,0">
+        <Grid Grid.Row="3" Margin="0,8,0,0">
+            <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
             <TextBlock x:Name="NoticeText" Text="Hardware discovery runs locally on this machine." Foreground="#71889B" TextWrapping="Wrap" VerticalAlignment="Center"/>
-            <Button x:Name="HardwareRescanButton" DockPanel.Dock="Right" Content="RESCAN HARDWARE" Click="RescanButton_Click" Padding="18,10" Background="#153443" Foreground="#4DEBFF" BorderBrush="#315A6D" FontFamily="Consolas" Cursor="Hand"/>
-        </DockPanel>
+            <Button x:Name="HardwareRescanButton" Grid.Column="1" Content="RESCAN HARDWARE" Click="RescanButton_Click" Padding="18,10" Margin="12,0,0,0" Background="#153443" Foreground="#4DEBFF" BorderBrush="#315A6D" FontFamily="Consolas" Cursor="Hand"/>
+        </Grid>
     </Grid>
         </TabItem>
         <TabItem Header="AI Software" Padding="18,10">
@@ -318,6 +320,67 @@
                     </TabItem>
                 </TabControl>
                 <TextBlock Grid.Row="4" x:Name="OllamaNoticeText" Text="Read-only queries to /api/tags and /api/ps. No model downloads, inference, or load/unload operations." Foreground="#8CA6BC" TextWrapping="Wrap" Margin="0,12,0,0"/>
+            </Grid>
+        </TabItem>
+        <TabItem x:Name="EmbeddedTab" Header="Embedded Apps" Padding="18,10">
+            <Grid Margin="18">
+                <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+                <TextBlock Text="LOCAL APPLICATION INTERFACE" FontSize="24" FontWeight="Bold" Margin="0,0,0,16"/>
+                <DockPanel Grid.Row="1" Margin="0,0,0,12">
+                    <Button x:Name="EmbeddedOpenButton" DockPanel.Dock="Right" Content="OPEN IN PORTAL" Click="EmbeddedOpenButton_Click" Padding="18,10" Margin="12,0,0,0"/>
+                    <TextBox x:Name="EmbeddedEndpointText" Padding="10" ToolTip="Enter the loopback URL of an existing local AI web interface"/>
+                </DockPanel>
+                <local:EmbeddedAppHost Grid.Row="2" x:Name="EmbeddedHost"/>
+                <TextBlock Grid.Row="3" x:Name="EmbeddedStatusText" Text="Enter the address of an existing local web interface. The portal does not start a server. Downloads and new windows are blocked." Foreground="#8CA6BC" TextWrapping="Wrap" Margin="0,12,0,0"/>
+            </Grid>
+        </TabItem>
+        <TabItem Header="Agent Tasks" Padding="18,10">
+            <Grid Margin="18">
+                <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+                <DockPanel Margin="0,0,0,10">
+                    <Button x:Name="AgentRefreshModelsButton" DockPanel.Dock="Right" Content="REFRESH LOCAL MODELS" Click="AgentRefreshModelsButton_Click" Padding="12,8"/>
+                    <TextBlock Text="LOCAL AGENT TASKS" FontSize="24" FontWeight="Bold"/>
+                </DockPanel>
+                <Grid Grid.Row="1" Margin="0,0,0,10">
+                    <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition/></Grid.ColumnDefinitions>
+                    <TextBox x:Name="AgentNameText" Text="Local task" Padding="8" Margin="0,0,12,0" ToolTip="Task name" MaxLength="120"/>
+                    <ComboBox x:Name="AgentModelSelector" Grid.Column="1" Padding="8" SelectionChanged="AgentModelSelector_SelectionChanged" ToolTip="Select a model reported by your local Ollama server"/>
+                </Grid>
+                <Grid Grid.Row="2" Margin="0,0,0,10">
+                    <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition/></Grid.ColumnDefinitions>
+                    <StackPanel Margin="0,0,12,0">
+                        <TextBlock Text="SYSTEM INSTRUCTION" Foreground="#8CA6BC" Margin="0,0,0,4"/>
+                        <TextBox x:Name="AgentSystemText" Text="Complete the user's task using the information provided." AcceptsReturn="True" TextWrapping="Wrap" Height="65" VerticalScrollBarVisibility="Auto" MaxLength="8192"/>
+                    </StackPanel>
+                    <StackPanel Grid.Column="1">
+                        <TextBlock Text="TASK PROMPT" Foreground="#8CA6BC" Margin="0,0,0,4"/>
+                        <TextBox x:Name="AgentPromptText" AcceptsReturn="True" TextWrapping="Wrap" Height="65" VerticalScrollBarVisibility="Auto" MaxLength="32768"/>
+                    </StackPanel>
+                </Grid>
+                <DockPanel Grid.Row="3" Margin="0,0,0,10">
+                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Margin="12,0,0,0">
+                        <Button x:Name="AgentEnqueueButton" Content="QUEUE TASK" Click="AgentEnqueueButton_Click" Padding="12,8" IsEnabled="False"/>
+                        <Button Content="CANCEL SELECTED" Click="AgentCancelButton_Click" Padding="12,8" Margin="8,0,0,0"/>
+                    </StackPanel>
+                    <WrapPanel>
+                        <TextBlock Text="Min free RAM GiB" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                        <TextBox x:Name="AgentMinRamText" Text="1" Width="48" Padding="5" MaxLength="12"/>
+                        <TextBlock Text="Max CPU %" VerticalAlignment="Center" Margin="12,0,6,0"/>
+                        <TextBox x:Name="AgentMaxCpuText" Text="95" Width="48" Padding="5" MaxLength="12"/>
+                        <TextBlock Text="Min free VRAM GiB (0=off)" VerticalAlignment="Center" Margin="12,0,6,0"/>
+                        <TextBox x:Name="AgentMinVramText" Text="0" Width="48" Padding="5" MaxLength="12"/>
+                    </WrapPanel>
+                </DockPanel>
+                <DataGrid Grid.Row="4" x:Name="AgentJobGrid" IsReadOnly="True" AutoGenerateColumns="False" CanUserAddRows="False" SelectionMode="Single" SelectionChanged="AgentJobGrid_SelectionChanged" Background="#111A29" Foreground="#111A29" HeadersVisibility="Column" Margin="0,0,0,10">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Task" Binding="{Binding Name}" Width="*"/>
+                        <DataGridTextColumn Header="Model" Binding="{Binding Model}" Width="*"/>
+                        <DataGridTextColumn Header="State" Binding="{Binding Status}" Width="Auto"/>
+                        <DataGridTextColumn Header="Detail" Binding="{Binding Detail}" Width="2*"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+                <TextBox Grid.Row="5" x:Name="AgentOutputText" IsReadOnly="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" Background="#111A29" Foreground="#E6F7FF" Padding="10"/>
+                <TextBlock Grid.Row="6" x:Name="AgentStatusText" Text="Refresh local models, choose a model, and enter a prompt. Serial requests use resource admission checks, not OS quotas. Prompts and replies stay in this session. No model output is executed as code or tools." Foreground="#8CA6BC" TextWrapping="Wrap" Margin="0,10,0,0"/>
             </Grid>
         </TabItem>
     </TabControl>

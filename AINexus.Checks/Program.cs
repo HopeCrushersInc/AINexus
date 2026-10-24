@@ -19,6 +19,7 @@ internal static class Program
             CheckResourceCalculations();
             CheckPackagePlans();
             CheckProcessExecution().GetAwaiter().GetResult();
+            ModelChecks.RunAsync(Check).GetAwaiter().GetResult();
             CheckWindow();
             if (args.Contains("--live")) CheckLiveDiscovery().GetAwaiter().GetResult();
             Console.WriteLine($"PASS: {_checks} checks.");
@@ -90,6 +91,10 @@ internal static class Program
         Check(!((Button)window.FindName("PackageInstallButton")).IsEnabled && !((Button)window.FindName("PackageUpdateButton")).IsEnabled,
             "Package modifications start disabled until review and acceptance");
         Check(window.FindName("GpuUsageList") is ItemsControl, "Monitoring XAML loads");
+        Check(window.FindName("ModelFileGrid") is DataGrid && window.FindName("OllamaAvailableGrid") is DataGrid, "Model library and Ollama XAML load");
+        window.RenderOllama(new(DateTimeOffset.Now, [], [], false, true, ["Fixture: available models unreadable"]));
+        Check(((TextBlock)window.FindName("OllamaStatusText")).Text.Contains("Available: unavailable | Loaded: 0"),
+            "Server failure is distinguished from a real empty model list");
         window.RenderResources(new(DateTimeOffset.Now, null, null, null, [], ["Fixture: telemetry unavailable"], "Fixture scope"));
         Check(((TextBlock)window.FindName("MemoryUsageText")).Text == "Unavailable", "Unknown memory renders honestly");
         window.Close();

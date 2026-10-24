@@ -14,6 +14,7 @@ public partial class MainWindow : Window
         InitializeComponent();
         InitializeMonitoring();
         InitializePackages();
+        InitializeModels();
         Loaded += async (_, _) => await Task.WhenAll(ScanHardwareAsync(), ScanSoftwareAsync());
         Closed += (_, _) => _lifetime.Cancel();
     }

@@ -288,6 +288,51 @@
                 <TextBlock Grid.Row="4" x:Name="LibraryNoticeText" Text="Indexing reads file metadata only. Stop tracking removes a folder from this list; model files remain on disk. File format labels come from extensions and do not validate model contents." Foreground="#8CA6BC" TextWrapping="Wrap" Margin="0,12,0,0"/>
             </Grid>
         </TabItem>
+        <TabItem x:Name="LlamaCppTab" Header="llama.cpp" Padding="18,10" Loaded="LlamaCppTab_Loaded">
+            <Grid Margin="18">
+                <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+                <TextBlock Text="PORTABLE LLAMA.CPP" FontSize="24" FontWeight="Bold" Margin="0,0,0,12"/>
+                <Border Grid.Row="1" Background="#111A29" BorderBrush="#26394E" BorderThickness="1" Padding="12" Margin="0,0,0,12">
+                    <Grid>
+                        <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+                        <DockPanel Margin="0,0,0,8">
+                            <Button x:Name="LlamaCppBrowseExecutableButton" DockPanel.Dock="Right" Content="BROWSE SERVER" Click="LlamaCppBrowseExecutableButton_Click" Padding="10,6" Margin="8,0,0,0"/>
+                            <TextBox x:Name="LlamaCppExecutableText" Padding="6" ToolTip="Full path to portable llama-server.exe"/>
+                        </DockPanel>
+                        <DockPanel Grid.Row="1" Margin="0,0,0,8">
+                            <Button x:Name="LlamaCppBrowseModelButton" DockPanel.Dock="Right" Content="BROWSE GGUF" Click="LlamaCppBrowseModelButton_Click" Padding="10,6" Margin="8,0,0,0"/>
+                            <TextBox x:Name="LlamaCppModelPathText" Padding="6" ToolTip="Existing GGUF model loaded when you explicitly start the server"/>
+                        </DockPanel>
+                        <DockPanel Grid.Row="2" Margin="0,0,0,8">
+                            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                                <Button x:Name="LlamaCppStartButton" Content="START OWNED SERVER" Click="LlamaCppStartButton_Click" Padding="10,6"/>
+                                <Button x:Name="LlamaCppStopButton" Content="STOP OWNED SERVER" Click="LlamaCppStopButton_Click" Padding="10,6" Margin="8,0,0,0" IsEnabled="False" ToolTip="Cancels llama.cpp agent tasks and stops only the server started by this portal"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="Port" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                                <TextBox x:Name="LlamaCppPortText" Text="8080" Width="70" Padding="6" MaxLength="5"/>
+                                <TextBlock Text="Context tokens" VerticalAlignment="Center" Margin="12,0,6,0"/>
+                                <TextBox x:Name="LlamaCppContextText" Text="4096" Width="90" Padding="6" MaxLength="8" ToolTip="Requested context size; actual memory use depends on model, build, and hardware"/>
+                            </StackPanel>
+                        </DockPanel>
+                        <TextBlock Grid.Row="3" x:Name="LlamaCppRuntimeStatusText" Text="Select a portable server and existing GGUF. Start explicitly loads the model in a hidden server process. Only a server started by this portal stops on close; other local servers are preserved." Foreground="#8CA6BC" TextWrapping="Wrap"/>
+                    </Grid>
+                </Border>
+                <DockPanel Grid.Row="2" Margin="0,0,0,12">
+                    <Button x:Name="LlamaCppRefreshButton" DockPanel.Dock="Right" Content="QUERY LOCAL SERVER" Click="LlamaCppRefreshButton_Click" Padding="18,10" Margin="12,0,0,0"/>
+                    <TextBox x:Name="LlamaCppEndpointText" Text="http://127.0.0.1:8080" Padding="10" ToolTip="Loopback HTTP or HTTPS root address of an existing llama-server"/>
+                </DockPanel>
+                <TextBlock Grid.Row="3" x:Name="LlamaCppStatusText" Text="No server queried yet. Connect to an existing local llama.cpp server to read its actual model IDs." Foreground="#8CA6BC" TextWrapping="Wrap" Margin="0,0,0,12"/>
+                <ListBox Grid.Row="4" x:Name="LlamaCppModelList" Background="#111A29" Foreground="#E6F7FF" BorderBrush="#26394E" Padding="10" ScrollViewer.HorizontalScrollBarVisibility="Auto"/>
+                <Expander Grid.Row="5" Header="Owned server output" Foreground="#8CA6BC" Margin="0,8,0,0">
+                    <DockPanel>
+                        <Button x:Name="LlamaCppLogButton" DockPanel.Dock="Top" Content="REFRESH OUTPUT" Click="LlamaCppLogButton_Click" HorizontalAlignment="Left" Padding="8,4" Margin="0,0,0,6"/>
+                        <TextBox x:Name="LlamaCppRuntimeLogText" Height="90" IsReadOnly="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" Background="#111A29" Foreground="#E6F7FF"/>
+                    </DockPanel>
+                </Expander>
+                <TextBlock Grid.Row="6" Text="Query only reads /v1/models. Start loads your selected model; no downloads or global installation occur. Choose an actual returned model ID in Agent Tasks to send a prompt." Foreground="#8CA6BC" TextWrapping="Wrap" Margin="0,8,0,0"/>
+            </Grid>
+        </TabItem>
         <TabItem Header="Ollama Models" Padding="18,10">
             <Grid Margin="18">
                 <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
@@ -342,9 +387,10 @@
                     <TextBlock Text="LOCAL AGENT TASKS" FontSize="24" FontWeight="Bold"/>
                 </DockPanel>
                 <Grid Grid.Row="1" Margin="0,0,0,10">
-                    <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition/></Grid.ColumnDefinitions>
-                    <TextBox x:Name="AgentNameText" Text="Local task" Padding="8" Margin="0,0,12,0" ToolTip="Task name" MaxLength="120"/>
-                    <ComboBox x:Name="AgentModelSelector" Grid.Column="1" Padding="8" SelectionChanged="AgentModelSelector_SelectionChanged" ToolTip="Select a model reported by your local Ollama server"/>
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="150"/><ColumnDefinition/><ColumnDefinition/></Grid.ColumnDefinitions>
+                    <ComboBox x:Name="AgentRuntimeSelector" Padding="8" Margin="0,0,12,0" DisplayMemberPath="Name" SelectionChanged="AgentRuntimeSelector_SelectionChanged" ToolTip="Runtime retained by each queued task"/>
+                    <TextBox x:Name="AgentNameText" Grid.Column="1" Text="Local task" Padding="8" Margin="0,0,12,0" ToolTip="Task name" MaxLength="120"/>
+                    <ComboBox x:Name="AgentModelSelector" Grid.Column="2" Padding="8" SelectionChanged="AgentModelSelector_SelectionChanged" ToolTip="Select an actual model ID reported by the selected local runtime"/>
                 </Grid>
                 <Grid Grid.Row="2" Margin="0,0,0,10">
                     <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition/></Grid.ColumnDefinitions>
@@ -374,6 +420,7 @@
                 <DataGrid Grid.Row="4" x:Name="AgentJobGrid" IsReadOnly="True" AutoGenerateColumns="False" CanUserAddRows="False" SelectionMode="Single" SelectionChanged="AgentJobGrid_SelectionChanged" Background="#111A29" Foreground="#111A29" HeadersVisibility="Column" Margin="0,0,0,10">
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="Task" Binding="{Binding Name}" Width="*"/>
+                        <DataGridTextColumn Header="Runtime" Binding="{Binding Runtime}" Width="Auto"/>
                         <DataGridTextColumn Header="Model" Binding="{Binding Model}" Width="*"/>
                         <DataGridTextColumn Header="State" Binding="{Binding Status}" Width="Auto"/>
                         <DataGridTextColumn Header="Detail" Binding="{Binding Detail}" Width="2*"/>

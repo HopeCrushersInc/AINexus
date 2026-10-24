@@ -38,7 +38,7 @@ public sealed record SoftwareDiscoverySnapshot(
 /// </summary>
 public static class SoftwareDiscovery
 {
-    public const string ScanScope = "Checks PATH, common installation locations, and current-user/machine uninstall registrations. " +
+    public const string ScanScope = "Checks PATH, common installation locations, configured portable runtime folders, and current-user/machine uninstall registrations. " +
         "Portable or custom installations may be missed. Detection does not establish that an application is running or healthy. " +
         "Python Windows Store execution aliases are excluded.";
 
@@ -49,6 +49,7 @@ public static class SoftwareDiscovery
         public bool MatchesRegistration(string name) => Id switch
         {
             "ollama" => MatchesName(name, "Ollama"),
+            "llama-cpp" => MatchesName(name, "llama.cpp"),
             "lm-studio" => MatchesName(name, "LM Studio"),
             "gpt4all" => MatchesName(name, "GPT4All"),
             "jan" => MatchesName(name, "Jan"),
@@ -69,6 +70,8 @@ public static class SoftwareDiscovery
 
     private static readonly Definition[] Catalog =
     [
+        new("llama-cpp", "llama.cpp", "Portable model runtime", ["llama-server.exe", "llama-cli.exe", "llama.exe"],
+            [@"llama.cpp\llama-server.exe", @"Programs\llama.cpp\llama-server.exe"]),
         new("ollama", "Ollama", "Model runtime", ["ollama.exe"], [@"Ollama\ollama.exe", @"Programs\Ollama\ollama.exe"]),
         new("lm-studio", "LM Studio", "AI workspace", ["LM Studio.exe", "lm-studio.exe", "lms.exe"],
             [@"LM Studio\LM Studio.exe", @"Programs\LM Studio\LM Studio.exe", @"LM Studio\lm-studio.exe", @"Programs\LM Studio\lm-studio.exe"]),
@@ -83,8 +86,12 @@ public static class SoftwareDiscovery
         new("git", "Git", "Development dependency", ["git.exe"], [@"Git\cmd\git.exe", @"Git\bin\git.exe", @"Programs\Git\cmd\git.exe"])
     ];
 
-    public static Task<SoftwareDiscoverySnapshot> ScanAsync(CancellationToken cancellationToken = default) =>
-        Task.Run(() => Scan(cancellationToken), cancellationToken);
+    public static Task<SoftwareDiscoverySnapshot> ScanAsync(CancellationToken cancellationToken = default,
+        IEnumerable<string>? additionalSearchDirectories = null)
+    {
+        var extraDirectories = additionalSearchDirectories?.ToArray() ?? [];
+        return Task.Run(() => Scan(cancellationToken, extraDirectories: extraDirectories), cancellationToken);
+    }
 
     internal static SoftwareDiscoverySnapshot ScanLocations(
         IEnumerable<string> searchPathDirectories,
@@ -92,7 +99,7 @@ public static class SoftwareDiscovery
         CancellationToken token = default) => Scan(token, searchPathDirectories.ToArray(), installationRoots.ToArray(), false);
 
     private static SoftwareDiscoverySnapshot Scan(CancellationToken token, string[]? searchPaths = null,
-        string[]? installationRoots = null, bool readRegistry = true)
+        string[]? installationRoots = null, bool readRegistry = true, string[]? extraDirectories = null)
     {
         var warnings = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         var found = Catalog.ToDictionary(definition => definition.Id, _ => new List<SoftwareInstallation>());
@@ -116,6 +123,12 @@ public static class SoftwareDiscovery
             foreach (var root in roots)
             foreach (var relativePath in definition.RelativeLocations)
                 ProbeExecutable(definition, Path.Combine(root, relativePath), "Common installation location", null, found, warnings, token);
+            foreach (var directory in extraDirectories ?? [])
+            {
+                if (!Path.IsPathFullyQualified(directory)) continue;
+                foreach (var executable in definition.Executables)
+                    ProbeExecutable(definition, Path.Combine(directory, executable), "Configured portable runtime folder", null, found, warnings, token);
+            }
         }
 
         // Python versioned directories are bounded to immediate Python* children,

@@ -5,6 +5,10 @@ namespace AINexus.App;
 
 public sealed record PortalSettings(IReadOnlyList<string> ModelRoots, string OllamaEndpoint)
 {
+    public string LlamaCppExecutablePath { get; init; } = "";
+    public string LlamaCppModelPath { get; init; } = "";
+    public string LlamaCppEndpoint { get; init; } = "http://127.0.0.1:8080";
+    public int LlamaCppContextSize { get; init; } = 4096;
     public static PortalSettings Default => new(Array.Empty<string>(), "http://127.0.0.1:11434");
 }
 
@@ -27,9 +31,14 @@ public sealed class PortalSettingsStore(string path)
             if (settings is null || settings.ModelRoots is null || settings.OllamaEndpoint is null || settings.ModelRoots.Count > 64 ||
                 settings.ModelRoots.Any(root => string.IsNullOrWhiteSpace(root) || !Path.IsPathFullyQualified(root)))
                 throw new InvalidDataException("Settings contain invalid model folders or endpoint.");
+            OllamaClient.ValidateEndpoint(new Uri(settings.LlamaCppEndpoint));
+            if (settings.LlamaCppContextSize is < 512 or > 32768 ||
+                (!string.IsNullOrEmpty(settings.LlamaCppExecutablePath) && !Path.IsPathFullyQualified(settings.LlamaCppExecutablePath)) ||
+                (!string.IsNullOrEmpty(settings.LlamaCppModelPath) && !Path.IsPathFullyQualified(settings.LlamaCppModelPath)))
+                throw new InvalidDataException("Portable runtime settings are invalid.");
             return new(settings with { ModelRoots = settings.ModelRoots.Distinct(StringComparer.OrdinalIgnoreCase).ToArray() }, null);
         }
-        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or JsonException or ArgumentException)
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or JsonException or ArgumentException or UriFormatException)
         {
             return new(PortalSettings.Default, $"Settings could not be loaded ({ex.GetType().Name}). Existing settings have been preserved.");
         }

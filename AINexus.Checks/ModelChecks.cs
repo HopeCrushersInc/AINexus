@@ -32,8 +32,17 @@ internal static class ModelChecks
             var settingsPath = Path.Combine(root, "settings.json");
             var store = new PortalSettingsStore(settingsPath);
             check((await store.LoadAsync()).Settings.ModelRoots.Count == 0, "Missing settings produce an empty library");
-            await store.SaveAsync(new([models], "http://127.0.0.1:11434"));
+            await store.SaveAsync(new([models], "http://127.0.0.1:11434")
+            {
+                LlamaCppEndpoint = "http://127.0.0.1:8081", LlamaCppContextSize = 2048,
+                LlamaCppExecutablePath = Path.Combine(root, "llama-server.exe"), LlamaCppModelPath = Path.Combine(models, "fixture.GGUF")
+            });
             check((await store.LoadAsync()).Settings.ModelRoots.Single() == models, "Selected library roots survive a settings round trip");
+            var saved = (await store.LoadAsync()).Settings;
+            check(saved.LlamaCppContextSize == 2048 && saved.LlamaCppEndpoint == "http://127.0.0.1:8081" && saved.LlamaCppExecutablePath.EndsWith("llama-server.exe"),
+                "Portable llama.cpp launch preferences survive a settings round trip");
+            File.WriteAllText(settingsPath, "{\"ModelRoots\":[],\"OllamaEndpoint\":\"http://127.0.0.1:11434\",\"LlamaCppEndpoint\":\"invalid URI\"}");
+            check((await store.LoadAsync()).Warning is not null, "Malformed saved llama.cpp endpoints cannot crash startup");
             File.WriteAllText(settingsPath, "corrupt fixture");
             check((await store.LoadAsync()).Warning is not null && File.ReadAllText(settingsPath) == "corrupt fixture", "Corrupt settings are reported and preserved");
         }

@@ -12,6 +12,7 @@ public partial class MainWindow
     private readonly HttpClient _modelHttp = OllamaClient.CreateLocalHttpClient();
     private bool _libraryBusy;
     private bool _ollamaBusy;
+    private readonly TaskCompletionSource _preferencesReady = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
     private void InitializeModels()
     {
@@ -22,11 +23,18 @@ public partial class MainWindow
                 var loaded = await _settingsStore.LoadAsync(_lifetime.Token);
                 _settings = loaded.Settings;
                 OllamaEndpointText.Text = _settings.OllamaEndpoint;
+                LlamaCppEndpointText.Text = _settings.LlamaCppEndpoint;
+                LlamaCppExecutableText.Text = _settings.LlamaCppExecutablePath;
+                LlamaCppModelPathText.Text = _settings.LlamaCppModelPath;
+                LlamaCppContextText.Text = _settings.LlamaCppContextSize.ToString();
+                LlamaCppPortText.Text = new Uri(_settings.LlamaCppEndpoint).Port.ToString();
+                _preferencesReady.TrySetResult();
                 RefreshLibraryRoots();
                 if (_settings.ModelRoots.Count > 0) await ScanLibraryAsync();
                 if (loaded.Warning is not null) LibraryNoticeText.Text = loaded.Warning;
             }
             catch (OperationCanceledException) when (_lifetime.IsCancellationRequested) { }
+            finally { _preferencesReady.TrySetResult(); }
         };
         Closed += (_, _) => _modelHttp.Dispose();
     }

@@ -3,7 +3,10 @@ using System.Threading.Channels;
 
 namespace AINexus.App;
 
-public sealed record AgentRequest(Guid Id, string Name, Uri Endpoint, string Model, string SystemPrompt, string Prompt, ResourcePolicy Policy);
+public enum LocalGenerationRuntime { Ollama, LlamaCpp }
+
+public sealed record AgentRequest(Guid Id, string Name, Uri Endpoint, string Model, string SystemPrompt, string Prompt,
+    ResourcePolicy Policy, LocalGenerationRuntime Runtime = LocalGenerationRuntime.Ollama);
 public sealed record AgentJobUpdate(Guid Id, string Status, string Detail, string? Response = null);
 
 /// <summary>
@@ -18,7 +21,8 @@ public sealed class AgentScheduler : IAsyncDisposable
     });
     private readonly ConcurrentDictionary<Guid, CancellationTokenSource> _jobs = new();
     private readonly CancellationTokenSource _lifetime = new();
-    private readonly OllamaGenerationClient _client;
+    private readonly ILocalGenerationClient _client;
+    private readonly ILocalGenerationClient? _llamaCppClient;
     private readonly Func<CancellationToken, Task<ResourceSnapshot>> _sample;
     private readonly Task _worker;
     private readonly object _stateGate = new();
@@ -26,9 +30,11 @@ public sealed class AgentScheduler : IAsyncDisposable
 
     public event Action<AgentJobUpdate>? Updated;
 
-    public AgentScheduler(OllamaGenerationClient client, Func<CancellationToken, Task<ResourceSnapshot>> sample)
+    public AgentScheduler(ILocalGenerationClient client, Func<CancellationToken, Task<ResourceSnapshot>> sample,
+        ILocalGenerationClient? llamaCppClient = null)
     {
         _client = client;
+        _llamaCppClient = llamaCppClient;
         _sample = sample;
         _worker = Task.Run(ProcessQueueAsync);
     }
@@ -39,6 +45,9 @@ public sealed class AgentScheduler : IAsyncDisposable
         lock (_stateGate)
         {
         if (Volatile.Read(ref _disposed) != 0) return false;
+        if (request.Runtime is not (LocalGenerationRuntime.Ollama or LocalGenerationRuntime.LlamaCpp)
+            || request.Runtime == LocalGenerationRuntime.LlamaCpp && _llamaCppClient is null)
+            throw new ArgumentException("The requested local runtime is not configured.", nameof(request));
         OllamaClient.ValidateEndpoint(request.Endpoint);
         if (string.IsNullOrWhiteSpace(request.Name) || string.IsNullOrWhiteSpace(request.Model) || string.IsNullOrWhiteSpace(request.Prompt))
             throw new ArgumentException("Task name, actual model name, and prompt are required.");
@@ -77,7 +86,8 @@ public sealed class AgentScheduler : IAsyncDisposable
                     continue;
                 }
                 Publish(new(request.Id, "Running", "Local generation request in progress. Resource policy is an admission check, not an OS quota."));
-                var response = await _client.GenerateAsync(request.Endpoint, request.Model, request.SystemPrompt, request.Prompt, cancellation.Token);
+                var runtime = request.Runtime == LocalGenerationRuntime.LlamaCpp ? _llamaCppClient! : _client;
+                var response = await runtime.GenerateAsync(request.Endpoint, request.Model, request.SystemPrompt, request.Prompt, cancellation.Token);
                 cancellation.Token.ThrowIfCancellationRequested();
                 Publish(new(request.Id, "Completed", "Local server reported completed generation.", response));
             }

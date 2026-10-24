@@ -21,9 +21,12 @@ internal static class Program
             CheckProcessExecution().GetAwaiter().GetResult();
             ModelChecks.RunAsync(Check).GetAwaiter().GetResult();
             AgentChecks.RunAsync(Check).GetAwaiter().GetResult();
+            LlamaCppChecks.RunAsync(Check).GetAwaiter().GetResult();
+            LlamaServerChecks.RunAsync(Check).GetAwaiter().GetResult();
             EmbeddedChecks.RunPolicy(Check);
-            CheckWindow(args.Contains("--embedded-live"));
+            CheckWindow(args);
             if (args.Contains("--live")) CheckLiveDiscovery().GetAwaiter().GetResult();
+            if (args.Contains("--llama-live")) CheckLiveLlamaCpp().GetAwaiter().GetResult();
             Console.WriteLine($"PASS: {_checks} checks.");
             return 0;
         }
@@ -41,16 +44,22 @@ internal static class Program
         try
         {
             var empty = SoftwareDiscovery.ScanLocations([], [root]);
-            Check(empty.Applications.Count == 8, "Catalog includes supported runtimes and dependencies");
+            Check(empty.Applications.Count == 9, "Catalog includes supported runtimes and dependencies");
             Check(empty.Applications.All(app => !app.IsDetected), "Empty locations do not fabricate installations");
 
             // Fixtures deliberately are not valid programs. Discovery must inspect files without executing them.
             File.WriteAllText(Path.Combine(root, "ollama.exe"), "Discovery fixture - never execute");
+            File.WriteAllText(Path.Combine(root, "llama-server.exe"), "Portable runtime discovery fixture - never execute");
             var scan = SoftwareDiscovery.ScanLocations([root, root.ToUpperInvariant()], [root]);
             var ollama = scan.Applications.Single(app => app.Id == "ollama");
             Check(ollama.IsInstalled, "PATH executable is detected");
             Check(ollama.Installations.Count == 1, "Duplicate paths collapse case-insensitively");
             Check(ollama.Version == "Version unavailable", "Missing version metadata stays unknown");
+            Check(scan.Applications.Single(app => app.Id == "llama-cpp").IsInstalled, "Portable llama.cpp executables are discovered without launching them");
+            var configured = SoftwareDiscovery.ScanAsync(additionalSearchDirectories: [root]).GetAwaiter().GetResult();
+            Check(configured.Applications.Single(app => app.Id == "llama-cpp").Installations.Any(installation =>
+                installation.ExecutablePath == Path.Combine(root, "llama-server.exe") && installation.Source.Contains("Configured portable")),
+                "Selected portable runtime folders supply explicit installation evidence without changing PATH");
 
             var common = Path.Combine(root, "Programs", "LM Studio");
             Directory.CreateDirectory(common);
@@ -82,7 +91,7 @@ internal static class Program
         }
     }
 
-    private static void CheckWindow(bool embeddedLive)
+    private static void CheckWindow(string[] args)
     {
         var app = new Application { ShutdownMode = ShutdownMode.OnExplicitShutdown };
         var window = new MainWindow();
@@ -100,7 +109,23 @@ internal static class Program
         window.RenderResources(new(DateTimeOffset.Now, null, null, null, [], ["Fixture: telemetry unavailable"], "Fixture scope"));
         Check(((TextBlock)window.FindName("MemoryUsageText")).Text == "Unavailable", "Unknown memory renders honestly");
         Check(!((Button)window.FindName("AgentEnqueueButton")).IsEnabled, "Agent submission requires discovery and an explicitly selected model");
-        if (embeddedLive) EmbeddedChecks.RunLive(window, Check);
+        Check(window.FindName("LlamaCppModelList") is ItemsControl, "llama.cpp model inventory XAML loads");
+        window.RenderLlamaCppModels(["fixture-llama-model"], new("http://127.0.0.1:8080"));
+        var models = (ComboBox)window.FindName("AgentModelSelector");
+        Check(models.Items.Count == 1 && models.SelectedIndex == -1, "llama.cpp catalog requires explicit model selection");
+        models.SelectedIndex = 0;
+        Check(((Button)window.FindName("AgentEnqueueButton")).IsEnabled, "Actual catalog model selection enables llama.cpp task submission");
+        ((ComboBox)window.FindName("AgentRuntimeSelector")).SelectedIndex = 1;
+        Check(models.SelectedIndex == -1 && !((Button)window.FindName("AgentEnqueueButton")).IsEnabled,
+            "Changing runtime clears model selection and cannot reuse another backend's catalog");
+        var uiIndex = Array.IndexOf(args, "--llama-ui-live");
+        if (uiIndex >= 0)
+        {
+            if (uiIndex + 2 >= args.Length) throw new ArgumentException("--llama-ui-live requires an executable path and a model path.");
+            LlamaCppUiChecks.Run(window, args[uiIndex + 1], args[uiIndex + 2], Check);
+        }
+        if (args.Contains("--embedded-live")) EmbeddedChecks.RunLive(window, Check);
+        if (uiIndex >= 0) LlamaCppUiChecks.RunCloseCleanup(window, Check);
         window.Close();
         app.Shutdown();
     }
@@ -215,5 +240,15 @@ internal static class Program
         if (!condition) throw new InvalidOperationException($"FAIL: {name}");
         _checks++;
         Console.WriteLine($"PASS: {name}");
+    }
+
+    private static async Task CheckLiveLlamaCpp()
+    {
+        // Explicit live flag only. Derive the model ID from the server rather than embedding one in tests.
+        var endpoint = new Uri("http://127.0.0.1:8080");
+        using var http = OllamaClient.CreateLocalHttpClient();
+        var models = await new LlamaCppClient(http).GetModelsAsync(endpoint);
+        if (models.Count != 1) throw new InvalidOperationException("The live smoke test requires one explicitly loaded model.");
+        await LlamaCppChecks.RunLiveAsync(endpoint, models[0], Check);
     }
 }

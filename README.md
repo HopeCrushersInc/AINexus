@@ -5,7 +5,7 @@ A native C# .NET 8 WPF dashboard for local AI tooling on Windows.
 ## Current capabilities
 
 - Hardware discovery: actual CPU, installed RAM, graphics adapters, and fixed-drive capacity/free space. NVIDIA VRAM comes from the installed driver utility; unsupported VRAM remains unavailable.
-- AI software discovery: Ollama, LM Studio, GPT4All, Jan, AnythingLLM, Docker tooling, Python, and Git.
+- AI software discovery: llama.cpp, Ollama, LM Studio, GPT4All, Jan, AnythingLLM, Docker tooling, Python, and Git. Configured portable runtime folders are inspected without changing PATH.
 - Read-only software checks inspect PATH, common installation directories, and Windows uninstall registrations. Each result distinguishes an executable found from registration-only evidence and includes location/version when available.
 - Independent rescan actions with cancellation on window close.
 - Live CPU and physical RAM usage from Windows counters, with NVIDIA utilization and VRAM telemetry where supported. Monitoring pauses while disabled, hidden, or minimized; the first CPU sample remains unknown until an interval is available.
@@ -13,13 +13,14 @@ A native C# .NET 8 WPF dashboard for local AI tooling on Windows.
 - Model file library: selected folders are indexed for GGUF, SafeTensors, and ONNX metadata. Whole-drive roots and symbolic links are skipped; traversal is bounded. Removing a tracked folder does not delete its files. Shards are separate file entries rather than invented logical models.
 - Existing local Ollama servers can be queried for available and loaded models using the official [tags](https://docs.ollama.com/api/tags) and [ps](https://docs.ollama.com/api/ps) endpoints. Queries accept loopback addresses only and preserve partial failures. Empty lists and unavailable endpoints are distinct states.
 - Embedded local application interfaces use the WPF WebView2 control. Enter an existing loopback web-interface address to open it inside the portal. No server or external browser is started. Navigation and intercepted resources are restricted to the selected origin; downloads and popups are blocked. This is not an operating-system network sandbox, and applications needing external authentication/assets may not work with these restrictions.
-- Local agent tasks send actual requests to an existing Ollama model selected from its inventory. Tasks run serially with queued/running cancellation, truthful error states, and configurable CPU/RAM/optional NVIDIA VRAM admission checks. This is a local generation task queue, without tool execution or inter-agent dependency workflows.
+- Portable llama.cpp runtime controls select an existing executable/GGUF, start a hidden loopback server, wait for health, and stop only portal-owned processes. Closing the portal stops a portal-owned server; external servers remain untouched. No runtime starts automatically.
+- Local agent tasks send actual requests to a llama.cpp or Ollama model selected from its server's inventory. One serial queue captures each task's backend, endpoint, and model. Tasks support cancellation, truthful failure states, and configurable CPU/RAM/optional NVIDIA VRAM admission checks. This is a local generation task queue, without tool execution or inter-agent dependency workflows. llama.cpp currently uses a 128-token output policy; truncation is reported explicitly.
 
 Discovery does not launch discovered applications, install software, or contact remote services. A missing result means no evidence was found in the locations checked; arbitrary portable/custom installations may be missed. Discovery does not establish runtime health. Python Windows Store execution aliases are excluded.
 
 Package review explicitly contacts the WinGet community source. Installation/update requires reviewing the package and accepting agreements in the installer tab. Operations target one exact catalog package, use user scope and silent mode, and preserve WinGet security checks; dependencies are not installed automatically. Active installers cannot be cancelled by closing the portal. Completed operation results are saved under `%LOCALAPPDATA%/AINexus/Logs`. No applications are installed automatically at portal startup. Actual installation has not been exercised as part of automated checks.
 
-Selected model roots and the local Ollama endpoint are saved to `%LOCALAPPDATA%/AINexus/settings.json`. No folders are indexed until selected. The Ollama tab queries only when requested and never starts a server, downloads models, or performs inference. Model file extensions do not validate file contents or compatibility. Available-model disk size, loaded memory size, and VRAM usage are displayed as distinct values.
+Selected model roots, runtime paths, context policy, and local server endpoints are saved to `%LOCALAPPDATA%/AINexus/settings.json`. No folders are indexed until selected/configured. Model inventory queries do not generate text or download weights. Model file extensions do not validate file contents or compatibility. Available-model disk size, loaded memory size, and VRAM usage are displayed as distinct values.
 
 The Agent Tasks tab performs inference only when a task is explicitly queued. Resource admission uses actual samples before a request; thresholds are user policy choices, not hardware specifications or model-fit estimates. Admission checks do not impose OS quotas or reserve memory, and server-side processing may continue after an HTTP request is cancelled. Prompts and replies are held in session memory, never written by the portal to logs. The local model server controls its own logging and retention.
 
@@ -36,11 +37,12 @@ dotnet build AINexus.App/AINexus.App.csproj --configuration Release
 dotnet run --project AINexus.Checks/AINexus.Checks.csproj --configuration Release
 dotnet run --project AINexus.Checks/AINexus.Checks.csproj --configuration Release -- --live
 dotnet run --project AINexus.Checks/AINexus.Checks.csproj --configuration Release -- --live --embedded-live
+dotnet run --project AINexus.Checks/AINexus.Checks.csproj --configuration Release -- --llama-live
 ```
 
 The checks use a small console harness without a separate test framework. Default checks exercise deterministic fixtures, HTTP behavior, resource policies, task scheduling, and WPF XAML loading without showing a window. `--live` adds actual local software/hardware readings. `--embedded-live` additionally initializes the installed WebView2 runtime in an invisible WPF window, renders an ephemeral loopback test document, and verifies navigation/resource restrictions. Build output is under `AINexus.App/bin/Release/net8.0-windows`.
 
-Generation HTTP and scheduling are validated with explicit test fixtures. Live model inference still requires a running local Ollama server with a chosen model; the default endpoint was unavailable during restoration. Automated checks do not install applications or download model weights. See [DEVELOPMENT.md](DEVELOPMENT.md) for the current scope and remaining work.
+Generation HTTP and scheduling are validated with explicit test fixtures. Opt-in live checks also passed against the portable llama.cpp runtime and real Qwen GGUF, including native Start/Stop, task generation, ownership isolation, close cleanup, and the actual embedded server UI. Automated checks do not install applications or download weights. See [portable setup](docs/llama-cpp-setup.md) for workstation paths, commands, provenance, and live validation flags; see [DEVELOPMENT.md](DEVELOPMENT.md) for remaining work.
 
 ## Incremental roadmap
 

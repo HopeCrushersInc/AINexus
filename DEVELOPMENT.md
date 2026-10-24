@@ -11,6 +11,7 @@ The restored Phase 1 hardware dashboard remains native .NET 8 WPF. Subsequent lo
 5. Selected-folder model metadata indexing and existing Ollama model inventories.
 6. Embedded loopback application interfaces using WPF WebView2.
 7. Serial local agent generation tasks gated by actual resource admission readings.
+8. Portable llama.cpp model discovery, chat generation, native owned-server Start/Stop/close cleanup, and saved launch preferences.
 
 No code executes generated model output. No model files are deleted or relocated. No packages or model weights are installed automatically. All development commits remain local.
 
@@ -20,11 +21,13 @@ No code executes generated model output. No model files are deleted or relocated
 - Deterministic regression checks cover hardware parsing/merging, subprocess deadlines/cancellation, software discovery, model indexing/settings, HTTP limits/failure states, resource admission, serial scheduling, and cancellation/recovery.
 - Live checks read the restored workstation's actual hardware and software, initialize the installed WebView2 runtime, render a loopback fixture, and block off-origin fixture requests/navigation.
 - WinGet package metadata was queried successfully without installing or updating applications.
-- Actual application installer execution and real model inference have not been exercised.
+- Real llama.cpp inference passed through both the C# client/scheduler and native WPF task controls; the model generated `Portal ready.`.
+- Native hidden-server startup, health, model discovery, Stop, ownership isolation, and window-close cleanup passed against the selected real runtime/model. The actual llama.cpp web UI rendered in WebView2 without script errors.
+- Actual WinGet application installer execution remains untested; Ollama was not installed.
 
-## Dependency checkpoint
+## Resolved runtime checkpoint
 
-No Ollama server responds at `http://127.0.0.1:11434`. To validate generation against actual model weights, select an existing local server/model or choose a runtime/model installation. The runtime/model choice determines downloads, storage use, license terms, and host changes beyond this repository. A local AI web interface address is likewise required to validate embedding an actual AI frontend; the embedded browser itself has passed runtime checks.
+The user selected portable llama.cpp in place of an Ollama installation. Verified upstream CUDA binaries and an official Apache-2.0 Qwen2.5-1.5B-Instruct Q4_K_M model are under `F:\AINexus`, outside Git. The local server and embedded frontend use loopback port 8080. No persistent PATH/startup/service changes were made. See [setup and provenance](docs/llama-cpp-setup.md). Ollama remains an optional supported adapter.
 
 ## Remaining product work
 
@@ -33,4 +36,4 @@ No Ollama server responds at `http://127.0.0.1:11434`. To validate generation ag
 - Richer model library organization and metadata validation. Current file extensions are descriptive only; model shards are individual files.
 - More GPU vendors and resource policies. Current governance is admission control, not OS-enforced CPU/RAM/VRAM quotas or memory reservation.
 - Multi-step inter-agent workflows and durable task histories, with deliberate data retention controls. Current tasks are serial local generation requests with no tools or host permissions.
-- Real-runtime integration validation after the dependency checkpoint is resolved.
+- Broader real-model/runtime compatibility and load testing beyond the short generation smoke tests.

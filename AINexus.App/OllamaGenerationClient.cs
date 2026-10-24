@@ -12,7 +12,7 @@ namespace AINexus.App;
 /// Canceling stops the HTTP request; it does not guarantee that the server unloads a model
 /// or immediately releases its resources. Prompts and responses are never logged here.
 /// </summary>
-public sealed class OllamaGenerationClient
+public sealed class OllamaGenerationClient : ILocalGenerationClient
 {
     internal const int MaximumResponseBytes = 8 * 1024 * 1024;
     private readonly HttpClient _client;

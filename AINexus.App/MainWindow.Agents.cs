@@ -12,11 +12,24 @@ public partial class MainWindow
     private readonly HttpClient _agentHttp = OllamaClient.CreateLocalHttpClient();
     private AgentScheduler? _agents;
     private Uri? _agentEndpoint;
+    private readonly Dictionary<LocalGenerationRuntime, (Uri Endpoint, string[] Models)> _agentModelCatalogs = [];
+    private const int LlamaCppTaskOutputTokens = 128;
+
+    private sealed record AgentRuntimeChoice(LocalGenerationRuntime Runtime, string Name);
+    private LocalGenerationRuntime SelectedAgentRuntime =>
+        (AgentRuntimeSelector.SelectedItem as AgentRuntimeChoice)?.Runtime ?? LocalGenerationRuntime.LlamaCpp;
 
     private void InitializeAgents()
     {
         var monitor = new ResourceMonitor();
-        _agents = new AgentScheduler(new OllamaGenerationClient(_agentHttp), monitor.SampleAsync);
+        _agents = new AgentScheduler(new OllamaGenerationClient(_agentHttp), monitor.SampleAsync,
+            new LlamaCppClient(_agentHttp, LlamaCppTaskOutputTokens));
+        AgentRuntimeSelector.ItemsSource = new[]
+        {
+            new AgentRuntimeChoice(LocalGenerationRuntime.LlamaCpp, "llama.cpp"),
+            new AgentRuntimeChoice(LocalGenerationRuntime.Ollama, "Ollama")
+        };
+        AgentRuntimeSelector.SelectedIndex = 0;
         AgentJobGrid.ItemsSource = _agentRows;
         _agents.Updated += update =>
         {
@@ -38,13 +51,41 @@ public partial class MainWindow
 
     private void UpdateAgentModels(OllamaSnapshot snapshot, Uri endpoint)
     {
-        _agentEndpoint = snapshot.AvailableModelsSucceeded ? endpoint : null;
-        AgentModelSelector.ItemsSource = snapshot.AvailableModelsSucceeded
-            ? snapshot.AvailableModels.Select(model => model.Name).Distinct().Order().ToArray() : Array.Empty<string>();
+        SetAgentModelCatalog(LocalGenerationRuntime.Ollama, endpoint, snapshot.AvailableModelsSucceeded
+            ? snapshot.AvailableModels.Select(model => model.Name).Distinct().Order().ToArray() : null);
+    }
+
+    private void SetAgentModelCatalog(LocalGenerationRuntime runtime, Uri endpoint, string[]? models)
+    {
+        if (models is null) _agentModelCatalogs.Remove(runtime);
+        else _agentModelCatalogs[runtime] = (endpoint, models);
+        if (SelectedAgentRuntime == runtime) RenderAgentModelCatalog();
+    }
+
+    private void AgentRuntimeSelector_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (AgentModelSelector is not null && AgentStatusText is not null) RenderAgentModelCatalog();
+    }
+
+    private void RenderAgentModelCatalog()
+    {
+        var name = SelectedAgentRuntime == LocalGenerationRuntime.LlamaCpp ? "llama.cpp" : "Ollama";
+        _agentEndpoint = null;
         AgentModelSelector.SelectedIndex = -1;
-        AgentStatusText.Text = snapshot.AvailableModelsSucceeded
-            ? $"{snapshot.AvailableModels.Count} models reported by {endpoint.GetLeftPart(UriPartial.Authority)}. Select one explicitly. Admission checks apply to each task; no OS quotas are imposed."
-            : "Model discovery is unavailable. An existing local Ollama server and an installed model are required for generation.";
+        if (_agentModelCatalogs.TryGetValue(SelectedAgentRuntime, out var catalog))
+        {
+            _agentEndpoint = catalog.Endpoint;
+            AgentModelSelector.ItemsSource = catalog.Models;
+            AgentStatusText.Text = $"{catalog.Models.Length} model IDs last reported by {name} at {catalog.Endpoint.GetLeftPart(UriPartial.Authority)}. Select one explicitly. Queued tasks retain their original runtime and endpoint.";
+            if (SelectedAgentRuntime == LocalGenerationRuntime.LlamaCpp)
+                AgentStatusText.Text += $" Output is limited to {LlamaCppTaskOutputTokens} tokens; truncation is reported as a task failure.";
+        }
+        else
+        {
+            AgentModelSelector.ItemsSource = Array.Empty<string>();
+            AgentStatusText.Text = $"Query your existing local {name} server to select an actual model ID. The portal does not start a server or load a model.";
+        }
+        AgentEnqueueButton.IsEnabled = false;
     }
 
     private void AgentModelSelector_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -52,7 +93,11 @@ public partial class MainWindow
         if (AgentEnqueueButton is not null) AgentEnqueueButton.IsEnabled = _agentEndpoint is not null && AgentModelSelector.SelectedItem is string;
     }
 
-    private void AgentRefreshModelsButton_Click(object sender, RoutedEventArgs e) => OllamaRefreshButton_Click(sender, e);
+    private async void AgentRefreshModelsButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (SelectedAgentRuntime == LocalGenerationRuntime.LlamaCpp) await QueryLlamaCppAsync();
+        else OllamaRefreshButton_Click(sender, e);
+    }
 
     private void AgentEnqueueButton_Click(object sender, RoutedEventArgs e)
     {
@@ -69,8 +114,8 @@ public partial class MainWindow
             return;
         }
         var request = new AgentRequest(Guid.NewGuid(), AgentNameText.Text.Trim(), _agentEndpoint, model,
-            AgentSystemText.Text, AgentPromptText.Text, new ResourcePolicy(ram, cpu, vram));
-        var row = new AgentRow(request.Id, request.Name, model);
+            AgentSystemText.Text, AgentPromptText.Text, new ResourcePolicy(ram, cpu, vram), SelectedAgentRuntime);
+        var row = new AgentRow(request.Id, request.Name, model, request.Runtime == LocalGenerationRuntime.LlamaCpp ? "llama.cpp" : "Ollama");
         _agentRows.Add(row);
         try
         {
@@ -82,6 +127,8 @@ public partial class MainWindow
             }
             AgentJobGrid.SelectedItem = row;
             AgentStatusText.Text = "Task queued. Requests run one at a time after actual resource readings pass the selected policy. Model loading can use additional resources beyond this admission check.";
+            if (request.Runtime == LocalGenerationRuntime.LlamaCpp)
+                AgentStatusText.Text += $" llama.cpp output limit: {LlamaCppTaskOutputTokens} tokens; truncated replies are reported as failures.";
         }
         catch (ArgumentException ex)
         {
@@ -96,6 +143,12 @@ public partial class MainWindow
             AgentStatusText.Text = "Cancellation requested. A local server may continue processing until it observes disconnection.";
     }
 
+    private void CancelLlamaCppAgentTasks()
+    {
+        foreach (var row in _agentRows.Where(row => row.Runtime == "llama.cpp"))
+            _agents?.Cancel(row.Id);
+    }
+
     private void AgentJobGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         if (AgentJobGrid.SelectedItem is AgentRow row) DisplayAgentOutput(row);
@@ -103,11 +156,12 @@ public partial class MainWindow
 
     private void DisplayAgentOutput(AgentRow row) => AgentOutputText.Text = row.Response ?? $"{row.Status}: {row.Detail}";
 
-    private sealed class AgentRow(Guid id, string name, string model) : INotifyPropertyChanged
+    private sealed class AgentRow(Guid id, string name, string model, string runtime) : INotifyPropertyChanged
     {
         public Guid Id { get; } = id;
         public string Name { get; } = name;
         public string Model { get; } = model;
+        public string Runtime { get; } = runtime;
         public string Status { get; private set; } = "Queued";
         public string Detail { get; private set; } = "Waiting for the preceding task.";
         public string? Response { get; private set; }

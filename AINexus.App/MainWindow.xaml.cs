@@ -17,6 +17,7 @@ public partial class MainWindow : Window
         InitializeModels();
         InitializeEmbeddedApps();
         InitializeAgents();
+        InitializeLlamaCppLifecycle();
         Loaded += async (_, _) => await Task.WhenAll(ScanHardwareAsync(), ScanSoftwareAsync());
         Closed += (_, _) => _lifetime.Cancel();
     }
@@ -86,7 +87,11 @@ public partial class MainWindow : Window
         SoftwareStatusText.Text = "Scanning local installations...";
         try
         {
-            var snapshot = await SoftwareDiscovery.ScanAsync(_lifetime.Token);
+            await _preferencesReady.Task.WaitAsync(_lifetime.Token);
+            var runtimeDirectory = string.IsNullOrEmpty(_settings.LlamaCppExecutablePath)
+                ? null : System.IO.Path.GetDirectoryName(_settings.LlamaCppExecutablePath);
+            var snapshot = await SoftwareDiscovery.ScanAsync(_lifetime.Token,
+                runtimeDirectory is null ? [] : [runtimeDirectory]);
             if (_lifetime.IsCancellationRequested) return;
             SoftwareList.ItemsSource = snapshot.Applications;
             SoftwareStatusText.Text = $"{snapshot.Applications.Count(app => app.IsDetected)} of {snapshot.Applications.Count} supported tools detected - {snapshot.ScannedAt.ToLocalTime():HH:mm:ss}";

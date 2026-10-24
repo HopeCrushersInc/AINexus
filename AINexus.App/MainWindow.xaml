@@ -1,7 +1,7 @@
-﻿<Window x:Class="AINexus.App.MainWindow"
+<Window x:Class="AINexus.App.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="AI Nexus | Hardware Overview" Height="820" Width="1280"
+        Title="AI Nexus Portal" Height="820" Width="1280"
         MinHeight="650" MinWidth="950" Background="#090D16" Foreground="#E6F7FF"
         FontFamily="Consolas" WindowStartupLocation="CenterScreen">
     <Window.Resources>
@@ -26,8 +26,32 @@
             <Setter Property="FontSize" Value="20"/>
             <Setter Property="TextWrapping" Value="Wrap"/>
         </Style>
+        <Style TargetType="TabItem">
+            <Setter Property="Foreground" Value="#8CA6BC"/>
+            <Setter Property="Background" Value="#111A29"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TabItem">
+                        <Border Background="{TemplateBinding Background}" BorderBrush="#315A6D" BorderThickness="1" Padding="{TemplateBinding Padding}" Margin="0,0,6,0">
+                            <ContentPresenter ContentSource="Header" RecognizesAccessKey="True"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter Property="Foreground" Value="#4DEBFF"/>
+                                <Setter Property="Background" Value="#153443"/>
+                            </Trigger>
+                            <Trigger Property="IsKeyboardFocused" Value="True">
+                                <Setter Property="Foreground" Value="White"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </Window.Resources>
-    <Grid Margin="26">
+    <TabControl Margin="12" Background="#090D16" Foreground="#E6F7FF" BorderBrush="#26394E">
+        <TabItem Header="Hardware" Padding="18,10">
+    <Grid Margin="18">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
@@ -38,11 +62,11 @@
             <StackPanel>
                 <TextBlock Text="AI NEXUS" FontSize="13" Foreground="#4DEBFF" FontWeight="Bold"/>
                 <TextBlock Text="SYSTEM OVERVIEW" FontSize="28" FontWeight="Bold" Margin="0,5,0,0"/>
-                <TextBlock Text="Live machine profile Â· local AI readiness" Foreground="#8CA6BC" Margin="0,5,0,0"/>
+                <TextBlock Text="Live machine profile - local AI readiness" Foreground="#8CA6BC" Margin="0,5,0,0"/>
             </StackPanel>
             <StackPanel DockPanel.Dock="Right" HorizontalAlignment="Right" VerticalAlignment="Center">
                 <TextBlock Text="PHASE 01 / HARDWARE DISCOVERY" Foreground="#4DEBFF" HorizontalAlignment="Right"/>
-                <TextBlock x:Name="ScanStatusText" Text="INITIALIZING SCANâ€¦" Foreground="#8CA6BC" Margin="0,8,0,0" HorizontalAlignment="Right"/>
+                <TextBlock x:Name="ScanStatusText" Text="INITIALIZING SCAN..." Foreground="#8CA6BC" Margin="0,8,0,0" HorizontalAlignment="Right"/>
             </StackPanel>
         </DockPanel>
         <Grid Grid.Row="1" Margin="0,0,0,4">
@@ -50,21 +74,21 @@
             <Border Grid.Column="0" Style="{StaticResource PanelStyle}">
                 <StackPanel>
                     <TextBlock Text="PROCESSOR" Style="{StaticResource MetricLabelStyle}"/>
-                    <TextBlock x:Name="CpuText" Text="Scanningâ€¦" Style="{StaticResource MetricValueStyle}"/>
+                    <TextBlock x:Name="CpuText" Text="Scanning..." Style="{StaticResource MetricValueStyle}"/>
                     <TextBlock Text="Detected via Windows CIM" Foreground="#71889B" FontSize="11" Margin="0,10,0,0"/>
                 </StackPanel>
             </Border>
             <Border Grid.Column="1" Style="{StaticResource PanelStyle}">
                 <StackPanel>
                     <TextBlock Text="SYSTEM MEMORY" Style="{StaticResource MetricLabelStyle}"/>
-                    <TextBlock x:Name="RamText" Text="Scanningâ€¦" Style="{StaticResource MetricValueStyle}"/>
+                    <TextBlock x:Name="RamText" Text="Scanning..." Style="{StaticResource MetricValueStyle}"/>
                     <TextBlock Text="Installed physical RAM" Foreground="#71889B" FontSize="11" Margin="0,10,0,0"/>
                 </StackPanel>
             </Border>
             <Border Grid.Column="2" Style="{StaticResource PanelStyle}" Margin="0,0,0,14">
                 <StackPanel>
                     <TextBlock Text="GRAPHICS ADAPTERS" Style="{StaticResource MetricLabelStyle}"/>
-                    <TextBlock x:Name="GpuCountText" Text="Scanningâ€¦" Style="{StaticResource MetricValueStyle}"/>
+                    <TextBlock x:Name="GpuCountText" Text="Scanning..." Style="{StaticResource MetricValueStyle}"/>
                     <TextBlock Text="VRAM reported when available" Foreground="#71889B" FontSize="11" Margin="0,10,0,0"/>
                 </StackPanel>
             </Border>
@@ -114,8 +138,49 @@
         </Grid>
         <DockPanel Grid.Row="3" Margin="0,8,0,0">
             <TextBlock x:Name="NoticeText" Text="Hardware discovery runs locally on this machine." Foreground="#71889B" TextWrapping="Wrap" VerticalAlignment="Center"/>
-            <Button DockPanel.Dock="Right" Content="RESCAN HARDWARE" Click="RescanButton_Click" Padding="18,10" Background="#153443" Foreground="#4DEBFF" BorderBrush="#315A6D" FontFamily="Consolas" Cursor="Hand"/>
+            <Button x:Name="HardwareRescanButton" DockPanel.Dock="Right" Content="RESCAN HARDWARE" Click="RescanButton_Click" Padding="18,10" Background="#153443" Foreground="#4DEBFF" BorderBrush="#315A6D" FontFamily="Consolas" Cursor="Hand"/>
         </DockPanel>
     </Grid>
+        </TabItem>
+        <TabItem Header="AI Software" Padding="18,10">
+            <Grid Margin="18">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <DockPanel Margin="0,0,0,16" LastChildFill="True">
+                    <Button x:Name="SoftwareRescanButton" DockPanel.Dock="Right" Content="RESCAN SOFTWARE" Click="SoftwareRescanButton_Click" Padding="18,10" Background="#153443" Foreground="#4DEBFF" BorderBrush="#315A6D"/>
+                    <StackPanel>
+                        <TextBlock Text="AI SOFTWARE DISCOVERY" FontSize="24" FontWeight="Bold" Foreground="#E6F7FF"/>
+                        <TextBlock x:Name="SoftwareStatusText" Text="Waiting for discovery" Foreground="#8CA6BC" Margin="0,8,0,0"/>
+                    </StackPanel>
+                </DockPanel>
+                <TextBlock Grid.Row="1" x:Name="SoftwareScopeText" Text="Checking registered installations and known executable locations." TextWrapping="Wrap" Foreground="#8CA6BC" Margin="0,0,0,16"/>
+                <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                    <ItemsControl x:Name="SoftwareList">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Style="{StaticResource PanelStyle}" Margin="0,0,0,12">
+                                    <StackPanel>
+                                        <DockPanel>
+                                            <TextBlock Text="{Binding Status}" DockPanel.Dock="Right" Foreground="#4DEBFF" Margin="16,0,0,0"/>
+                                            <TextBlock Text="{Binding Name}" FontSize="18" FontWeight="Bold" Foreground="#E6F7FF"/>
+                                        </DockPanel>
+                                        <TextBlock Text="{Binding Category}" Foreground="#8CA6BC" Margin="0,5,0,0"/>
+                                        <TextBlock Text="{Binding Version, StringFormat=Version: {0}}" Foreground="#8CA6BC" Margin="0,8,0,0"/>
+                                        <TextBlock Text="{Binding Location}" TextWrapping="Wrap" Foreground="#E6F7FF" Margin="0,5,0,0"/>
+                                        <TextBlock Text="{Binding Evidence}" TextWrapping="Wrap" Foreground="#8CA6BC" Margin="0,5,0,0"/>
+                                    </StackPanel>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+                <TextBlock Grid.Row="3" x:Name="SoftwareNoticeText" Text="Discovery is read-only. Tools are not launched or installed." TextWrapping="Wrap" Foreground="#8CA6BC" Margin="0,12,0,0"/>
+            </Grid>
+        </TabItem>
+    </TabControl>
 </Window>
 

@@ -181,6 +181,86 @@
                 <TextBlock Grid.Row="3" x:Name="SoftwareNoticeText" Text="Discovery is read-only. Tools are not launched or installed." TextWrapping="Wrap" Foreground="#8CA6BC" Margin="0,12,0,0"/>
             </Grid>
         </TabItem>
+        <TabItem Header="Live Resources" Padding="18,10">
+            <Grid Margin="18">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <DockPanel Margin="0,0,0,20">
+                    <CheckBox x:Name="MonitoringEnabled" DockPanel.Dock="Right" Content="Live monitoring" IsChecked="True" Foreground="#E6F7FF" VerticalAlignment="Center"/>
+                    <StackPanel>
+                        <TextBlock Text="LIVE RESOURCE USAGE" FontSize="24" FontWeight="Bold"/>
+                        <TextBlock x:Name="ResourceStatusText" Text="Waiting for first sample" Foreground="#8CA6BC" Margin="0,8,0,0"/>
+                    </StackPanel>
+                </DockPanel>
+                <UniformGrid Grid.Row="1" Columns="2">
+                    <Border Style="{StaticResource PanelStyle}">
+                        <StackPanel>
+                            <TextBlock Text="CPU UTILIZATION" Style="{StaticResource MetricLabelStyle}"/>
+                            <TextBlock x:Name="CpuUsageText" Text="Sampling..." Style="{StaticResource MetricValueStyle}"/>
+                            <TextBlock Text="Interval-based Windows processor time" Foreground="#8CA6BC" Margin="0,8,0,0"/>
+                        </StackPanel>
+                    </Border>
+                    <Border Style="{StaticResource PanelStyle}" Margin="0,0,0,14">
+                        <StackPanel>
+                            <TextBlock Text="PHYSICAL MEMORY IN USE" Style="{StaticResource MetricLabelStyle}"/>
+                            <TextBlock x:Name="MemoryUsageText" Text="Sampling..." Style="{StaticResource MetricValueStyle}"/>
+                            <TextBlock x:Name="MemoryAvailableText" Foreground="#8CA6BC" Margin="0,8,0,0"/>
+                        </StackPanel>
+                    </Border>
+                </UniformGrid>
+                <Border Grid.Row="2" Style="{StaticResource PanelStyle}" Margin="0">
+                    <DockPanel>
+                        <TextBlock DockPanel.Dock="Top" Text="NVIDIA GPU UTILIZATION / VRAM" FontSize="16" Foreground="#4DEBFF" Margin="0,0,0,16"/>
+                        <ScrollViewer VerticalScrollBarVisibility="Auto">
+                            <ItemsControl x:Name="GpuUsageList">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Margin="0,0,0,16">
+                                            <TextBlock Text="{Binding Name}" FontSize="16"/>
+                                            <TextBlock Text="{Binding UsageDisplay}" Foreground="#8CA6BC" Margin="0,8,0,0"/>
+                                            <TextBlock Text="{Binding MemoryDisplay}" Foreground="#8CA6BC" Margin="0,8,0,0"/>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
+                    </DockPanel>
+                </Border>
+                <TextBlock Grid.Row="3" x:Name="ResourceNoticeText" Text="Samples every 2 seconds. Monitoring does not impose resource limits. GPU metrics require the NVIDIA driver utility." TextWrapping="Wrap" Foreground="#8CA6BC" Margin="0,12,0,0"/>
+            </Grid>
+        </TabItem>
+        <TabItem x:Name="PackageTab" Header="Install / Update" Padding="18,10">
+            <Grid Margin="18">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <TextBlock Text="AI APPLICATION INSTALLER" FontSize="24" FontWeight="Bold" Margin="0,0,0,16"/>
+                <Grid Grid.Row="1" Margin="0,0,0,12">
+                    <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                    <ComboBox x:Name="PackageSelector" DisplayMemberPath="Name" SelectionChanged="PackageSelector_SelectionChanged" Padding="10"/>
+                    <Button x:Name="PackagePreviewButton" Grid.Column="1" Content="REVIEW PACKAGE" Click="PackagePreviewButton_Click" Padding="18,10" Margin="12,0,0,0"/>
+                </Grid>
+                <TextBlock Grid.Row="2" x:Name="PackagePlanText" Text="Choose a package and review its current WinGet metadata." TextWrapping="Wrap" Foreground="#8CA6BC" Margin="0,0,0,12"/>
+                <StackPanel Grid.Row="3" Margin="0,0,0,12">
+                    <CheckBox x:Name="PackageAgreementCheck" Content="I accept the displayed package license terms and WinGet source agreements for this operation." Foreground="#E6F7FF" IsEnabled="False" Checked="PackageAgreementChanged" Unchecked="PackageAgreementChanged"/>
+                    <StackPanel Orientation="Horizontal" Margin="0,12,0,0">
+                        <Button x:Name="PackageInstallButton" Content="INSTALL FOR CURRENT USER" Click="PackageInstallButton_Click" IsEnabled="False" Padding="18,10"/>
+                        <Button x:Name="PackageUpdateButton" Content="UPDATE FOR CURRENT USER" Click="PackageUpdateButton_Click" IsEnabled="False" Padding="18,10" Margin="12,0,0,0"/>
+                    </StackPanel>
+                </StackPanel>
+                <TextBox Grid.Row="4" x:Name="PackageOutputText" IsReadOnly="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Background="#111A29" Foreground="#E6F7FF" BorderBrush="#26394E" Padding="12" Text="Package review contacts the WinGet community source. No application is installed until you choose Install or Update."/>
+                <TextBlock Grid.Row="5" x:Name="PackageStatusText" Text="Ready. User-scoped, supported packages only. No bulk updates." Foreground="#8CA6BC" TextWrapping="Wrap" Margin="0,12,0,0"/>
+            </Grid>
+        </TabItem>
     </TabControl>
 </Window>
 

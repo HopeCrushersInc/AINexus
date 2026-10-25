@@ -25,6 +25,17 @@ internal static class DiscoveryPipelineChecks
         check(saved.Catalog.IsCached && saved.Catalog.Items.Select(item => item.Id).SequenceEqual(report.Catalog.Items.Select(item => item.Id)),
             "Live discovery evidence survives offline catalog reload without another online search");
         Directory.CreateDirectory(folder);
+        var runtimeItem = report.Catalog.Items.FirstOrDefault(item => item.RuntimeRelease is not null);
+        if (runtimeItem is null) throw new InvalidDataException("Live runtime metadata is unavailable for setup review.");
+        var runtimeDestination = Path.Combine(folder, "UncreatedRuntime-" + Guid.NewGuid().ToString("N"));
+        var runtimeReview = RuntimeSetupPlanner.Create(report, runtimeItem.Id, runtimeDestination);
+        check(runtimeReview.HardwareScannedAt == machine.ScannedAt && !Directory.Exists(runtimeDestination)
+            && runtimeReview.Blockers.Count > 0,
+            "Live runtime setup review uses actual hardware/source evidence without creating or installing a runtime");
+        var runtimeReviewPath = Path.Combine(folder, "last-runtime-setup-review.json");
+        await File.WriteAllTextAsync(runtimeReviewPath, System.Text.Json.JsonSerializer.Serialize(runtimeReview,
+            new System.Text.Json.JsonSerializerOptions { WriteIndented = true }), deadline.Token);
+        Console.WriteLine($"Saved runtime setup review: {runtimeReviewPath}");
         var path = Path.Combine(folder, "last-live-report.json");
         await File.WriteAllTextAsync(path, System.Text.Json.JsonSerializer.Serialize(report,
             new System.Text.Json.JsonSerializerOptions { WriteIndented = true }), deadline.Token);

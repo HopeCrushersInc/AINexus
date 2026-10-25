@@ -43,3 +43,5 @@ The working WPF shell, local library, optional Ollama adapter, package controls,
 - Acquisition supports exact-plan approval, bounded verified GGUF transfer, safe cancellation and historical integrity receipts.
 - Offline verification supports read-only receipt audit and an explicit actual generation test with persistent evidence and owned-server cleanup. A successful resource estimate or download alone never counts as a successful runtime test.
 - Next: upstream runtime releases, architecture/backend selection and reviewable runtime acquisition/build recipes. Other workflow adapters remain incomplete.
+
+Runtime catalog now feeds a native hardware-aware setup review. OS/native architecture and available driver evidence inform archive assessments, while contents, dependency closure and runtime execution stay unverified. The next increment is exact archive selection and approval-bound acquisition with pre-extraction inspection, rather than silently installing every platform-matching package.

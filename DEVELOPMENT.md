@@ -53,3 +53,9 @@ Next priority: runtime release discovery and reviewable installation/build recip
 ## Runtime catalog increment
 
 Supporting runtime discovery now preserves published archive identity, size, digest and release flags in native details and saved evidence. Current upstream stable metadata can contain a marker rather than binaries; this is reported honestly and never silently resolved into a nightly download. Regression checks validate malformed/duplicate/foreign entries and saved-catalog boundaries. This adds metadata visibility, not runtime installation or verified architecture/backend compatibility.
+
+## Runtime setup review increment
+
+Implemented native runtime setup review with OS/architecture comparison, NVIDIA-query evidence, explicit unprobed Vulkan requirements, CUDA companion roles and safe new-folder validation. Runtime rows remain unverified and direct users to setup review rather than applying GGUF model-memory estimates. The pure planner and WPF action perform no network request, filesystem write or runtime launch. Review identifies source files and ordered approval/acquisition/inspection/configuration/verification requirements; installation execution and source compilation remain incomplete.
+
+Validation: Release build passed with zero warnings/errors; 431 checks passed including native runtime-review controls and a real hardware/public-metadata/saved-catalog/setup-review pipeline. The live review correctly reported zero archives in the upstream stable release and did not create its proposed runtime destination. No runtime download, installation or model load was performed for this increment.

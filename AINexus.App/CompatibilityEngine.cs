@@ -42,6 +42,15 @@ public static partial class HardwareCompatibilityEngine
         if (item.Interest is not (DiscoveryInterest.LocalAssistants or DiscoveryInterest.Coding or DiscoveryInterest.Agents))
             return Result(RecommendationStatus.NeedsDetails, "Workflow requirements not modeled",
                 "This workflow needs a dedicated runtime and requirements recipe. The GGUF text-generation memory rule cannot establish compatibility for it.");
+        if (item.Kind == "Runtime" && item.RuntimeRelease is { } runtime)
+        {
+            foreach (var assessment in runtime.Archives.Select(asset => RuntimeSetupPlanner.Assess(asset, runtime.Tag, machine)))
+                reasons.Add($"{assessment.Asset.Name}: {assessment.Status}; {assessment.Role}; {assessment.Backend} / {assessment.Architecture}.");
+            return Result(RecommendationStatus.NeedsDetails, "Review runtime setup",
+                runtime.Archives.Count == 0
+                    ? "This release has no supported published archives. No nightly download or source build was inferred."
+                    : "Review runtime setup for native platform and backend evidence. Archive contents, dependencies and driver minima require verification; a platform match does not establish a working installation.");
+        }
         if (item.Artifact is not { } artifact)
             return Result(RecommendationStatus.NeedsDetails, "Artifact requirements unavailable",
                 "No model artifact metadata is attached. Runtime/software release requirements need a separate compatibility recipe.");

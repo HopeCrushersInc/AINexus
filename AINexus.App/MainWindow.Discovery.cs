@@ -53,6 +53,10 @@ public partial class MainWindow
         DiscoverySearchButton.IsEnabled = !_discoveryBusy && supported;
         DiscoverySavedButton.IsEnabled = !_discoveryBusy && DiscoveryInterestSelector.SelectedItem is DiscoveryWorkflow;
         DiscoveryCancelButton.IsEnabled = _discoveryBusy;
+        if (RuntimeSetupReviewButton is not null)
+            RuntimeSetupReviewButton.IsEnabled = !_discoveryBusy && _lastDiscoveryReport is not null
+                && DiscoveryResultsGrid.SelectedItem is DiscoveryRow { Recommendation.Item.RuntimeRelease: not null };
+        if (RuntimeDestinationText is not null) RuntimeDestinationText.IsEnabled = !_discoveryBusy;
         if (DiscoveryPlanButton is not null)
             DiscoveryPlanButton.IsEnabled = !_discoveryBusy && _lastDiscoveryReport is { Catalog.IsCached: false }
                 && DiscoveryResultsGrid.SelectedItem is DiscoveryRow { Recommendation.Status: RecommendationStatus.ResourceCandidate };
@@ -148,6 +152,21 @@ public partial class MainWindow
     }
 
     private void DiscoveryCancelButton_Click(object sender, RoutedEventArgs e) => _discoveryOperation?.Cancel();
+
+    private void RuntimeSetupReviewButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (_discoveryBusy || _lastDiscoveryReport is null || DiscoveryResultsGrid.SelectedItem is not DiscoveryRow row
+            || row.Recommendation.Item.RuntimeRelease is null) return;
+        InvalidateAcquisitionReview();
+        try
+        {
+            var review = RuntimeSetupPlanner.Create(_lastDiscoveryReport, row.Recommendation.Item.Id, RuntimeDestinationText.Text.Trim());
+            DiscoveryDetailsText.Text = RuntimeSetupPlanner.Describe(review);
+            DiscoveryStatusText.Text = "Runtime setup review prepared. No download, installation, compilation or approval has occurred.";
+        }
+        catch (Exception ex) { DiscoveryStatusText.Text = $"Runtime setup review requires attention: {ex.Message}"; }
+        RefreshDiscoveryControls();
+    }
 
     internal void RenderDiscoveryReport(DiscoveryReport report)
     {

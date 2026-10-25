@@ -88,3 +88,11 @@ The restored workstation passed this test with its existing approved Qwen artifa
 Discovery now retains the upstream llama.cpp release's published ZIP/tar archives, exact download links, byte counts, SHA-256 digests when supplied, and prerelease/immutability flags. The native details panel and saved catalog show this evidence. Invalid paths, foreign origins, wrong-release links, duplicate archives and malformed sizes are excluded; missing digests stay unknown. A release with only a marker file is explicitly reported as having no supported archives. Discovery does not follow that marker, substitute a nightly, download a runtime or claim archive compatibility.
 
 Source schema: [GitHub release assets API](https://docs.github.com/en/rest/releases/assets). Architecture/backend selection, companion dependencies, safe extraction and approved runtime acquisition remain separate work.
+
+## Hardware-aware runtime setup review
+
+Select a runtime discovery result, enter a **new runtime folder** on the assessed volume and choose **Review runtime setup**. The review recognizes Windows CPU/CUDA/Vulkan package labels, compares native architecture with the actual scan, distinguishes CUDA support archives, and explains missing backend evidence. Existing folders, drive roots, network destinations and directory links are rejected. No folder is created by reviewing a plan.
+
+A platform match does not establish instruction-set support, driver minima, compiled GPU targets, server contents or dependency completeness. Runtime results remain **More evidence needed**, with a setup-review path rather than model-memory estimates. The review lists exact source archives, hashes, sizes, license declaration, destination and ordered verification requirements. Missing archives/digests, stale hardware and cached metadata are explicit obstacles. It does not approve or execute runtime acquisition, extraction or source builds; those stages remain to be implemented. The existing runtime is preserved.
+
+Naming/packaging references: [upstream release workflow](https://github.com/ggml-org/llama.cpp/blob/master/.github/workflows/release.yml) and [upstream build documentation](https://github.com/ggml-org/llama.cpp/blob/master/docs/build.md). Names are treated as publisher labels, not proof of archive contents.

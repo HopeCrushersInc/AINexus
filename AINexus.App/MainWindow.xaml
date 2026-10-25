@@ -51,6 +51,57 @@
         </Style>
     </Window.Resources>
     <TabControl Margin="12" Background="#090D16" Foreground="#E6F7FF" BorderBrush="#26394E">
+        <TabItem x:Name="DiscoveryTab" Header="Discover AI" Padding="18,10">
+            <Grid Margin="18">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/><RowDefinition Height="2*"/><RowDefinition Height="3*"/><RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <StackPanel Margin="0,0,0,14">
+                    <TextBlock Text="FIND AI FOR THIS COMPUTER" FontSize="24" FontWeight="Bold"/>
+                    <TextBlock Text="Scan hardware → Search online → Compare resources → Review installation → Verify → Run offline" Foreground="#8CA6BC" TextWrapping="Wrap" Margin="0,6,0,0"/>
+                </StackPanel>
+                <DockPanel Grid.Row="1" Margin="0,0,0,12">
+                    <Button x:Name="DiscoveryScanButton" Content="SCAN THIS PC" DockPanel.Dock="Right" Click="DiscoveryScanButton_Click" Padding="14,8" Margin="12,0,0,0"/>
+                    <TextBlock x:Name="DiscoveryHardwareText" Text="Scan this PC to use actual hardware, driver evidence, and available storage." TextWrapping="Wrap" VerticalAlignment="Center"/>
+                </DockPanel>
+                <Grid Grid.Row="2" Margin="0,0,0,12">
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="1.3*"/><ColumnDefinition Width="1.6*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                    <StackPanel Margin="0,0,12,0">
+                        <TextBlock Text="INTEREST" Foreground="#8CA6BC" Margin="0,0,0,4"/>
+                        <ComboBox x:Name="DiscoveryInterestSelector" DisplayMemberPath="Name" SelectionChanged="DiscoveryInterestSelector_SelectionChanged" Padding="8"/>
+                    </StackPanel>
+                    <StackPanel Grid.Column="1" Margin="0,0,12,0">
+                        <TextBlock Text="SEARCH TERMS (OPTIONAL)" Foreground="#8CA6BC" Margin="0,0,0,4"/>
+                        <TextBox x:Name="DiscoveryQueryText" Padding="8" MaxLength="160" ToolTip="Model or publisher terms, for example Qwen2.5 GGUF"/>
+                    </StackPanel>
+                    <StackPanel Grid.Column="2">
+                        <TextBlock Text="MODEL STORAGE VOLUME" Foreground="#8CA6BC" Margin="0,0,0,4"/>
+                        <ComboBox x:Name="DiscoveryVolumeSelector" DisplayMemberPath="Path" SelectionChanged="DiscoveryVolumeSelector_SelectionChanged" Padding="8"/>
+                    </StackPanel>
+                </Grid>
+                <DockPanel Grid.Row="3" Margin="0,0,0,12">
+                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Margin="12,0,0,0">
+                        <Button x:Name="DiscoverySearchButton" Content="SEARCH ONLINE" Click="DiscoverySearchButton_Click" Padding="12,8"/>
+                        <Button x:Name="DiscoverySavedButton" Content="LOAD SAVED SEARCH" Click="DiscoverySavedButton_Click" Padding="12,8" Margin="8,0,0,0"/>
+                        <Button x:Name="DiscoveryCancelButton" Content="CANCEL" Click="DiscoveryCancelButton_Click" Padding="12,8" Margin="8,0,0,0" IsEnabled="False"/>
+                    </StackPanel>
+                    <TextBlock x:Name="DiscoveryScopeText" TextWrapping="Wrap" Foreground="#8CA6BC" VerticalAlignment="Center"/>
+                </DockPanel>
+                <DataGrid Grid.Row="4" x:Name="DiscoveryResultsGrid" IsReadOnly="True" AutoGenerateColumns="False" CanUserAddRows="False" SelectionMode="Single" SelectionChanged="DiscoveryResultsGrid_SelectionChanged" Background="#111A29" Foreground="#111A29" HeadersVisibility="Column" EnableRowVirtualization="True" Margin="0,0,0,12">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Candidate" Binding="{Binding Name}" Width="2*"/>
+                        <DataGridTextColumn Header="Publisher" Binding="{Binding Publisher}" Width="*"/>
+                        <DataGridTextColumn Header="Artifact GiB" Binding="{Binding SizeDisplay}" Width="Auto"/>
+                        <DataGridTextColumn Header="Declared license" Binding="{Binding LicenseDisplay}" Width="*"/>
+                        <DataGridTextColumn Header="Assessment" Binding="{Binding StatusDisplay}" Width="1.2*"/>
+                        <DataGridTextColumn Header="Execution path" Binding="{Binding ExecutionPath}" Width="1.5*"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+                <TextBox Grid.Row="5" x:Name="DiscoveryDetailsText" IsReadOnly="True" AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" Background="#111A29" Foreground="#E6F7FF" Padding="12" Text="Select a result to review its source evidence, requirement estimate, assumptions, and unknowns. No software is installed by discovery."/>
+                <TextBlock Grid.Row="6" x:Name="DiscoveryStatusText" Text="Online search reads public metadata only. Hardware evaluation stays on this PC. Installation, builds, and remote-server access require separate approval." Foreground="#8CA6BC" TextWrapping="Wrap" Margin="0,10,0,0"/>
+            </Grid>
+        </TabItem>
         <TabItem Header="Hardware" Padding="18,10">
     <Grid Margin="18">
         <Grid.RowDefinitions>

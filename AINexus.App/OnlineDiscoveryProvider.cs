@@ -1,0 +1,230 @@
+using System.IO;
+using System.Net.Http;
+using System.Text.Json;
+using System.Text.RegularExpressions;
+
+namespace AINexus.App;
+
+/// <summary>
+/// Explicit, metadata-only online searches. Sources are fixed public APIs; source documents
+/// are evidence, never executable instructions. No authentication, weights or installers are used.
+/// </summary>
+public sealed partial class VerifiedOnlineDiscoveryProvider(HttpClient httpClient) : IOnlineDiscoveryProvider
+{
+    internal const int MaximumResponseBytes = 4 * 1024 * 1024;
+    private readonly HttpClient _http = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
+
+    public static IReadOnlyList<DiscoveryWorkflow> Workflows { get; } = Array.AsReadOnly(new[]
+    {
+        new DiscoveryWorkflow(DiscoveryInterest.LocalAssistants, "Local LLMs and assistants", "Search GGUF model metadata and llama.cpp runtime releases."),
+        new DiscoveryWorkflow(DiscoveryInterest.Coding, "Coding and software development", "Search GGUF model metadata; coding ability requires separate evaluation."),
+        new DiscoveryWorkflow(DiscoveryInterest.Images, "Image generation and editing", "Online adapter not implemented yet."),
+        new DiscoveryWorkflow(DiscoveryInterest.MusicAudio, "Music and audio production", "Online adapter not implemented yet."),
+        new DiscoveryWorkflow(DiscoveryInterest.Video, "Video generation", "Online adapter not implemented yet."),
+        new DiscoveryWorkflow(DiscoveryInterest.Speech, "Speech recognition and synthesis", "Online adapter not implemented yet."),
+        new DiscoveryWorkflow(DiscoveryInterest.ThreeD, "3D modeling", "Online adapter not implemented yet."),
+        new DiscoveryWorkflow(DiscoveryInterest.Cad, "CAD", "Online adapter not implemented yet."),
+        new DiscoveryWorkflow(DiscoveryInterest.ThreeDPrinting, "3D printing", "Online adapter not implemented yet."),
+        new DiscoveryWorkflow(DiscoveryInterest.GameDevelopment, "Game development", "Online adapter not implemented yet."),
+        new DiscoveryWorkflow(DiscoveryInterest.ReverseEngineering, "Reverse engineering", "Online adapter not implemented yet."),
+        new DiscoveryWorkflow(DiscoveryInterest.Streaming, "Streaming and OBS", "Online adapter not implemented yet."),
+        new DiscoveryWorkflow(DiscoveryInterest.Agents, "AI agents and automation", "Search GGUF model metadata; tool-use ability is not inferred from a model name.")
+    });
+
+    public static bool Supports(DiscoveryInterest interest) => interest is
+        DiscoveryInterest.LocalAssistants or DiscoveryInterest.Coding or DiscoveryInterest.Agents;
+
+    /// <summary>Caller owns this dedicated unauthenticated metadata client.</summary>
+    public static HttpClient CreateHttpClient() => new(new SocketsHttpHandler
+    {
+        AllowAutoRedirect = false, UseCookies = false, ConnectTimeout = TimeSpan.FromSeconds(5)
+    }) { Timeout = Timeout.InfiniteTimeSpan };
+
+    public async Task<OnlineDiscoverySnapshot> SearchAsync(OnlineDiscoveryRequest request, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        if (!Enum.IsDefined(request.Interest)) throw new ArgumentOutOfRangeException(nameof(request.Interest));
+        if (request.Limit is < 1 or > 12) throw new ArgumentOutOfRangeException(nameof(request.Limit), "Choose between 1 and 12 results.");
+        if (request.Query is null || request.Query.Length > 160 || request.Query.Any(char.IsControl))
+            throw new ArgumentException("Search text must contain at most 160 characters without control characters.", nameof(request));
+        cancellationToken.ThrowIfCancellationRequested();
+        if (!Supports(request.Interest)) return Snapshot([], ["This workflow's online discovery adapter is not implemented. No recommendations were fabricated."]);
+        if (_http.DefaultRequestHeaders.Authorization is not null)
+            throw new InvalidOperationException("Use a dedicated unauthenticated client for public discovery.");
+
+        using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        deadline.CancelAfter(TimeSpan.FromSeconds(60));
+        var items = new List<DiscoveredItem>();
+        var notes = new List<string>();
+        try
+        {
+            // Budget: one search + at most four metadata/tree pairs + two supporting
+            // runtime metadata requests = at most eleven requests. No pagination is followed.
+            var count = Math.Min(4, request.Limit);
+            var search = "https://huggingface.co/api/models?filter=gguf&full=true&sort=downloads&direction=-1&limit=" + count +
+                "&search=" + Uri.EscapeDataString(request.Query.Trim());
+            using var results = await GetJsonAsync(new Uri(search), deadline.Token);
+            if (results.RootElement.ValueKind != JsonValueKind.Array) throw new InvalidDataException("The model search response was not a list.");
+            var modelSlots = request.Limit == 1 ? 1 : request.Limit - 1;
+            var repositories = results.RootElement.EnumerateArray().Take(count)
+                .Select(item => ReadString(item, "id")).Where(id => id is not null).Distinct(StringComparer.Ordinal).ToArray();
+            foreach (var repository in repositories)
+            {
+                if (items.Count >= modelSlots) break;
+                deadline.Token.ThrowIfCancellationRequested();
+                if (!IsRepositoryId(repository!)) { notes.Add("A source returned an invalid repository identifier; it was skipped."); continue; }
+                try
+                {
+                    var found = await ReadRepositoryAsync(repository!, request.Interest, Math.Min(2, modelSlots - items.Count), notes, deadline.Token);
+                    items.AddRange(found);
+                }
+                catch (Exception ex) when (IsSourceFailure(ex))
+                {
+                    notes.Add($"Model metadata could not be read for {repository}: {FailureMessage(ex)}");
+                }
+            }
+            if (items.Count == 0) notes.Add("No supported standalone GGUF artifacts were found in the bounded search. Try a publisher or model name.");
+            if (items.Count < request.Limit)
+            {
+                try { items.Add(await ReadRuntimeAsync(request.Interest, deadline.Token)); }
+                catch (Exception ex) when (IsSourceFailure(ex)) { notes.Add("Supporting runtime metadata is unavailable: " + FailureMessage(ex)); }
+            }
+        }
+        catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+        {
+            notes.Add("The 60-second discovery deadline was reached. Results are partial.");
+        }
+        catch (Exception ex) when (IsSourceFailure(ex))
+        {
+            notes.Add("Online discovery could not complete: " + FailureMessage(ex));
+        }
+        cancellationToken.ThrowIfCancellationRequested();
+        notes.Add("Metadata is publisher-supplied, not a trust or compatibility certification. No software or model weights were installed.");
+        return Snapshot(items, notes);
+    }
+
+    private async Task<IReadOnlyList<DiscoveredItem>> ReadRepositoryAsync(string repository, DiscoveryInterest interest,
+        int limit, List<string> notes, CancellationToken token)
+    {
+        var repoPath = EncodePath(repository);
+        using var info = await GetJsonAsync(new Uri($"https://huggingface.co/api/models/{repoPath}"), token);
+        var root = info.RootElement;
+        var reportedId = ReadString(root, "id") ?? ReadString(root, "modelId");
+        if (reportedId != repository) throw new InvalidDataException("The source metadata did not match the requested repository.");
+        var revision = ReadString(root, "sha");
+        if (revision is null || !RevisionRegex().IsMatch(revision)) throw new InvalidDataException("The source did not provide a pinned commit revision.");
+        var license = root.TryGetProperty("cardData", out var card) ? ReadString(card, "license") : null;
+        if (license is null && root.TryGetProperty("tags", out var tags) && tags.ValueKind == JsonValueKind.Array)
+            license = tags.EnumerateArray().Where(tag => tag.ValueKind == JsonValueKind.String).Select(tag => tag.GetString())
+                .FirstOrDefault(tag => tag?.StartsWith("license:", StringComparison.Ordinal) == true)?[8..];
+        var gated = !root.TryGetProperty("gated", out var gate) || gate.ValueKind != JsonValueKind.False;
+        var pipeline = ReadString(root, "pipeline_tag");
+        var treeUri = new Uri($"https://huggingface.co/api/models/{repoPath}/tree/{revision}?recursive=true&expand=false&limit=1000");
+        using var tree = await GetJsonAsync(treeUri, token);
+        if (tree.RootElement.ValueKind != JsonValueKind.Array) throw new InvalidDataException("The source repository tree was not a list.");
+        var files = new List<(string Path, long? Bytes, string? Hash)>();
+        var shardFound = false;
+        foreach (var file in tree.RootElement.EnumerateArray().Take(1000))
+        {
+            var path = ReadString(file, "path");
+            if (ReadString(file, "type") != "file" || path is null || !path.EndsWith(".gguf", StringComparison.OrdinalIgnoreCase)) continue;
+            if (!IsArtifactPath(path)) { notes.Add("An invalid artifact path was skipped."); continue; }
+            if (ShardRegex().IsMatch(path)) { shardFound = true; continue; }
+            var bytes = ReadPositiveBytes(file, "size");
+            string? hash = null;
+            if (file.TryGetProperty("lfs", out var lfs) && lfs.ValueKind == JsonValueKind.Object)
+            {
+                bytes ??= ReadPositiveBytes(lfs, "size");
+                var oid = ReadString(lfs, "oid");
+                if (oid is not null && HashRegex().IsMatch(oid)) hash = oid.ToLowerInvariant();
+            }
+            files.Add((path, bytes, hash));
+        }
+        if (shardFound) notes.Add($"Split GGUF shards in {repository} were skipped; a single shard is not a complete model.");
+        if (tree.RootElement.GetArrayLength() >= 1000) notes.Add($"Only the first 1000 tree entries were checked for {repository}; results may be partial.");
+        var readAt = DateTimeOffset.UtcNow;
+        return files.OrderByDescending(file => file.Path.Contains("q4_k_m", StringComparison.OrdinalIgnoreCase))
+            .ThenBy(file => file.Bytes ?? long.MaxValue).ThenBy(file => file.Path, StringComparer.Ordinal)
+            .Take(limit).Select(file => new DiscoveredItem(
+                $"huggingface:{repository}@{revision}:{file.Path}", repository + " / " + file.Path,
+                repository.Split('/')[0], interest, "Model", license,
+                new ModelArtifact(repository, revision, file.Path, file.Bytes, file.Hash, "GGUF", gated),
+                Array.AsReadOnly(new[]
+                {
+                    new DiscoverySource("Hugging Face model card", new Uri($"https://huggingface.co/{repoPath}/blob/{revision}/README.md"), readAt),
+                    new DiscoverySource("Pinned artifact metadata", new Uri($"https://huggingface.co/{repoPath}/blob/{revision}/{EncodePath(file.Path)}"), readAt)
+                }), "Standalone GGUF artifact reported by the repository. Model contents, license obligations, architecture support, and runtime behavior require verification.", pipeline))
+            .ToList().AsReadOnly();
+    }
+
+    private async Task<DiscoveredItem> ReadRuntimeAsync(DiscoveryInterest interest, CancellationToken token)
+    {
+        using var repository = await GetJsonAsync(new Uri("https://api.github.com/repos/ggml-org/llama.cpp"), token);
+        using var release = await GetJsonAsync(new Uri("https://api.github.com/repos/ggml-org/llama.cpp/releases/latest"), token);
+        if (repository.RootElement.ValueKind != JsonValueKind.Object) throw new InvalidDataException("The runtime repository metadata was not an object.");
+        var tag = ReadString(release.RootElement, "tag_name");
+        if (string.IsNullOrWhiteSpace(tag) || tag.Length > 128) throw new InvalidDataException("The runtime source did not provide a release tag.");
+        var license = repository.RootElement.TryGetProperty("license", out var value) ? ReadString(value, "spdx_id") : null;
+        if (license == "NOASSERTION") license = null;
+        var at = DateTimeOffset.UtcNow;
+        return new DiscoveredItem("github:ggml-org/llama.cpp@" + tag, "llama.cpp " + tag, "ggml-org", interest,
+            "Runtime", license, null, Array.AsReadOnly(new[]
+            {
+                new DiscoverySource("Upstream runtime repository", new Uri("https://github.com/ggml-org/llama.cpp"), at),
+                new DiscoverySource("Upstream release metadata", new Uri("https://github.com/ggml-org/llama.cpp/releases/tag/" + Uri.EscapeDataString(tag)), at)
+            }), "Supporting runtime release metadata. Binary assets, driver minima, dependencies and installation instructions have not been evaluated; no installation was performed.");
+    }
+
+    private async Task<JsonDocument> GetJsonAsync(Uri uri, CancellationToken token)
+    {
+        if (uri.Scheme != "https" || uri.UserInfo.Length != 0 || uri.Port != 443 ||
+            !(uri.Host == "huggingface.co" && uri.AbsolutePath.StartsWith("/api/models", StringComparison.Ordinal)
+              || uri.Host == "api.github.com" && uri.AbsolutePath.StartsWith("/repos/ggml-org/llama.cpp", StringComparison.Ordinal)))
+            throw new InvalidOperationException("The metadata request is outside the configured public source scope.");
+        using var deadline = CancellationTokenSource.CreateLinkedTokenSource(token);
+        deadline.CancelAfter(TimeSpan.FromSeconds(15));
+        try
+        {
+            using var request = new HttpRequestMessage(HttpMethod.Get, uri);
+            request.Headers.UserAgent.ParseAdd("AINexus-Discovery/1.0");
+            request.Headers.Accept.ParseAdd("application/json");
+            using var response = await _http.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, deadline.Token);
+            if (response.RequestMessage?.RequestUri is { } finalUri && finalUri != uri)
+                throw new InvalidDataException("Source redirects are disabled.");
+            if ((int)response.StatusCode is >= 300 and < 400) throw new InvalidDataException("Source redirects are disabled.");
+            if (!response.IsSuccessStatusCode) throw new HttpRequestException("The public metadata source returned HTTP " + (int)response.StatusCode + ".", null, response.StatusCode);
+            if (response.Content.Headers.ContentLength > MaximumResponseBytes) throw new InvalidDataException("Source metadata exceeds the 4 MiB limit.");
+            await using var stream = await response.Content.ReadAsStreamAsync(deadline.Token);
+            using var body = new MemoryStream();
+            var buffer = new byte[8192];
+            int read;
+            while ((read = await stream.ReadAsync(buffer, deadline.Token)) > 0)
+            {
+                if (body.Length + read > MaximumResponseBytes) throw new InvalidDataException("Source metadata exceeds the 4 MiB limit.");
+                body.Write(buffer, 0, read);
+            }
+            return JsonDocument.Parse(body.GetBuffer().AsMemory(0, checked((int)body.Length)), new JsonDocumentOptions { MaxDepth = 32 });
+        }
+        catch (OperationCanceledException) when (!token.IsCancellationRequested) { throw new TimeoutException("The public metadata request timed out."); }
+    }
+
+    private static OnlineDiscoverySnapshot Snapshot(IEnumerable<DiscoveredItem> items, IEnumerable<string> notes) =>
+        new(items.ToList().AsReadOnly(), notes.Distinct(StringComparer.Ordinal).ToList().AsReadOnly(), DateTimeOffset.UtcNow);
+    private static string? ReadString(JsonElement root, string name) => root.ValueKind == JsonValueKind.Object
+        && root.TryGetProperty(name, out var value) && value.ValueKind == JsonValueKind.String ? value.GetString() : null;
+    private static long? ReadPositiveBytes(JsonElement root, string name) => root.ValueKind == JsonValueKind.Object
+        && root.TryGetProperty(name, out var value) && value.ValueKind == JsonValueKind.Number && value.TryGetInt64(out var bytes) && bytes > 0 ? bytes : null;
+    private static string EncodePath(string path) => string.Join('/', path.Split('/').Select(Uri.EscapeDataString));
+    private static bool IsRepositoryId(string id) => id.Split('/') is [var owner, var name]
+        && SegmentRegex().IsMatch(owner) && SegmentRegex().IsMatch(name) && owner is not ("." or "..") && name is not ("." or "..");
+    private static bool IsArtifactPath(string path) => path.Length <= 512 && !path.Contains('\\')
+        && path.Split('/').All(segment => segment.Length > 0 && segment is not ("." or "..") && !segment.Any(char.IsControl));
+    private static bool IsSourceFailure(Exception ex) => ex is HttpRequestException or IOException or InvalidDataException or JsonException or TimeoutException;
+    private static string FailureMessage(Exception ex) => ex is HttpRequestException http && http.StatusCode is { } status
+        ? "HTTP " + (int)status + "." : ex is TimeoutException ? "Request timed out." : "Invalid, unavailable, or oversized source metadata.";
+
+    [GeneratedRegex("^[A-Za-z0-9][A-Za-z0-9._-]{0,95}$", RegexOptions.CultureInvariant)] private static partial Regex SegmentRegex();
+    [GeneratedRegex("^[a-fA-F0-9]{40}$", RegexOptions.CultureInvariant)] private static partial Regex RevisionRegex();
+    [GeneratedRegex("^[a-fA-F0-9]{64}$", RegexOptions.CultureInvariant)] private static partial Regex HashRegex();
+    [GeneratedRegex(@"-\d+-of-\d+\.gguf$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)] private static partial Regex ShardRegex();
+}

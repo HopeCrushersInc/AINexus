@@ -18,6 +18,7 @@ public partial class MainWindow : Window
         InitializeEmbeddedApps();
         InitializeAgents();
         InitializeLlamaCppLifecycle();
+        InitializeDiscovery();
         Loaded += async (_, _) => await Task.WhenAll(ScanHardwareAsync(), ScanSoftwareAsync());
         Closed += (_, _) => _lifetime.Cancel();
     }

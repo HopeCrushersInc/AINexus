@@ -26,8 +26,15 @@ internal static class ModelChecks
             check(ModelLibrary.ScanLocations([Path.GetPathRoot(root)!]).Files.Count == 0, "Whole-drive model scans are rejected");
             check(ModelLibrary.ScanLocations([Path.Combine(root, "missing")]).Warnings.Count > 0, "Missing model folders are reported");
             var link = Path.Combine(models, "outside-link");
-            Directory.CreateSymbolicLink(link, Path.Combine(models, "nested"));
-            check(ModelLibrary.ScanLocations([models]).Warnings.Any(warning => warning.Contains("symbolic link")), "Model traversal skips symbolic links");
+            try
+            {
+                Directory.CreateSymbolicLink(link, Path.Combine(models, "nested"));
+                check(ModelLibrary.ScanLocations([models]).Warnings.Any(warning => warning.Contains("symbolic link")), "Model traversal skips symbolic links");
+            }
+            catch (IOException ex) when (OperatingSystem.IsWindows() && (ex.HResult & 0xffff) == 1314)
+            {
+                Console.WriteLine("SKIP: Symbolic-link fixture requires a Windows symlink privilege or developer mode; no system settings were changed.");
+            }
 
             var settingsPath = Path.Combine(root, "settings.json");
             var store = new PortalSettingsStore(settingsPath);

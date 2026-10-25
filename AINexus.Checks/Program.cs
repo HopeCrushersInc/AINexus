@@ -23,10 +23,17 @@ internal static class Program
             AgentChecks.RunAsync(Check).GetAwaiter().GetResult();
             LlamaCppChecks.RunAsync(Check).GetAwaiter().GetResult();
             LlamaServerChecks.RunAsync(Check).GetAwaiter().GetResult();
+            HardwareCapabilityChecks.Run(Check);
+            CompatibilityChecks.Run(Check);
+            OnlineDiscoveryChecks.RunAsync(Check).GetAwaiter().GetResult();
+            DiscoveryPipelineChecks.RunAsync(Check).GetAwaiter().GetResult();
             EmbeddedChecks.RunPolicy(Check);
             CheckWindow(args);
             if (args.Contains("--live")) CheckLiveDiscovery().GetAwaiter().GetResult();
             if (args.Contains("--llama-live")) CheckLiveLlamaCpp().GetAwaiter().GetResult();
+            if (args.Contains("--discovery-live")) OnlineDiscoveryChecks.RunLiveAsync(Check).GetAwaiter().GetResult();
+            if (args.Contains("--discovery-live")) DiscoveryPipelineChecks.RunLiveAsync(Check).GetAwaiter().GetResult();
+            if (args.Contains("--live")) HardwareCapabilityChecks.RunLiveAsync(Check).GetAwaiter().GetResult();
             Console.WriteLine($"PASS: {_checks} checks.");
             return 0;
         }
@@ -110,6 +117,13 @@ internal static class Program
         Check(((TextBlock)window.FindName("MemoryUsageText")).Text == "Unavailable", "Unknown memory renders honestly");
         Check(!((Button)window.FindName("AgentEnqueueButton")).IsEnabled, "Agent submission requires discovery and an explicitly selected model");
         Check(window.FindName("LlamaCppModelList") is ItemsControl, "llama.cpp model inventory XAML loads");
+        Check(window.FindName("DiscoveryResultsGrid") is DataGrid, "Hardware-aware discovery XAML loads");
+        var fixtureReport = DiscoveryPipeline.Evaluate(DiscoveryPipelineChecks.FixtureCatalog() with { IsCached = true }, DiscoveryPipelineChecks.FixtureMachine(), "C:\\");
+        window.RenderDiscoveryReport(fixtureReport);
+        Check(((TextBlock)window.FindName("DiscoveryStatusText")).Text.Contains("SAVED metadata; not refreshed online"),
+            "Discovery UI identifies saved metadata without claiming a new online verification");
+        Check(((TextBox)window.FindName("DiscoveryDetailsText")).Text.Contains("No installation, compilation or runtime verification was performed"),
+            "Discovery UI distinguishes a resource estimate from installed and verified software");
         window.RenderLlamaCppModels(["fixture-llama-model"], new("http://127.0.0.1:8080"));
         var models = (ComboBox)window.FindName("AgentModelSelector");
         Check(models.Items.Count == 1 && models.SelectedIndex == -1, "llama.cpp catalog requires explicit model selection");

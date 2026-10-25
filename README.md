@@ -4,6 +4,9 @@ A native C# .NET 8 WPF dashboard for local AI tooling on Windows.
 
 ## Current capabilities
 
+- Hardware-aware online discovery: explicit metadata searches on Hugging Face and supporting upstream llama.cpp release metadata. Results include declared licensing, source links, immutable model revisions, artifact sizes and SHA-256 when reported. Initial supported interests are local assistants, coding, and agents; other workflow adapters are explicitly marked unavailable.
+- Explainable GGUF resource assessments compare estimates with actual free RAM, individual NVIDIA VRAM readings/driver evidence, and the selected storage volume. CPU fallback is assessed separately. A resource candidate is an unverified estimate, never an installation approval or a performance guarantee.
+- Saved search evidence can be loaded without network requests and re-evaluated against fresh local readings. Cached metadata retains its retrieval timestamp. No model or runtime is needed to use discovery.
 - Hardware discovery: actual CPU, installed RAM, graphics adapters, and fixed-drive capacity/free space. NVIDIA VRAM comes from the installed driver utility; unsupported VRAM remains unavailable.
 - AI software discovery: llama.cpp, Ollama, LM Studio, GPT4All, Jan, AnythingLLM, Docker tooling, Python, and Git. Configured portable runtime folders are inspected without changing PATH.
 - Read-only software checks inspect PATH, common installation directories, and Windows uninstall registrations. Each result distinguishes an executable found from registration-only evidence and includes location/version when available.
@@ -38,13 +41,18 @@ dotnet run --project AINexus.Checks/AINexus.Checks.csproj --configuration Releas
 dotnet run --project AINexus.Checks/AINexus.Checks.csproj --configuration Release -- --live
 dotnet run --project AINexus.Checks/AINexus.Checks.csproj --configuration Release -- --live --embedded-live
 dotnet run --project AINexus.Checks/AINexus.Checks.csproj --configuration Release -- --llama-live
+dotnet run --project AINexus.Checks/AINexus.Checks.csproj --configuration Release -- --live --discovery-live
 ```
 
 The checks use a small console harness without a separate test framework. Default checks exercise deterministic fixtures, HTTP behavior, resource policies, task scheduling, and WPF XAML loading without showing a window. `--live` adds actual local software/hardware readings. `--embedded-live` additionally initializes the installed WebView2 runtime in an invisible WPF window, renders an ephemeral loopback test document, and verifies navigation/resource restrictions. Build output is under `AINexus.App/bin/Release/net8.0-windows`.
 
+`--discovery-live` checks public metadata retrieval and the complete hardware/search/assessment/cache pipeline. It makes no model download, installation or inference request. Its evidence report is saved under the checks build's `Reports/Discovery` folder. One symlink fixture explicitly skips when Windows lacks the required privilege; no developer-mode or privilege settings are changed.
+
 Generation HTTP and scheduling are validated with explicit test fixtures. Opt-in live checks also passed against the portable llama.cpp runtime and real Qwen GGUF, including native Start/Stop, task generation, ownership isolation, close cleanup, and the actual embedded server UI. Automated checks do not install applications or download weights. See [portable setup](docs/llama-cpp-setup.md) for workstation paths, commands, provenance, and live validation flags; see [DEVELOPMENT.md](DEVELOPMENT.md) for remaining work.
 
 ## Incremental roadmap
+
+The definitive workflow and prioritized remaining work are documented in [the master development roadmap](docs/development-roadmap.md). System-wide Windows changes require approval; project work and evidence artifacts remain separate from system configuration.
 
 1. Hardware discovery and monitoring.
 2. AI software discovery.

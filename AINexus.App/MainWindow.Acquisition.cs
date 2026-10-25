@@ -100,6 +100,7 @@ public partial class MainWindow
                 {
                     var receipt = await ArtifactReceiptStore.SaveAsync(plan, _lastAcquisitionResult);
                     receiptDescription = $"\nLocal acquisition receipt: {receipt}";
+                    if (!_offlineBusy) OfflineReceiptText.Text = receipt;
                 }
                 catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or InvalidOperationException)
                 {

@@ -36,3 +36,10 @@ The working WPF shell, local library, optional Ollama adapter, package controls,
 - Metadata queries do not download weights, execute build scripts, install tools, contact inference subscriptions or start GPU workloads.
 - Installation, source compilation and remote-server access remain separate authorization boundaries.
 - Commit each verified increment locally; do not push.
+
+## Completed increments beyond baseline
+
+- Discovery now includes actual driver/instruction-set/volume evidence, public pinned model metadata, local compatibility explanations and a saved catalog.
+- Acquisition supports exact-plan approval, bounded verified GGUF transfer, safe cancellation and historical integrity receipts.
+- Offline verification supports read-only receipt audit and an explicit actual generation test with persistent evidence and owned-server cleanup. A successful resource estimate or download alone never counts as a successful runtime test.
+- Next: upstream runtime releases, architecture/backend selection and reviewable runtime acquisition/build recipes. Other workflow adapters remain incomplete.

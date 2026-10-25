@@ -499,6 +499,32 @@
                 <TextBlock Grid.Row="6" x:Name="AgentStatusText" Text="Refresh local models, choose a model, and enter a prompt. Serial requests use resource admission checks, not OS quotas. Prompts and replies stay in this session. No model output is executed as code or tools." Foreground="#8CA6BC" TextWrapping="Wrap" Margin="0,10,0,0"/>
             </Grid>
         </TabItem>
+        <TabItem x:Name="OfflineVerificationTab" Header="Verify Offline" Padding="18,10">
+            <Grid Margin="18">
+                <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+                <StackPanel Margin="0,0,0,16">
+                    <TextBlock Text="VERIFY A LOCAL MODEL" FontSize="24" FontWeight="Bold"/>
+                    <TextBlock Text="Audit the saved artifact first, then explicitly test a selected local runtime. A checksum match alone does not prove inference works." Foreground="#8CA6BC" TextWrapping="Wrap" Margin="0,6,0,0"/>
+                </StackPanel>
+                <DockPanel Grid.Row="1" Margin="0,0,0,12">
+                    <Button x:Name="OfflineReceiptBrowseButton" DockPanel.Dock="Right" Content="CHOOSE RECEIPT" Click="OfflineReceiptBrowseButton_Click" Padding="12,8" Margin="10,0,0,0"/>
+                    <TextBox x:Name="OfflineReceiptText" Padding="8" ToolTip="Acquisition receipt under the model folder's .ainexus/receipts" TextChanged="OfflineInputChanged"/>
+                </DockPanel>
+                <DockPanel Grid.Row="2" Margin="0,0,0,12">
+                    <Button x:Name="OfflineRuntimeBrowseButton" DockPanel.Dock="Right" Content="CHOOSE RUNTIME" Click="OfflineRuntimeBrowseButton_Click" Padding="12,8" Margin="10,0,0,0"/>
+                    <TextBox x:Name="OfflineRuntimeText" Padding="8" ToolTip="Existing local llama-server.exe; no installer will be launched" TextChanged="OfflineInputChanged"/>
+                </DockPanel>
+                <WrapPanel Grid.Row="3" Margin="0,0,0,12">
+                    <TextBlock Text="Context tokens" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                    <TextBox x:Name="OfflineContextText" Text="4096" Width="70" Padding="7" MaxLength="8" TextChanged="OfflineInputChanged"/>
+                    <Button x:Name="OfflineAuditButton" Content="AUDIT FILE INTEGRITY" Click="OfflineAuditButton_Click" IsEnabled="False" Padding="12,8" Margin="12,0,0,0"/>
+                    <Button x:Name="OfflineRunButton" Content="RUN LOCAL SMOKE TEST (LOADS MODEL)" Click="OfflineRunButton_Click" IsEnabled="False" Padding="12,8" Margin="12,0,0,0"/>
+                    <Button x:Name="OfflineCancelButton" Content="CANCEL" Click="OfflineCancelButton_Click" Padding="12,8" Margin="12,0,0,0" IsEnabled="False"/>
+                </WrapPanel>
+                <TextBox Grid.Row="4" x:Name="OfflineEvidenceText" IsReadOnly="True" AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" Background="#111A29" Foreground="#E6F7FF" Padding="12" Text="An approved acquisition supplies a receipt automatically. You can also choose a saved receipt. Auditing reads local files only; running the smoke test temporarily loads the model and stops its own server afterward."/>
+                <TextBlock Grid.Row="5" x:Name="OfflineStatusText" Text="No verification has run. No model or runtime is required to use online discovery." Foreground="#8CA6BC" TextWrapping="Wrap" Margin="0,12,0,0"/>
+            </Grid>
+        </TabItem>
     </TabControl>
 </Window>
 

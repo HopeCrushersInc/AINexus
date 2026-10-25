@@ -14,7 +14,7 @@ public static partial class HardwareCompatibilityEngine
     private const double BytesPerGiB = 1_073_741_824d;
 
     public static CompatibilityRecommendation Evaluate(DiscoveredItem item, MachineCapabilities machine,
-        string targetVolumePath, CompatibilityPolicy? policy = null)
+        string targetVolumePath, CompatibilityPolicy? policy = null, bool artifactAlreadyPresent = false)
     {
         ArgumentNullException.ThrowIfNull(item);
         ArgumentNullException.ThrowIfNull(machine);
@@ -64,12 +64,14 @@ public static partial class HardwareCompatibilityEngine
 
         var weights = artifact.SizeBytes.Value / BytesPerGiB;
         memory = weights * policy.WeightMemoryMultiplier + policy.RuntimeReserveGiB + policy.ContextReserveGiB;
-        storage = weights + policy.StorageReserveGiB;
+        storage = (artifactAlreadyPresent ? 0 : weights) + policy.StorageReserveGiB;
         if (!double.IsFinite(memory.Value) || !double.IsFinite(storage.Value))
             return Result(RecommendationStatus.NeedsDetails, "Not assessed", "The configured estimate policy produces an invalid memory or storage bound.");
         reasons.Add($"Source-reported artifact size: {weights:N2} GiB ({artifact.SizeBytes.Value:N0} bytes).");
         reasons.Add($"Planning estimate: weights × {policy.WeightMemoryMultiplier.ToString("0.###", CultureInfo.InvariantCulture)} + {policy.RuntimeReserveGiB:N2} GiB runtime allowance + {policy.ContextReserveGiB:N2} GiB context allowance = {memory:N2} GiB.");
-        reasons.Add($"Model storage budget: {weights:N2} GiB artifact + {policy.StorageReserveGiB:N2} GiB allowance = {storage:N2} GiB.");
+        reasons.Add(artifactAlreadyPresent
+            ? $"The artifact is already present. Additional storage allowance: {policy.StorageReserveGiB:N3} GiB; no duplicate model download is budgeted."
+            : $"Model storage budget: {weights:N2} GiB artifact + {policy.StorageReserveGiB:N2} GiB allowance = {storage:N2} GiB.");
         limitations.Add("Memory allowances are configurable heuristics, not measured KV-cache requirements. Storage allowance excludes unknown compiler/toolchain, dependency, cache, and source-build sizes.");
 
         var volume = FindVolume(machine.Volumes, targetVolumePath);

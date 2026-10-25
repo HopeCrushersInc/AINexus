@@ -43,3 +43,9 @@ The user selected portable llama.cpp in place of an Ollama installation. Verifie
 - More GPU vendors and resource policies. Current governance is admission control, not OS-enforced CPU/RAM/VRAM quotas or memory reservation.
 - Multi-step inter-agent workflows and durable task histories, with deliberate data retention controls. Current tasks are serial local generation requests with no tools or host permissions.
 - Broader real-model/runtime compatibility and load testing beyond the short generation smoke tests.
+
+## Phase 10: persistent offline verification
+
+Implemented a native receipt audit and explicit offline-mode inference test. Evidence binds the actual completion to model SHA-256, executable/top-level DLL hashes, context, launch arguments, current hardware and resource admission. Receipts are historical pinned identities; offline auditing does not pretend to refresh publisher metadata. Missing/modified artifacts, unsafe paths, unsupported runtimes and resource rejection cannot produce success evidence. The live Qwen/llama.cpp test returned `Portal ready.` and confirmed the owned port was closed before success. This is runtime offline mode, not OS-enforced network isolation.
+
+Next priority: runtime release discovery and reviewable installation/build recipes, followed by broader workflow adapters. Downloading or installing a runtime still requires approval of a concrete plan.

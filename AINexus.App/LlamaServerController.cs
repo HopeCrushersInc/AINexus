@@ -56,7 +56,7 @@ public sealed class LlamaServerController : IDisposable, IAsyncDisposable
     }
 
     public async Task StartAsync(string executablePath, string modelPath, int port, int contextSize = 4096,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default, bool offlineMode = false)
     {
         long startEpoch;
         lock (_stateGate) startEpoch = _stopEpoch;
@@ -90,7 +90,7 @@ public sealed class LlamaServerController : IDisposable, IAsyncDisposable
             }
             starting.Token.ThrowIfCancellationRequested();
             var endpoint = new Uri($"http://127.0.0.1:{port}");
-            var process = new Process { StartInfo = CreateStartInfo(executablePath, modelPath, port, contextSize), EnableRaisingEvents = true };
+            var process = new Process { StartInfo = CreateStartInfo(executablePath, modelPath, port, contextSize, offlineMode), EnableRaisingEvents = true };
             process.Exited += OwnedProcessExited;
             try
             {
@@ -174,7 +174,7 @@ public sealed class LlamaServerController : IDisposable, IAsyncDisposable
             throw new InvalidDataException("The selected model does not have a GGUF header. Only its first four bytes were inspected.");
     }
 
-    internal static ProcessStartInfo CreateStartInfo(string executablePath, string modelPath, int port, int contextSize)
+    internal static ProcessStartInfo CreateStartInfo(string executablePath, string modelPath, int port, int contextSize, bool offlineMode = false)
     {
         var info = new ProcessStartInfo
         {
@@ -193,6 +193,7 @@ public sealed class LlamaServerController : IDisposable, IAsyncDisposable
             "--ctx-size", contextSize.ToString(System.Globalization.CultureInfo.InvariantCulture), "--parallel", "1",
             "--n-gpu-layers", "auto", "--no-ui-mcp-proxy", "--cors-origins", $"http://127.0.0.1:{port}"
         }) info.ArgumentList.Add(argument);
+        if (offlineMode) info.ArgumentList.Add("--offline");
 
         // Do not forward API keys, HF tokens, tool settings, or LLAMA_ARG overrides to a child.
         // Keep only Windows/runtime essentials and existing device visibility restrictions.

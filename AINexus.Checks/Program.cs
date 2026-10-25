@@ -29,6 +29,7 @@ internal static class Program
             DiscoveryPipelineChecks.RunAsync(Check).GetAwaiter().GetResult();
             AcquisitionPlanChecks.RunAsync(Check).GetAwaiter().GetResult();
             ModelAcquisitionServiceChecks.RunAsync(Check).GetAwaiter().GetResult();
+            OfflineVerificationChecks.RunAsync(Check).GetAwaiter().GetResult();
             EmbeddedChecks.RunPolicy(Check);
             CheckWindow(args);
             if (args.Contains("--live")) CheckLiveDiscovery().GetAwaiter().GetResult();
@@ -43,6 +44,12 @@ internal static class Program
                 var index = downloadIndex >= 0 ? downloadIndex : acquisitionIndex;
                 if (index + 1 >= args.Length) throw new ArgumentException("Live acquisition checks require the path of the previously approved existing model.");
                 AcquisitionLiveChecks.RunAsync(args[index + 1], downloadIndex >= 0, Check).GetAwaiter().GetResult();
+            }
+            var offlineIndex = Array.IndexOf(args, "--offline-verification-live");
+            if (offlineIndex >= 0)
+            {
+                if (offlineIndex + 2 >= args.Length) throw new ArgumentException("--offline-verification-live requires an acquisition receipt and local runtime executable path.");
+                OfflineVerificationChecks.RunLiveAsync(args[offlineIndex + 1], args[offlineIndex + 2], Check).GetAwaiter().GetResult();
             }
             Console.WriteLine($"PASS: {_checks} checks.");
             return 0;
@@ -113,6 +120,14 @@ internal static class Program
         var app = new Application { ShutdownMode = ShutdownMode.OnExplicitShutdown };
         var window = new MainWindow();
         Check(window.FindName("CpuText") is TextBlock, "Hardware XAML loads");
+        Check(window.FindName("OfflineVerificationTab") is TabItem, "Offline verification XAML loads");
+        ((TextBox)window.FindName("OfflineReceiptText")).Text = "";
+        Check(!((Button)window.FindName("OfflineAuditButton")).IsEnabled && !((Button)window.FindName("OfflineRunButton")).IsEnabled,
+            "Offline verification requires an explicit existing receipt before audit or inference");
+        ((TextBox)window.FindName("OfflineReceiptText")).Text = @"\\unapproved-server\models\receipt.json";
+        Check(!((Button)window.FindName("OfflineAuditButton")).IsEnabled && !((Button)window.FindName("OfflineRunButton")).IsEnabled,
+            "Offline verification controls reject network paths without contacting a server");
+        ((TextBox)window.FindName("OfflineReceiptText")).Text = "";
         Check(window.FindName("SoftwareList") is ItemsControl, "Software XAML loads");
         Check(window.FindName("SoftwareRescanButton") is Button, "Software rescan action is wired");
         Check(((Button)window.FindName("HardwareRescanButton")).IsEnabled, "Hardware rescan starts enabled");

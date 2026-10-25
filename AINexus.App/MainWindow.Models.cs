@@ -28,6 +28,8 @@ public partial class MainWindow
                 LlamaCppModelPathText.Text = _settings.LlamaCppModelPath;
                 LlamaCppContextText.Text = _settings.LlamaCppContextSize.ToString();
                 LlamaCppPortText.Text = new Uri(_settings.LlamaCppEndpoint).Port.ToString();
+                OfflineRuntimeText.Text = _settings.LlamaCppExecutablePath;
+                OfflineContextText.Text = _settings.LlamaCppContextSize.ToString();
                 _preferencesReady.TrySetResult();
                 RefreshLibraryRoots();
                 if (_settings.ModelRoots.Count > 0) await ScanLibraryAsync();

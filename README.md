@@ -68,3 +68,17 @@ The definitive workflow and prioritized remaining work are documented in [the ma
 6. Agent orchestration within the unified native dashboard.
 
 Install/update, resource limits, and agent controls will only be exposed as those operations are implemented and validated. Repository changes are committed locally; pushing requires authorization.
+
+## Offline verification checkpoint
+
+The **Verify Offline** tab separates a read-only artifact audit from an explicit model-loading smoke test. Select a saved acquisition receipt and an existing llama.cpp executable. Audit checks the receipt and actual model hash without launching a runtime. The smoke test checks runtime file identities, current hardware/resources and advertised `--offline` support, then starts one owned loopback server, requests a brief completion, stops the server and saves successful evidence beside the model under `.ainexus/verification`.
+
+This establishes actual generation with runtime offline mode; it does not establish Windows firewall isolation, response quality or future compatibility after files/hardware change. No Windows settings are changed. Cancellation and window close stop only the test's owned server. Existing model bytes do not require another download's worth of free disk during verification.
+
+Opt-in real verification (loads the selected model and can use the GPU):
+
+```powershell
+dotnet run --project AINexus.Checks/AINexus.Checks.csproj -c Release -- --offline-verification-live '<acquisition receipt path>' '<llama-server.exe path>'
+```
+
+The restored workstation passed this test with its existing approved Qwen artifact and portable llama.cpp runtime: response `Portal ready.`, recorded model/runtime hashes, saved evidence, and a closed owned server port. Default checks do not launch real inference.

@@ -16,9 +16,9 @@ public sealed partial class VerifiedOnlineDiscoveryProvider(HttpClient httpClien
 
     public static IReadOnlyList<DiscoveryWorkflow> Workflows { get; } = Array.AsReadOnly(new[]
     {
-        new DiscoveryWorkflow(DiscoveryInterest.LocalAssistants, "Local LLMs and assistants", "Search GGUF model metadata and llama.cpp runtime releases."),
+        new DiscoveryWorkflow(DiscoveryInterest.LocalAssistants, "Local assistants", "Find local text models and their runtime requirements."),
         new DiscoveryWorkflow(DiscoveryInterest.Coding, "Coding and software development", "Search GGUF model metadata; coding ability requires separate evaluation."),
-        new DiscoveryWorkflow(DiscoveryInterest.Images, "Image generation and editing", "Online adapter not implemented yet."),
+        new DiscoveryWorkflow(DiscoveryInterest.Images, "Image generation and editing", "Use Image studio with an installed ComfyUI engine. Online image-model discovery is not available yet."),
         new DiscoveryWorkflow(DiscoveryInterest.MusicAudio, "Music and audio production", "Online adapter not implemented yet."),
         new DiscoveryWorkflow(DiscoveryInterest.Video, "Video generation", "Online adapter not implemented yet."),
         new DiscoveryWorkflow(DiscoveryInterest.Speech, "Speech recognition and synthesis", "Online adapter not implemented yet."),

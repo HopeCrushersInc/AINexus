@@ -126,3 +126,21 @@ Opt-in check against existing local archives:
 ```powershell
 dotnet run --project AINexus.Checks/AINexus.Checks.csproj -c Release -- --runtime-archive-live '<saved release report.json>' '<local archive folder>' '<exact runtime archive name>'
 ```
+
+## Store workspace and image generation
+
+The native WPF shell now starts at Home with persistent sidebar navigation for Discover, Library, Images, Assistant, Downloads & setup, and Performance. Existing hardware, package, runtime, embedded-app and offline-verification pages remain under Advanced tools. Search results use shorter labels; exact file hashes/source details and runtime-package controls are separated from browsing. Sidebar navigation, PNG preview, checkpoint gating and source-plan behavior have regression coverage.
+
+Image studio connects only to an explicitly chosen literal-loopback ComfyUI endpoint. It discovers actual standard nodes and installed checkpoints, requires explicit model selection, checks current CPU/RAM admission and an idle image-engine queue, then submits a standard 512×512 checkpoint workflow. It waits for that exact job's successful history and decodes the returned PNG before showing a result. Cancellation addresses only that job ID; an unavailable cancellation endpoint never falls back to a global interrupt. Model fit/architecture support are established by actual execution, not inferred from filenames. Broader image architectures, image editing, audio/video and online image-model discovery remain incomplete.
+
+An existing portable engine can be started hidden from the native page. It binds loopback, disables browser auto-launch and custom nodes, sets offline model-hub flags and keeps its caches beneath its portable folder. Stop/close terminates only this window's owned engine. The selected portable root is remembered in the application's preferences. No system-wide PATH, service, driver, registry or firewall changes are made.
+
+With explicit user approval, the official ComfyUI v0.42.1 CUDA 12.6 portable archive and a pinned Comfy-Org SD1.5 FP16 safetensors checkpoint were installed on F:. Source download size/SHA-256, archive paths and extracted setup were verified and logged. The model uses CreativeML OpenRAIL-M terms; bundled runtime components retain their own licenses. The actual engine returned a decoded 512×512 PNG for seed 42753; its owned server stopped after the test. Evidence is under `F:\AINexus\Logs\ImageVerification` and the activity log is `F:\AINexus\Logs\development-activity.md`.
+
+Opt-in real image check (loads the GPU):
+
+```powershell
+dotnet run --project AINexus.Checks/AINexus.Checks.csproj -c Release -- --image-live '<approved ComfyUI portable root>' '<installed checkpoint name>' '<output folder>'
+```
+
+This verifies local runtime execution and image bytes, not Windows-enforced network isolation or image quality.

@@ -30,6 +30,7 @@ public partial class MainWindow
                 LlamaCppPortText.Text = new Uri(_settings.LlamaCppEndpoint).Port.ToString();
                 OfflineRuntimeText.Text = _settings.LlamaCppExecutablePath;
                 OfflineContextText.Text = _settings.LlamaCppContextSize.ToString();
+                ImageEnginePathText.Text = _settings.ComfyUIRoot;
                 _preferencesReady.TrySetResult();
                 RefreshLibraryRoots();
                 if (_settings.ModelRoots.Count > 0) await ScanLibraryAsync();

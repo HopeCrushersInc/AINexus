@@ -22,6 +22,8 @@ public partial class MainWindow : Window
         InitializeLlamaCppLifecycle();
         InitializeDiscovery();
         InitializeOfflineVerification();
+        InitializeImages();
+        StoreHomeTab.IsSelected = true;
         if (acquisitionService is not null) _acquisitionService = acquisitionService;
         Loaded += async (_, _) => await Task.WhenAll(ScanHardwareAsync(), ScanSoftwareAsync());
         Closed += (_, _) => _lifetime.Cancel();

@@ -30,6 +30,7 @@ internal static class Program
             RuntimeFilePlanChecks.Run(Check);
             RuntimeReleaseLookupChecks.RunAsync(Check).GetAwaiter().GetResult();
             RuntimeArchiveChecks.RunAsync(Check).GetAwaiter().GetResult();
+            ImageWorkflowChecks.RunAsync(Check).GetAwaiter().GetResult();
             OnlineDiscoveryChecks.RunAsync(Check).GetAwaiter().GetResult();
             DiscoveryPipelineChecks.RunAsync(Check).GetAwaiter().GetResult();
             AcquisitionPlanChecks.RunAsync(Check).GetAwaiter().GetResult();
@@ -51,6 +52,12 @@ internal static class Program
                 AcquisitionLiveChecks.RunAsync(args[index + 1], downloadIndex >= 0, Check).GetAwaiter().GetResult();
             }
             var offlineIndex = Array.IndexOf(args, "--offline-verification-live");
+            var imageIndex = Array.IndexOf(args, "--image-live");
+            if (imageIndex >= 0)
+            {
+                if (imageIndex + 3 >= args.Length) throw new ArgumentException("--image-live requires the approved portable root, checkpoint name and output folder.");
+                ImageWorkflowChecks.RunLiveAsync(args[imageIndex + 1], args[imageIndex + 2], args[imageIndex + 3], Check).GetAwaiter().GetResult();
+            }
             var archiveIndex = Array.IndexOf(args, "--runtime-archive-live");
             if (archiveIndex >= 0)
             {
@@ -137,6 +144,7 @@ internal static class Program
         var app = new Application { ShutdownMode = ShutdownMode.OnExplicitShutdown };
         var window = new MainWindow();
         Check(window.FindName("CpuText") is TextBlock, "Hardware XAML loads");
+        ImageWorkflowChecks.RunNative(window, Check);
         RuntimeSetupChecks.RunNative(window, Check);
         RuntimeFilePlanChecks.RunNative(window, Check);
         Check(window.FindName("OfflineVerificationTab") is TabItem, "Offline verification XAML loads");

@@ -77,3 +77,14 @@ Validation: Release build passed without warnings/errors; 451 checks passed incl
 Added native read-only inspection of exact reviewed ZIPs. The service verifies local byte counts/SHA-256 under read leases, bounds the central directory before ZIP indexing, and checks entry paths, attributes, collisions and declared expansion policy across all selected archives. Evidence includes the full exact-file plan. No payload is decompressed, extracted or executed; expanded sizes and server names are declarations. Installing, approval-bound downloading, extraction and dependency/runtime verification remain separate incomplete stages.
 
 Validation: Release build passed without warnings/errors; 460 checks passed. Read-only live inspection matched both existing approved CUDA ZIPs against the upstream-backed exact-file review, checking 55 entries with 1,199,457,053 declared expanded bytes. The proposed destination remained absent. No download, payload decompression, extraction, installation, model launch or Windows configuration change occurred.
+
+## 2026-10-25 — Store shell and local images
+
+- Replaced the crowded top-level tabs with a native store-style Home/sidebar workspace. Preserved existing tools and separated setup from browsing; retained keyboard/accessibility access through the tab content host.
+- Added real local ComfyUI checkpoint discovery, standard image workflow submission, job-specific history/output retrieval, bounded decoded PNG preview, explicit save, and targeted cancellation.
+- Added hidden owned-engine startup/stop with loopback/offline flags and portable-folder caches. Engine configuration is remembered; no cloud inference or custom nodes are used by this recipe.
+- Installed the specifically approved official portable engine and pinned SD1.5 FP16 model on F: after size/SHA-256 and path checks. Logs/verification artifacts remain on F: outside Git.
+- Release compilation passed; 472 deterministic/native checks passed. The opt-in actual image run passed 476 checks and returned a real PNG; its owned engine stopped afterward.
+- User authorized GitHub updates. Verified GitHub authentication and remote branch inventory; completed work is being synced on `phase11/store-and-images`, preserving the existing remote branches.
+
+Incomplete: general image-model discovery/installation UI, broader diffusion architectures and editing, audio/video workflows, and OS-enforced resource reservations. Admission checks and runtime offline flags are not guarantees or firewall isolation tests.

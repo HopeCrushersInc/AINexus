@@ -276,6 +276,17 @@ public partial class MainWindow
             RuntimeArchiveSelector.SelectedIndex = -1;
         }
         if (DiscoveryResultsGrid.SelectedItem is DiscoveryRow row) DiscoveryDetailsText.Text = DescribeRecommendation(row);
+        if (StoreSelectionTitleText is not null && StoreSelectionSummaryText is not null)
+        {
+            if (DiscoveryResultsGrid.SelectedItem is DiscoveryRow selectedRow)
+            {
+                StoreSelectionTitleText.Text = selectedRow.Name;
+                StoreSelectionSummaryText.Text = selectedRow.StatusDisplay + ". " +
+                    (selectedRow.Recommendation.EstimatedMemoryGiB is { } memory ? $"Estimated memory: {memory:N1} GiB. " : "") +
+                    "Review the requirements before setup. Discovery does not mean installed or verified.";
+            }
+            else { StoreSelectionTitleText.Text = "Choose a result"; StoreSelectionSummaryText.Text = "Select an item to review its requirements."; }
+        }
         if (DiscoveryPlanButton is not null) RefreshDiscoveryControls();
     }
 
@@ -335,10 +346,10 @@ public partial class MainWindow
         public string ExecutionPath => Recommendation.ExecutionPath;
         public string StatusDisplay => Recommendation.Status switch
         {
-            RecommendationStatus.ResourceCandidate => "Resource candidate",
-            RecommendationStatus.InsufficientResources => "Insufficient resources",
-            RecommendationStatus.Unsupported => "No supported recipe",
-            _ => "More evidence needed"
+            RecommendationStatus.ResourceCandidate => "Estimated to fit",
+            RecommendationStatus.InsufficientResources => "Not enough resources",
+            RecommendationStatus.Unsupported => "Not supported yet",
+            _ => "Needs review"
         };
     }
 }

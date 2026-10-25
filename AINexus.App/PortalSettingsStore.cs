@@ -9,6 +9,7 @@ public sealed record PortalSettings(IReadOnlyList<string> ModelRoots, string Oll
     public string LlamaCppModelPath { get; init; } = "";
     public string LlamaCppEndpoint { get; init; } = "http://127.0.0.1:8080";
     public int LlamaCppContextSize { get; init; } = 4096;
+    public string ComfyUIRoot { get; init; } = "";
     public static PortalSettings Default => new(Array.Empty<string>(), "http://127.0.0.1:11434");
 }
 
@@ -34,7 +35,8 @@ public sealed class PortalSettingsStore(string path)
             OllamaClient.ValidateEndpoint(new Uri(settings.LlamaCppEndpoint));
             if (settings.LlamaCppContextSize is < 512 or > 32768 ||
                 (!string.IsNullOrEmpty(settings.LlamaCppExecutablePath) && !Path.IsPathFullyQualified(settings.LlamaCppExecutablePath)) ||
-                (!string.IsNullOrEmpty(settings.LlamaCppModelPath) && !Path.IsPathFullyQualified(settings.LlamaCppModelPath)))
+                (!string.IsNullOrEmpty(settings.LlamaCppModelPath) && !Path.IsPathFullyQualified(settings.LlamaCppModelPath)) ||
+                (!string.IsNullOrEmpty(settings.ComfyUIRoot) && !Path.IsPathFullyQualified(settings.ComfyUIRoot)))
                 throw new InvalidDataException("Portable runtime settings are invalid.");
             return new(settings with { ModelRoots = settings.ModelRoots.Distinct(StringComparer.OrdinalIgnoreCase).ToArray() }, null);
         }

@@ -57,6 +57,11 @@ public partial class MainWindow
             RuntimeSetupReviewButton.IsEnabled = !_discoveryBusy && _lastDiscoveryReport is not null
                 && DiscoveryResultsGrid.SelectedItem is DiscoveryRow { Recommendation.Item.RuntimeRelease: not null };
         if (RuntimeDestinationText is not null) RuntimeDestinationText.IsEnabled = !_discoveryBusy;
+        if (RuntimeArchiveSelector is not null)
+            RuntimeArchiveSelector.IsEnabled = !_discoveryBusy && DiscoveryResultsGrid.SelectedItem is DiscoveryRow { Recommendation.Item.RuntimeRelease: not null };
+        if (RuntimeFileReviewButton is not null)
+            RuntimeFileReviewButton.IsEnabled = !_discoveryBusy && RuntimeArchiveSelector?.SelectedItem is RuntimeReleaseAsset
+                && DiscoveryResultsGrid.SelectedItem is DiscoveryRow { Recommendation.Item.RuntimeRelease: not null };
         if (DiscoveryPlanButton is not null)
             DiscoveryPlanButton.IsEnabled = !_discoveryBusy && _lastDiscoveryReport is { Catalog.IsCached: false }
                 && DiscoveryResultsGrid.SelectedItem is DiscoveryRow { Recommendation.Status: RecommendationStatus.ResourceCandidate };
@@ -168,6 +173,39 @@ public partial class MainWindow
         RefreshDiscoveryControls();
     }
 
+    private void RuntimeArchiveSelector_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        InvalidateRuntimeReviewDisplay();
+        if (RuntimeFileReviewButton is not null) RefreshDiscoveryControls();
+    }
+
+    private void RuntimeDestinationText_TextChanged(object sender, TextChangedEventArgs e) => InvalidateRuntimeReviewDisplay();
+
+    private void InvalidateRuntimeReviewDisplay()
+    {
+        if (DiscoveryDetailsText is not null && (DiscoveryDetailsText.Text.StartsWith("EXACT RUNTIME FILE REVIEW", StringComparison.Ordinal)
+            || DiscoveryDetailsText.Text.StartsWith("RUNTIME SETUP REVIEW", StringComparison.Ordinal)))
+        {
+            DiscoveryDetailsText.Text = "Runtime selection or destination changed. Prepare a new review for the current inputs.";
+            DiscoveryStatusText.Text = "Runtime review invalidated. No installation was approved.";
+        }
+    }
+
+    private void RuntimeFileReviewButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (_discoveryBusy || _lastDiscoveryReport is null || DiscoveryResultsGrid.SelectedItem is not DiscoveryRow row
+            || RuntimeArchiveSelector.SelectedItem is not RuntimeReleaseAsset archive) return;
+        InvalidateAcquisitionReview();
+        try
+        {
+            var plan = RuntimeFilePlanner.Create(_lastDiscoveryReport, row.Recommendation.Item.Id, RuntimeDestinationText.Text.Trim(), archive.Name);
+            DiscoveryDetailsText.Text = RuntimeFilePlanner.Describe(plan);
+            DiscoveryStatusText.Text = "Exact runtime files reviewed. No download or installation approved or performed.";
+        }
+        catch (Exception ex) { DiscoveryStatusText.Text = $"Runtime file review requires attention: {ex.Message}"; }
+        RefreshDiscoveryControls();
+    }
+
     internal void RenderDiscoveryReport(DiscoveryReport report)
     {
         _lastDiscoveryReport = report;
@@ -187,6 +225,13 @@ public partial class MainWindow
     private void DiscoveryResultsGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         InvalidateAcquisitionReview();
+        if (RuntimeArchiveSelector is not null)
+        {
+            RuntimeArchiveSelector.ItemsSource = DiscoveryResultsGrid.SelectedItem is DiscoveryRow { Recommendation.Item.RuntimeRelease: { } runtime } selected
+                ? runtime.Archives.Where(asset => RuntimeSetupPlanner.Assess(asset, runtime.Tag, selected.Report.Machine).Role == "Runtime archive").ToArray()
+                : null;
+            RuntimeArchiveSelector.SelectedIndex = -1;
+        }
         if (DiscoveryResultsGrid.SelectedItem is DiscoveryRow row) DiscoveryDetailsText.Text = DescribeRecommendation(row);
         if (DiscoveryPlanButton is not null) RefreshDiscoveryControls();
     }

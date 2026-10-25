@@ -103,7 +103,12 @@
                 <DockPanel Margin="0,0,0,8">
                     <TextBlock DockPanel.Dock="Left" Text="NEW RUNTIME FOLDER" VerticalAlignment="Center" Foreground="#8CA6BC" Margin="0,0,8,0"/>
                     <Button x:Name="RuntimeSetupReviewButton" DockPanel.Dock="Right" Content="REVIEW RUNTIME SETUP" Click="RuntimeSetupReviewButton_Click" IsEnabled="False" Padding="10,8" Margin="8,0,0,0"/>
-                    <TextBox x:Name="RuntimeDestinationText" Padding="8" ToolTip="New runtime folder on the assessed volume; existing folders cannot be used"/>
+                    <TextBox x:Name="RuntimeDestinationText" Padding="8" TextChanged="RuntimeDestinationText_TextChanged" ToolTip="New runtime folder on the assessed volume; existing folders cannot be used"/>
+                </DockPanel>
+                <DockPanel Margin="0,0,0,8">
+                    <Button x:Name="RuntimeFileReviewButton" DockPanel.Dock="Right" Content="REVIEW SELECTED FILES" Click="RuntimeFileReviewButton_Click" IsEnabled="False" Padding="10,8" Margin="8,0,0,0"/>
+                    <TextBlock DockPanel.Dock="Left" Text="RUNTIME ARCHIVE" VerticalAlignment="Center" Foreground="#8CA6BC" Margin="0,0,8,0"/>
+                    <ComboBox x:Name="RuntimeArchiveSelector" DisplayMemberPath="Name" SelectionChanged="RuntimeArchiveSelector_SelectionChanged" IsEnabled="False" Padding="8" ToolTip="Explicitly select a published runtime archive; no archive is chosen automatically"/>
                 </DockPanel>
                 <Grid>
                     <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>

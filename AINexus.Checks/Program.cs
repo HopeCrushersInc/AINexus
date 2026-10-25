@@ -27,6 +27,7 @@ internal static class Program
             CompatibilityChecks.Run(Check);
             RuntimeReleaseChecks.Run(Check);
             RuntimeSetupChecks.Run(Check);
+            RuntimeFilePlanChecks.Run(Check);
             OnlineDiscoveryChecks.RunAsync(Check).GetAwaiter().GetResult();
             DiscoveryPipelineChecks.RunAsync(Check).GetAwaiter().GetResult();
             AcquisitionPlanChecks.RunAsync(Check).GetAwaiter().GetResult();
@@ -123,6 +124,7 @@ internal static class Program
         var window = new MainWindow();
         Check(window.FindName("CpuText") is TextBlock, "Hardware XAML loads");
         RuntimeSetupChecks.RunNative(window, Check);
+        RuntimeFilePlanChecks.RunNative(window, Check);
         Check(window.FindName("OfflineVerificationTab") is TabItem, "Offline verification XAML loads");
         ((TextBox)window.FindName("OfflineReceiptText")).Text = "";
         Check(!((Button)window.FindName("OfflineAuditButton")).IsEnabled && !((Button)window.FindName("OfflineRunButton")).IsEnabled,

@@ -96,3 +96,9 @@ Select a runtime discovery result, enter a **new runtime folder** on the assesse
 A platform match does not establish instruction-set support, driver minima, compiled GPU targets, server contents or dependency completeness. Runtime results remain **More evidence needed**, with a setup-review path rather than model-memory estimates. The review lists exact source archives, hashes, sizes, license declaration, destination and ordered verification requirements. Missing archives/digests, stale hardware and cached metadata are explicit obstacles. It does not approve or execute runtime acquisition, extraction or source builds; those stages remain to be implemented. The existing runtime is preserved.
 
 Naming/packaging references: [upstream release workflow](https://github.com/ggml-org/llama.cpp/blob/master/.github/workflows/release.yml) and [upstream build documentation](https://github.com/ggml-org/llama.cpp/blob/master/docs/build.md). Names are treated as publisher labels, not proof of archive contents.
+
+## Exact runtime file review
+
+The runtime archive selector requires an explicit choice. **Review selected files** lists that archive's exact URL, compressed bytes and SHA-256, plus a uniquely matching same-release CUDA support archive when one is published. CPU selection excludes GPU alternatives. Missing or ambiguous CUDA dependencies are reported; other releases and architectures are never substituted.
+
+The review identity covers selected files, destination, declared license, release flags, source timestamps and hardware evidence. Changing the destination or selection clears the displayed review. Missing digests, stale evidence, dependency licensing, expanded size and runtime compatibility remain explicit requirements. Creating a review grants no approval and does not download, install or run anything. Archive inspection and approval-bound runtime acquisition remain incomplete.

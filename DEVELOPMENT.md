@@ -59,3 +59,9 @@ Supporting runtime discovery now preserves published archive identity, size, dig
 Implemented native runtime setup review with OS/architecture comparison, NVIDIA-query evidence, explicit unprobed Vulkan requirements, CUDA companion roles and safe new-folder validation. Runtime rows remain unverified and direct users to setup review rather than applying GGUF model-memory estimates. The pure planner and WPF action perform no network request, filesystem write or runtime launch. Review identifies source files and ordered approval/acquisition/inspection/configuration/verification requirements; installation execution and source compilation remain incomplete.
 
 Validation: Release build passed with zero warnings/errors; 431 checks passed including native runtime-review controls and a real hardware/public-metadata/saved-catalog/setup-review pipeline. The live review correctly reported zero archives in the upstream stable release and did not create its proposed runtime destination. No runtime download, installation or model load was performed for this increment.
+
+## Exact runtime selection increment
+
+Added explicit native archive selection and an exact-file review with reproducible identity. It binds current hardware/source evidence, release flags, files/hashes/bytes, license and destination. Recognized CUDA support companions must match release/backend/architecture and be unambiguous; CPU plans exclude unrelated GPU alternatives. Review invalidation follows input changes. This is not an executable install plan and saves no approval. Pending: actual archive inspection, dependency verification and approval-bound runtime acquisition.
+
+Validation: Release build passed without warnings/errors; 439 checks passed, including exact file identity, same-release companions, ambiguous/missing dependencies, wrong-platform and foreign-origin rejection, native selection and review invalidation. No download, installation or runtime launch occurred.

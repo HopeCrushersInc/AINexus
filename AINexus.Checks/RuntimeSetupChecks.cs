@@ -11,13 +11,13 @@ internal static class RuntimeSetupChecks
         hash ? new string('a', 64) : null,
         new Uri("https://github.com/ggml-org/llama.cpp/releases/download/fixture/" + Uri.EscapeDataString(name)));
 
-    private static MachineCapabilities Machine() => DiscoveryPipelineChecks.FixtureMachine() with
+    internal static MachineCapabilities Machine() => DiscoveryPipelineChecks.FixtureMachine() with
     {
         ScannedAt = DateTimeOffset.UtcNow,
         Volumes = [new(Path.GetPathRoot(AppContext.BaseDirectory)!, 20_000_000, 30_000_000)]
     };
 
-    private static DiscoveryReport Report(MachineCapabilities machine, params RuntimeReleaseAsset[] assets)
+    internal static DiscoveryReport Report(MachineCapabilities machine, params RuntimeReleaseAsset[] assets)
     {
         var item = DiscoveryPipelineChecks.FixtureCatalog().Items[0] with
         {

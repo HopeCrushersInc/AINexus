@@ -28,6 +28,7 @@ internal static class Program
             OnlineDiscoveryChecks.RunAsync(Check).GetAwaiter().GetResult();
             DiscoveryPipelineChecks.RunAsync(Check).GetAwaiter().GetResult();
             AcquisitionPlanChecks.RunAsync(Check).GetAwaiter().GetResult();
+            ModelAcquisitionServiceChecks.RunAsync(Check).GetAwaiter().GetResult();
             EmbeddedChecks.RunPolicy(Check);
             CheckWindow(args);
             if (args.Contains("--live")) CheckLiveDiscovery().GetAwaiter().GetResult();
@@ -35,6 +36,14 @@ internal static class Program
             if (args.Contains("--discovery-live")) OnlineDiscoveryChecks.RunLiveAsync(Check).GetAwaiter().GetResult();
             if (args.Contains("--discovery-live")) DiscoveryPipelineChecks.RunLiveAsync(Check).GetAwaiter().GetResult();
             if (args.Contains("--live")) HardwareCapabilityChecks.RunLiveAsync(Check).GetAwaiter().GetResult();
+            var acquisitionIndex = Array.IndexOf(args, "--acquisition-live");
+            var downloadIndex = Array.IndexOf(args, "--acquisition-download-live");
+            if (acquisitionIndex >= 0 || downloadIndex >= 0)
+            {
+                var index = downloadIndex >= 0 ? downloadIndex : acquisitionIndex;
+                if (index + 1 >= args.Length) throw new ArgumentException("Live acquisition checks require the path of the previously approved existing model.");
+                AcquisitionLiveChecks.RunAsync(args[index + 1], downloadIndex >= 0, Check).GetAwaiter().GetResult();
+            }
             Console.WriteLine($"PASS: {_checks} checks.");
             return 0;
         }
@@ -125,6 +134,21 @@ internal static class Program
             "Discovery UI identifies saved metadata without claiming a new online verification");
         Check(((TextBox)window.FindName("DiscoveryDetailsText")).Text.Contains("No installation, compilation or runtime verification was performed"),
             "Discovery UI distinguishes a resource estimate from installed and verified software");
+        var acquisitionDestination = Path.Combine(AppContext.BaseDirectory, "fixture-plan-ui", Guid.NewGuid().ToString("N"));
+        var acquisitionReport = AcquisitionPlanChecks.FixtureReport(acquisitionDestination);
+        window.RenderDiscoveryReport(acquisitionReport);
+        var destinationControl = (TextBox)window.FindName("DiscoveryDestinationText");
+        destinationControl.Text = acquisitionDestination;
+        ((Button)window.FindName("DiscoveryPlanButton")).RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+        var approvalControl = (CheckBox)window.FindName("AcquisitionApprovalCheck");
+        var downloadControl = (Button)window.FindName("AcquisitionDownloadButton");
+        Check(approvalControl.IsEnabled && !downloadControl.IsEnabled && !Directory.Exists(acquisitionDestination),
+            "Preparing a native acquisition review does not approve, download or create its destination");
+        approvalControl.IsChecked = true;
+        Check(downloadControl.IsEnabled, "An explicitly approved native review enables acquisition for that plan");
+        destinationControl.Text = acquisitionDestination + "-changed";
+        Check(!downloadControl.IsEnabled && approvalControl.IsChecked == false,
+            "Changing the native destination revokes the previous acquisition approval");
         window.RenderLlamaCppModels(["fixture-llama-model"], new("http://127.0.0.1:8080"));
         var models = (ComboBox)window.FindName("AgentModelSelector");
         Check(models.Items.Count == 1 && models.SelectedIndex == -1, "llama.cpp catalog requires explicit model selection");
@@ -142,6 +166,7 @@ internal static class Program
         if (args.Contains("--embedded-live")) EmbeddedChecks.RunLive(window, Check);
         if (uiIndex >= 0) LlamaCppUiChecks.RunCloseCleanup(window, Check);
         window.Close();
+        NativeAcquisitionChecks.Run(Check);
         app.Shutdown();
     }
 

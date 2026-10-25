@@ -48,12 +48,13 @@ public static partial class ModelAcquisitionPlanner
             $"Download exactly {artifact.SizeBytes.Value:N0} bytes of model data from the pinned source to the selected destination.",
             "Verify the complete file's byte count and SHA-256 before exposing it as an acquired model.",
             "If a destination already exists, verify it for reuse; never overwrite a different file.",
+            "Save a local acquisition receipt beside the model with its pinned identity and integrity evidence.",
             "Select an existing compatible runtime or prepare a separate runtime installation/build plan.",
             "Run an explicit local functionality test before claiming offline execution is verified."
         };
         var limitations = new[]
         {
-            "This is a review document, not an approved or executed download. No directories or files were created by planning.",
+            "Planning alone does not approve or execute acquisition. Approval must match this exact plan; planning creates no directories or files.",
             "No Windows environment variables, drivers, services, registry keys or system-wide settings are changed by this model-data plan.",
             "The license is source-declared; review the pinned source terms and applicable use restrictions.",
             "Model architecture, companion assets, tokenizer/template behavior and runtime compatibility still need actual verification.",
@@ -61,7 +62,62 @@ public static partial class ModelAcquisitionPlanner
         };
         var plan = new ModelAcquisitionPlan("", item.Id, item.Name, artifact, download, destination, report.TargetVolume,
             item.License, licenseReference, report.Catalog.RetrievedAt, report.Machine.ScannedAt, now, actions, limitations);
-        return plan with { PlanId = Convert.ToHexString(SHA256.HashData(JsonSerializer.SerializeToUtf8Bytes(plan))) };
+        return plan with { PlanId = ComputeFingerprint(plan) };
+    }
+
+    internal static string ComputeFingerprint(ModelAcquisitionPlan plan) =>
+        Convert.ToHexString(SHA256.HashData(JsonSerializer.SerializeToUtf8Bytes(plan with { PlanId = "" })));
+
+    /// <summary>Bind approval to the exact review document before any acquisition side effects.</summary>
+    public static void ValidateForAcquisition(ModelAcquisitionPlan plan, string approvedPlanId)
+    {
+        ArgumentNullException.ThrowIfNull(plan);
+        if (string.IsNullOrWhiteSpace(approvedPlanId) || !string.Equals(approvedPlanId, plan.PlanId, StringComparison.Ordinal)
+            || !string.Equals(plan.PlanId, ComputeFingerprint(plan), StringComparison.Ordinal))
+            throw new InvalidOperationException("Approval does not match this exact plan. Prepare and review a new plan after any change.");
+        var now = DateTimeOffset.UtcNow;
+        if (plan.CreatedAt > now.AddMinutes(1) || now - plan.CreatedAt > TimeSpan.FromMinutes(30)
+            || plan.MetadataRetrievedAt > now.AddMinutes(1) || now - plan.MetadataRetrievedAt > TimeSpan.FromHours(24))
+            throw new InvalidOperationException("The acquisition plan has expired or has invalid dates. Refresh source evidence and prepare a new plan.");
+        ValidateIdentity(plan);
+    }
+
+    /// <summary>Historical receipt validation without granting a fresh acquisition approval.</summary>
+    internal static void ValidateIdentity(ModelAcquisitionPlan plan)
+    {
+        ArgumentNullException.ThrowIfNull(plan);
+        if (!string.Equals(plan.PlanId, ComputeFingerprint(plan), StringComparison.Ordinal))
+            throw new InvalidDataException("The recorded plan fingerprint does not match its content.");
+        var artifact = plan.Artifact ?? throw new InvalidDataException("The acquisition plan has no artifact identity.");
+        if (artifact.Repository is null || !RepositoryId().IsMatch(artifact.Repository)
+            || artifact.Revision is null || !Hex40().IsMatch(artifact.Revision)
+            || artifact.Sha256 is null || !Hex64().IsMatch(artifact.Sha256) || artifact.SizeBytes is not > 0
+            || artifact.Gated || string.IsNullOrWhiteSpace(artifact.FileName)
+            || artifact.FileName.Contains('\\') || artifact.FileName.Split('/').Any(segment => !SafeSegment(segment))
+            || !string.Equals(artifact.Format, "GGUF", StringComparison.OrdinalIgnoreCase)
+            || string.IsNullOrWhiteSpace(plan.DeclaredLicense))
+            throw new InvalidDataException("Acquisition requires a complete public GGUF artifact identity and declared license.");
+        var expectedDownload = new Uri($"https://huggingface.co/{EncodePath(artifact.Repository)}/resolve/{artifact.Revision}/{EncodePath(artifact.FileName)}");
+        var expectedTerms = new Uri($"https://huggingface.co/{EncodePath(artifact.Repository)}/blob/{artifact.Revision}/README.md");
+        if (plan.DownloadUrl != expectedDownload || plan.LicenseReference != expectedTerms)
+            throw new InvalidDataException("The plan source or license reference does not match the pinned artifact identity.");
+        var absolute = Path.GetFullPath(plan.DestinationPath);
+        if (!Path.IsPathFullyQualified(plan.DestinationPath) || !string.Equals(absolute, plan.DestinationPath, StringComparison.OrdinalIgnoreCase)
+            || !string.Equals(Path.GetPathRoot(absolute)?.TrimEnd('\\', '/'), plan.TargetVolume?.TrimEnd('\\', '/'), StringComparison.OrdinalIgnoreCase))
+            throw new InvalidDataException("The destination must remain on the reviewed storage volume.");
+        ResolveDestination(Path.GetDirectoryName(absolute)!, Path.GetFileName(absolute));
+        if (!absolute.EndsWith(Path.DirectorySeparatorChar + artifact.FileName.Replace('/', Path.DirectorySeparatorChar), StringComparison.OrdinalIgnoreCase))
+            throw new InvalidDataException("The destination filename does not match the reviewed model artifact.");
+        foreach (var protectedRoot in new[]
+        {
+            Environment.GetFolderPath(Environment.SpecialFolder.Windows), Environment.SystemDirectory,
+            Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86),
+            Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData)
+        }.Where(path => !string.IsNullOrWhiteSpace(path)))
+        {
+            if (absolute.StartsWith(Path.TrimEndingDirectorySeparator(protectedRoot) + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase))
+                throw new InvalidOperationException("Model-data acquisition cannot write into Windows or system-wide application directories. Choose a model folder; system-wide setup needs a separate approved plan.");
+        }
     }
 
     internal static string ResolveDestination(string directory, string artifactPath)

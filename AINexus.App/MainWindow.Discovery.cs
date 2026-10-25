@@ -19,6 +19,7 @@ public partial class MainWindow
 
     private void InitializeDiscovery()
     {
+        InitializeAcquisition();
         _discoveryPipeline = new(new VerifiedOnlineDiscoveryProvider(_discoveryHttp), DiscoveryCacheStore.ForCurrentUser());
         DiscoveryInterestSelector.ItemsSource = VerifiedOnlineDiscoveryProvider.Workflows;
         DiscoveryInterestSelector.SelectedIndex = 0;
@@ -38,7 +39,7 @@ public partial class MainWindow
         if (_discoveryBusy || DiscoveryDetailsText is null) return;
         if (DiscoveryVolumeSelector.SelectedItem is StorageVolume volume) _discoveryTargetVolume = volume.Path;
         _lastDiscoveryReport = null;
-        _reviewedAcquisitionPlan = null;
+        InvalidateAcquisitionReview();
         DiscoveryResultsGrid.ItemsSource = null;
         DiscoveryDetailsText.Text = "Storage selection changed. Search online or load saved evidence to evaluate this volume.";
         RefreshDiscoveryControls();
@@ -57,6 +58,13 @@ public partial class MainWindow
                 && DiscoveryResultsGrid.SelectedItem is DiscoveryRow { Recommendation.Status: RecommendationStatus.ResourceCandidate };
         if (DiscoveryVerifyButton is not null) DiscoveryVerifyButton.IsEnabled = !_discoveryBusy && _reviewedAcquisitionPlan is not null;
         if (DiscoveryDestinationText is not null) DiscoveryDestinationText.IsEnabled = !_discoveryBusy;
+        if (AcquisitionApprovalCheck is not null)
+            AcquisitionApprovalCheck.IsEnabled = !_discoveryBusy && _reviewedAcquisitionPlan is not null;
+        if (AcquisitionDownloadButton is not null)
+            AcquisitionDownloadButton.IsEnabled = !_discoveryBusy && _reviewedAcquisitionPlan is { } plan
+                && _approvedAcquisitionPlanId == plan.PlanId && AcquisitionApprovalCheck?.IsChecked == true;
+        if (AcquisitionLibraryButton is not null)
+            AcquisitionLibraryButton.IsEnabled = !_discoveryBusy && _lastAcquisitionResult?.Evidence.Matches == true;
     }
 
     private async void DiscoveryScanButton_Click(object sender, RoutedEventArgs e) =>
@@ -97,7 +105,7 @@ public partial class MainWindow
         {
             DiscoveryResultsGrid.ItemsSource = null;
             _lastDiscoveryReport = null;
-            _reviewedAcquisitionPlan = null;
+            InvalidateAcquisitionReview();
             DiscoveryDetailsText.Text = "Reading current hardware evidence before evaluating candidates...";
             DiscoveryStatusText.Text = "Refreshing local memory and selected-volume availability...";
             await ScanDiscoveryHardwareAsync(token);
@@ -125,7 +133,7 @@ public partial class MainWindow
         try { await action(cancellation.Token); }
         catch (OperationCanceledException) when (cancellation.IsCancellationRequested)
         {
-            if (!_lifetime.IsCancellationRequested) DiscoveryStatusText.Text = "Discovery cancelled. No installation or workload was started.";
+            if (!_lifetime.IsCancellationRequested) DiscoveryStatusText.Text = "Operation cancelled. Existing files are preserved; no runtime or installer was started.";
         }
         catch (Exception ex)
         {
@@ -144,7 +152,7 @@ public partial class MainWindow
     internal void RenderDiscoveryReport(DiscoveryReport report)
     {
         _lastDiscoveryReport = report;
-        _reviewedAcquisitionPlan = null;
+        InvalidateAcquisitionReview();
         var rows = report.Recommendations.Select(recommendation => new DiscoveryRow(recommendation, report)).ToArray();
         DiscoveryResultsGrid.ItemsSource = rows;
         if (rows.Length > 0) DiscoveryResultsGrid.SelectedIndex = 0;
@@ -159,7 +167,7 @@ public partial class MainWindow
 
     private void DiscoveryResultsGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        _reviewedAcquisitionPlan = null;
+        InvalidateAcquisitionReview();
         if (DiscoveryResultsGrid.SelectedItem is DiscoveryRow row) DiscoveryDetailsText.Text = DescribeRecommendation(row);
         if (DiscoveryPlanButton is not null) RefreshDiscoveryControls();
     }

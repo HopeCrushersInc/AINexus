@@ -26,6 +26,22 @@ internal static class AcquisitionPlanChecks
             check(plan.DeclaredLicense == item.License && plan.Artifact.Sha256 == item.Artifact!.Sha256
                 && plan.Artifact.SizeBytes == bytes.Length && plan.DestinationPath == Path.Combine(destination, "fixture.gguf"),
                 "The review plan captures the exact selected artifact, license, expected hash, bytes and destination");
+            ModelAcquisitionPlanner.ValidateForAcquisition(plan, plan.PlanId);
+            check(Rejects(() => ModelAcquisitionPlanner.ValidateForAcquisition(plan with { Name = "Changed after review" }, plan.PlanId)),
+                "Acquisition approval is invalidated by a change to reviewed plan content");
+            var expired = Rebind(plan with { CreatedAt = DateTimeOffset.UtcNow.AddHours(-1) });
+            check(Rejects(() => ModelAcquisitionPlanner.ValidateForAcquisition(expired, expired.PlanId)),
+                "Expired acquisition approval cannot start file or network activity");
+            var foreign = Rebind(plan with { DownloadUrl = new("https://example.com/untrusted.gguf") });
+            check(Rejects(() => ModelAcquisitionPlanner.ValidateForAcquisition(foreign, foreign.PlanId)),
+                "A recomputed review fingerprint does not authorize a foreign download origin");
+            var wrongName = Rebind(plan with { DestinationPath = Path.Combine(destination, "prefixfixture.gguf") });
+            check(Rejects(() => ModelAcquisitionPlanner.ValidateForAcquisition(wrongName, wrongName.PlanId)),
+                "Acquisition cannot substitute a suffix-matching filename for the reviewed artifact name");
+            var systemDestination = Path.Combine(Environment.SystemDirectory, plan.Artifact.FileName);
+            var systemPlan = Rebind(plan with { DestinationPath = systemDestination, TargetVolume = Path.GetPathRoot(systemDestination)! });
+            check(Rejects(() => ModelAcquisitionPlanner.ValidateForAcquisition(systemPlan, systemPlan.PlanId)),
+                "A model-data approval cannot authorize writes into Windows system directories");
             check(Rejects(() => ModelAcquisitionPlanner.Create(report with { Catalog = report.Catalog with { IsCached = true } }, item.Id, destination)),
                 "Cached source metadata cannot silently authorize a new acquisition plan");
             check(Rejects(() => ModelAcquisitionPlanner.Create(report with { Catalog = report.Catalog with { RetrievedAt = DateTimeOffset.UtcNow.AddDays(-2) } }, item.Id, destination)),
@@ -50,6 +66,18 @@ internal static class AcquisitionPlanChecks
             check(matches.Exists && matches.Matches && matches.ActualBytes == bytes.Length
                 && matches.Description.Contains("Runtime execution has not been verified"),
                 "Existing artifact verification uses real file bytes and distinguishes integrity from inference success");
+            var acquisition = new ModelAcquisitionResult(matches, true, DateTimeOffset.UtcNow);
+            var receipt = await ArtifactReceiptStore.SaveAsync(plan, acquisition);
+            using (var saved = System.Text.Json.JsonDocument.Parse(await File.ReadAllTextAsync(receipt)))
+            {
+                check(saved.RootElement.GetProperty("RuntimeExecutionVerified").ValueKind == System.Text.Json.JsonValueKind.False
+                    && saved.RootElement.GetProperty("Acquisition").GetProperty("Evidence").GetProperty("ActualSha256").GetString() == matches.ActualSha256,
+                    "Saved acquisition receipts preserve actual integrity evidence without inventing runtime verification");
+            }
+            var refused = false;
+            try { await ArtifactReceiptStore.SaveAsync(plan, acquisition with { Evidence = matches with { Matches = false } }); }
+            catch (InvalidOperationException) { refused = true; }
+            check(refused, "An integrity failure cannot be persisted as a successful acquisition receipt");
             var changed = bytes.ToArray();
             changed[^1] ^= 1;
             await File.WriteAllBytesAsync(plan.DestinationPath, changed);
@@ -95,4 +123,7 @@ internal static class AcquisitionPlanChecks
         catch (Exception ex) when (ex is InvalidOperationException or InvalidDataException or ArgumentException) { return true; }
         return false;
     }
+
+    private static ModelAcquisitionPlan Rebind(ModelAcquisitionPlan plan) =>
+        plan with { PlanId = ModelAcquisitionPlanner.ComputeFingerprint(plan) };
 }

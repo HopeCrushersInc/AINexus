@@ -9,7 +9,9 @@ public partial class MainWindow : Window
     private bool _scanningHardware;
     private bool _scanningSoftware;
 
-    public MainWindow()
+    public MainWindow() : this(null) { }
+
+    internal MainWindow(ModelAcquisitionService? acquisitionService)
     {
         InitializeComponent();
         InitializeMonitoring();
@@ -19,6 +21,7 @@ public partial class MainWindow : Window
         InitializeAgents();
         InitializeLlamaCppLifecycle();
         InitializeDiscovery();
+        if (acquisitionService is not null) _acquisitionService = acquisitionService;
         Loaded += async (_, _) => await Task.WhenAll(ScanHardwareAsync(), ScanSoftwareAsync());
         Closed += (_, _) => _lifetime.Cancel();
     }

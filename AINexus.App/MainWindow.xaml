@@ -55,7 +55,7 @@
             <Grid Margin="18">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/><RowDefinition Height="2*"/><RowDefinition Height="3*"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/><RowDefinition Height="2*"/><RowDefinition Height="3*"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
                 <StackPanel Margin="0,0,0,14">
                     <TextBlock Text="FIND AI FOR THIS COMPUTER" FontSize="24" FontWeight="Bold"/>
@@ -106,7 +106,18 @@
                     <Button Grid.Column="2" x:Name="DiscoveryPlanButton" Content="REVIEW DOWNLOAD PLAN" Click="DiscoveryPlanButton_Click" IsEnabled="False" Padding="10,8" Margin="8,0,0,0"/>
                     <Button Grid.Column="3" x:Name="DiscoveryVerifyButton" Content="VERIFY EXISTING FILE" Click="DiscoveryVerifyButton_Click" IsEnabled="False" Padding="10,8" Margin="8,0,0,0"/>
                 </Grid>
-                <TextBlock Grid.Row="7" x:Name="DiscoveryStatusText" Text="Online search reads public metadata only. Hardware evaluation stays on this PC. Installation, builds, and remote-server access require separate approval." Foreground="#8CA6BC" TextWrapping="Wrap" Margin="0,10,0,0"/>
+                <Grid Grid.Row="7" Margin="0,10,0,0">
+                    <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                    <StackPanel>
+                        <CheckBox x:Name="AcquisitionApprovalCheck" IsEnabled="False" Foreground="#E6F7FF" Checked="AcquisitionApprovalChanged" Unchecked="AcquisitionApprovalChanged">
+                            <TextBlock Text="I approve this exact model-data plan and destination, and accept its source license terms." TextWrapping="Wrap"/>
+                        </CheckBox>
+                        <ProgressBar x:Name="AcquisitionProgressBar" Minimum="0" Maximum="100" Height="5" Margin="0,6,0,0" Value="0"/>
+                    </StackPanel>
+                    <Button Grid.Column="1" x:Name="AcquisitionDownloadButton" Content="DOWNLOAD APPROVED MODEL" Click="AcquisitionDownloadButton_Click" IsEnabled="False" Padding="10,8" Margin="8,0,0,0"/>
+                    <Button Grid.Column="2" x:Name="AcquisitionLibraryButton" Content="ADD TO LIBRARY" Click="AcquisitionLibraryButton_Click" IsEnabled="False" Padding="10,8" Margin="8,0,0,0"/>
+                </Grid>
+                <TextBlock Grid.Row="8" x:Name="DiscoveryStatusText" Text="Online search reads public metadata only. Hardware evaluation stays on this PC. Installation, builds, and remote-server access require separate approval." Foreground="#8CA6BC" TextWrapping="Wrap" Margin="0,10,0,0"/>
             </Grid>
         </TabItem>
         <TabItem Header="Hardware" Padding="18,10">

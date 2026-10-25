@@ -14,6 +14,7 @@ The restored Phase 1 hardware dashboard remains native .NET 8 WPF. Subsequent lo
 8. Portable llama.cpp model discovery, chat generation, native owned-server Start/Stop/close cleanup, and saved launch preferences.
 9. Hardware-aware metadata discovery, selected-volume compatibility estimates, source provenance, and saved-search offline review. Initial model recipe scope is standalone text-generation GGUF artifacts.
 10. Review-only model acquisition plans and non-destructive existing-artifact integrity verification. Stale/cached evidence, mismatched target volumes and unsafe paths are rejected. No acquisition execution is exposed by this increment.
+11. Explicit approved model-data acquisition with streamed HTTPS downloads, current disk-space checks, exact size/hash verification, no-overwrite publication, cancellation/close cleanup, verified reuse and saved integrity receipts. This adds acquisition execution after the review-only foundation; runtime installers and Windows changes are excluded.
 
 No code executes generated model output. No model files are deleted or relocated. No packages or model weights are installed automatically. All development commits remain local.
 
@@ -28,6 +29,7 @@ No code executes generated model output. No model files are deleted or relocated
 - Actual WinGet application installer execution remains untested; Ollama was not installed.
 - Discovery regression checks cover redirects/rate limits, response caps, cancellation, partial source failures, split GGUF exclusion, immutable identities, unknown metadata and offline re-evaluation. Live public-source checks retrieve actual artifact hashes/sizes; compatibility estimates remain explicitly unverified until a separate actual runtime test is performed.
 - Directory link protection is exercised even without Windows symlink privileges, using a same-fixture directory junction. Scanner rejection, direct-root rejection and target-preserving cleanup are checked without changing system policy.
+- Approved acquisition passed mocked-transport failure/cancellation/redirect/race tests and native WPF approval/completion/close-cleanup checks. A real duplicate of the already-approved Qwen GGUF was downloaded to an isolated F: evidence folder, checked against the upstream byte count/SHA-256, and independently rehashed. The original model was preserved. Integrity receipts do not claim offline inference was verified by acquisition.
 
 ## Resolved runtime checkpoint
 

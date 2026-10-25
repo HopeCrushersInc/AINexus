@@ -1,5 +1,9 @@
 # Development state
 
+## Verification display integrity
+
+Changing the acquisition receipt, runtime executable or context clears displayed offline-verification evidence and asks for a fresh audit/test. Starting another operation clears earlier evidence; failure and cancellation also clear partial evidence. Saved evidence files remain intact. Native regression checks exercise each input and operation recovery without loading a model.
+
 ## Completed increments
 
 The restored Phase 1 hardware dashboard remains native .NET 8 WPF. Subsequent local commits add:

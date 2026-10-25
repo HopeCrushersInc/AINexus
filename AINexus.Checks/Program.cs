@@ -147,6 +147,7 @@ internal static class Program
         ImageWorkflowChecks.RunNative(window, Check);
         RuntimeSetupChecks.RunNative(window, Check);
         RuntimeFilePlanChecks.RunNative(window, Check);
+        OfflineVerificationUiChecks.RunNative(window, Check);
         Check(window.FindName("OfflineVerificationTab") is TabItem, "Offline verification XAML loads");
         ((TextBox)window.FindName("OfflineReceiptText")).Text = "";
         Check(!((Button)window.FindName("OfflineAuditButton")).IsEnabled && !((Button)window.FindName("OfflineRunButton")).IsEnabled,

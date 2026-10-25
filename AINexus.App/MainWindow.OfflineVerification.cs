@@ -66,20 +66,23 @@ public partial class MainWindow
         });
     }
 
-    private async Task RunOfflineOperationAsync(Func<CancellationToken, Task> operation)
+    internal async Task RunOfflineOperationAsync(Func<CancellationToken, Task> operation)
     {
         if (_offlineBusy || _lifetime.IsCancellationRequested) return;
         _offlineBusy = true;
+        OfflineEvidenceText.Clear();
         using var cancellation = CancellationTokenSource.CreateLinkedTokenSource(_lifetime.Token);
         _offlineOperation = cancellation;
         SetOfflineControls(false);
         try { await operation(cancellation.Token); }
         catch (OperationCanceledException) when (cancellation.IsCancellationRequested)
         {
+            OfflineEvidenceText.Clear();
             if (!_lifetime.IsCancellationRequested) OfflineStatusText.Text = "Verification cancelled. Its owned server was stopped; external servers and model files were preserved.";
         }
         catch (Exception ex)
         {
+            OfflineEvidenceText.Clear();
             if (!_lifetime.IsCancellationRequested) OfflineStatusText.Text = $"Verification could not complete: {ex.Message}";
         }
         finally
@@ -106,6 +109,10 @@ public partial class MainWindow
     }
     private void OfflineInputChanged(object sender, TextChangedEventArgs e)
     {
+        // TextChanged also fires during XAML initialization, before later controls exist.
+        if (OfflineEvidenceText is not null) OfflineEvidenceText.Clear();
+        if (OfflineStatusText is not null && !_offlineBusy)
+            OfflineStatusText.Text = "Inputs changed. Audit or verify the current selection before relying on its evidence. Saved evidence files are preserved.";
         if (OfflineCancelButton is not null) SetOfflineControls(!_offlineBusy);
     }
     private static bool LocalFileExists(string value)

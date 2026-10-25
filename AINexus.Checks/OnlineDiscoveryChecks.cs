@@ -64,6 +64,11 @@ internal static class OnlineDiscoveryChecks
             && item.Artifact.FileName.Equals("qwen2.5-1.5b-instruct-q4_k_m.gguf", StringComparison.OrdinalIgnoreCase));
         check(artifact?.Artifact is { SizeBytes: > 0, Sha256: not null } && artifact.Sources.Count > 0,
             "Live online discovery retrieves real upstream Qwen artifact size/hash/revision without downloading weights");
+        var runtime = snapshot.Items.FirstOrDefault(item => item.Kind == "Runtime")?.RuntimeRelease;
+        check(runtime is not null && runtime.Archives.All(asset => asset.SizeBytes > 0 && asset.DownloadUrl.Host == "github.com")
+            && runtime.Notes.Any(note => note.Contains("No archive was downloaded")),
+            "Live runtime discovery reads published archive evidence without assuming binaries exist or installing software");
+        Console.WriteLine($"Live runtime metadata: {runtime?.Tag}; published archives: {runtime?.Archives.Count}.");
         Console.WriteLine($"Live discovery: {snapshot.Items.Count} metadata entries, {snapshot.Notes.Count} notes.");
     }
 

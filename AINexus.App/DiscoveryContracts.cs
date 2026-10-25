@@ -17,7 +17,11 @@ public sealed record ModelArtifact(
 public sealed record DiscoveredItem(
     string Id, string Name, string Publisher, DiscoveryInterest Interest, string Kind,
     string? License, ModelArtifact? Artifact, IReadOnlyList<DiscoverySource> Sources,
-    string Description, string? PipelineTag = null);
+    string Description, string? PipelineTag = null, RuntimeReleaseMetadata? RuntimeRelease = null);
+
+public sealed record RuntimeReleaseAsset(string Name, long SizeBytes, string? Sha256, Uri DownloadUrl);
+public sealed record RuntimeReleaseMetadata(string Tag, bool Prerelease, bool Immutable,
+    IReadOnlyList<RuntimeReleaseAsset> Archives, IReadOnlyList<string> Notes);
 
 public sealed record OnlineDiscoveryRequest(DiscoveryInterest Interest, string Query, int Limit = 8);
 

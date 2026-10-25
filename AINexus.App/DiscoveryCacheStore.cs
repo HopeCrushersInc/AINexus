@@ -54,6 +54,18 @@ public sealed class DiscoveryCacheStore(string directory)
                 item.Sources is null || item.Sources.Count == 0 || item.Sources.Any(source =>
                     source is null || source.Url is null || !source.Url.IsAbsoluteUri || source.Url.Scheme != "https" || source.Url.UserInfo.Length > 0))
                 throw new InvalidDataException("Saved catalog entries have incomplete provenance.");
+            if (item.RuntimeRelease is { } runtime &&
+                (string.IsNullOrWhiteSpace(runtime.Tag) || runtime.Tag.Length > 128 || runtime.Tag.Any(char.IsControl)
+                || runtime.Archives is null || runtime.Archives.Count > 256 || runtime.Notes is null
+                || runtime.Notes.Any(note => note is null)
+                || runtime.Archives.Any(asset => asset is null || string.IsNullOrWhiteSpace(asset.Name)
+                    || asset.Name.Length > 240 || asset.Name.Any(c => char.IsControl(c) || c is '/' or '\\' or ':')
+                    || asset.Name.Contains("..", StringComparison.Ordinal) || asset.SizeBytes <= 0
+                    || asset.Sha256 is not null && (asset.Sha256.Length != 64 || asset.Sha256.Any(c => !Uri.IsHexDigit(c)))
+                    || asset.DownloadUrl is null || !asset.DownloadUrl.IsAbsoluteUri
+                    || asset.DownloadUrl.AbsoluteUri != "https://github.com/ggml-org/llama.cpp/releases/download/"
+                        + Uri.EscapeDataString(runtime.Tag) + "/" + Uri.EscapeDataString(asset.Name))))
+                throw new InvalidDataException("Saved runtime release evidence is invalid.");
         }
         return envelope.Snapshot with { IsCached = true };
     }

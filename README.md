@@ -82,3 +82,9 @@ dotnet run --project AINexus.Checks/AINexus.Checks.csproj -c Release -- --offlin
 ```
 
 The restored workstation passed this test with its existing approved Qwen artifact and portable llama.cpp runtime: response `Portal ready.`, recorded model/runtime hashes, saved evidence, and a closed owned server port. Default checks do not launch real inference.
+
+## Runtime release evidence
+
+Discovery now retains the upstream llama.cpp release's published ZIP/tar archives, exact download links, byte counts, SHA-256 digests when supplied, and prerelease/immutability flags. The native details panel and saved catalog show this evidence. Invalid paths, foreign origins, wrong-release links, duplicate archives and malformed sizes are excluded; missing digests stay unknown. A release with only a marker file is explicitly reported as having no supported archives. Discovery does not follow that marker, substitute a nightly, download a runtime or claim archive compatibility.
+
+Source schema: [GitHub release assets API](https://docs.github.com/en/rest/releases/assets). Architecture/backend selection, companion dependencies, safe extraction and approved runtime acquisition remain separate work.

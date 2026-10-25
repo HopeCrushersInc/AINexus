@@ -67,6 +67,17 @@ internal static class DiscoveryPipelineChecks
                 "Missing saved searches do not silently issue online requests");
 
             var cacheFile = Directory.GetFiles(root, "*.json").Single();
+            var runtime = new RuntimeReleaseMetadata("fixture", false, false,
+                [new("runtime.zip", 123, new string('a', 64), new Uri("https://github.com/ggml-org/llama.cpp/releases/download/fixture/runtime.zip"))],
+                ["Fixture metadata, not an installed runtime."]);
+            await cache.SaveAsync(request, snapshot with { Items = [snapshot.Items[0] with { RuntimeRelease = runtime }] });
+            check((await cache.LoadAsync(request))?.Items[0].RuntimeRelease?.Archives[0].SizeBytes == 123,
+                "Saved discovery catalogs preserve runtime archive identity alongside model evidence");
+            await cache.SaveAsync(request, snapshot with { Items = [snapshot.Items[0] with
+                { RuntimeRelease = runtime with { Archives = [runtime.Archives[0] with { DownloadUrl = new Uri("https://example.com/runtime.zip") }] } }] });
+            var unsafeRuntimeRejected = false;
+            try { await cache.LoadAsync(request); } catch (InvalidDataException) { unsafeRuntimeRejected = true; }
+            check(unsafeRuntimeRejected, "Saved runtime metadata cannot introduce a foreign download origin on reload");
             File.WriteAllText(cacheFile, "{invalid fixture");
             var corruptRejected = false;
             try { await cache.LoadAsync(request); }

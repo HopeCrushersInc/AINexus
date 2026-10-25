@@ -172,7 +172,8 @@ public sealed partial class VerifiedOnlineDiscoveryProvider(HttpClient httpClien
             {
                 new DiscoverySource("Upstream runtime repository", new Uri("https://github.com/ggml-org/llama.cpp"), at),
                 new DiscoverySource("Upstream release metadata", new Uri("https://github.com/ggml-org/llama.cpp/releases/tag/" + Uri.EscapeDataString(tag)), at)
-            }), "Supporting runtime release metadata. Binary assets, driver minima, dependencies and installation instructions have not been evaluated; no installation was performed.");
+            }), "Supporting runtime release metadata. Published archives are listed as source evidence; driver minima, dependencies and installation instructions have not been evaluated; no installation was performed.",
+            RuntimeRelease: RuntimeReleaseParser.Parse(release.RootElement, tag));
     }
 
     private async Task<JsonDocument> GetJsonAsync(Uri uri, CancellationToken token)

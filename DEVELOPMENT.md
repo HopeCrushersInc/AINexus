@@ -49,3 +49,7 @@ The user selected portable llama.cpp in place of an Ollama installation. Verifie
 Implemented a native receipt audit and explicit offline-mode inference test. Evidence binds the actual completion to model SHA-256, executable/top-level DLL hashes, context, launch arguments, current hardware and resource admission. Receipts are historical pinned identities; offline auditing does not pretend to refresh publisher metadata. Missing/modified artifacts, unsafe paths, unsupported runtimes and resource rejection cannot produce success evidence. The live Qwen/llama.cpp test returned `Portal ready.` and confirmed the owned port was closed before success. This is runtime offline mode, not OS-enforced network isolation.
 
 Next priority: runtime release discovery and reviewable installation/build recipes, followed by broader workflow adapters. Downloading or installing a runtime still requires approval of a concrete plan.
+
+## Runtime catalog increment
+
+Supporting runtime discovery now preserves published archive identity, size, digest and release flags in native details and saved evidence. Current upstream stable metadata can contain a marker rather than binaries; this is reported honestly and never silently resolved into a nightly download. Regression checks validate malformed/duplicate/foreign entries and saved-catalog boundaries. This adds metadata visibility, not runtime installation or verified architecture/backend compatibility.

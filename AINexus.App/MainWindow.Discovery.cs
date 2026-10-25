@@ -194,6 +194,13 @@ public partial class MainWindow
         text.AppendLine($"{item.Name} — {row.StatusDisplay}");
         text.AppendLine($"Publisher: {item.Publisher}; declared license: {item.License ?? "unknown; review source terms"}");
         text.AppendLine(item.Description);
+        if (item.RuntimeRelease is { } runtime)
+        {
+            text.AppendLine($"Release: {runtime.Tag} | Prerelease: {runtime.Prerelease} | Upstream immutable: {runtime.Immutable}");
+            foreach (var archive in runtime.Archives)
+                text.AppendLine($"Published archive: {archive.Name}\nBytes: {archive.SizeBytes:N0}\nSHA-256: {archive.Sha256 ?? "not supplied"}\n{archive.DownloadUrl}");
+            foreach (var note in runtime.Notes) text.AppendLine(note);
+        }
         text.AppendLine($"Execution path: {result.ExecutionPath}");
         text.AppendLine($"Estimated working memory: {result.EstimatedMemoryGiB?.ToString("N2") ?? "unknown"} GiB; model storage estimate: {result.RequiredStorageGiB?.ToString("N2") ?? "unknown"} GiB on {row.Report.TargetVolume}");
         if (item.Artifact is { } artifact)

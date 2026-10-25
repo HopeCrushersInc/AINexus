@@ -25,6 +25,7 @@ internal static class Program
             LlamaServerChecks.RunAsync(Check).GetAwaiter().GetResult();
             HardwareCapabilityChecks.Run(Check);
             CompatibilityChecks.Run(Check);
+            RuntimeReleaseChecks.Run(Check);
             OnlineDiscoveryChecks.RunAsync(Check).GetAwaiter().GetResult();
             DiscoveryPipelineChecks.RunAsync(Check).GetAwaiter().GetResult();
             AcquisitionPlanChecks.RunAsync(Check).GetAwaiter().GetResult();

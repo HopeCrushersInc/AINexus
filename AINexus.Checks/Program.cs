@@ -75,6 +75,12 @@ internal static class Program
                 if (offlineIndex + 2 >= args.Length) throw new ArgumentException("--offline-verification-live requires an acquisition receipt and local runtime executable path.");
                 OfflineVerificationChecks.RunLiveAsync(args[offlineIndex + 1], args[offlineIndex + 2], Check).GetAwaiter().GetResult();
             }
+            var offlineLaunchIndex = Array.IndexOf(args, "--offline-launch-live");
+            if (offlineLaunchIndex >= 0)
+            {
+                if (offlineLaunchIndex + 2 >= args.Length) throw new ArgumentException("--offline-launch-live requires an existing runtime executable and GGUF model.");
+                OfflineLaunchLiveChecks.RunAsync(args[offlineLaunchIndex + 1], args[offlineLaunchIndex + 2], Check).GetAwaiter().GetResult();
+            }
             Console.WriteLine($"PASS: {_checks} checks.");
             return 0;
         }

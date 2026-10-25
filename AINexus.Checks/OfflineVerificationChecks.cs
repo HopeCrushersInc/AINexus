@@ -84,8 +84,8 @@ internal static class OfflineVerificationChecks
             check(await RejectsAsync<OperationCanceledException>(() => OfflineModelVerifier.VerifyAsync(receiptPath, "not-used", cancellationToken: cancelled.Token)),
                 "Precancelled offline verification starts no runtime process");
 
-            check(OfflineModelVerifier.AdvertisesOffline("Usage\n--offline    prevents network access\n")
-                && !OfflineModelVerifier.AdvertisesOffline("--offline-other flag\nexample: use --offline when supported"),
+            check(LlamaRuntimeCapabilities.AdvertisesOffline("Usage\n--offline    prevents network access\n")
+                && !LlamaRuntimeCapabilities.AdvertisesOffline("--offline-other flag\nexample: use --offline when supported"),
                 "Offline mode is accepted only when the runtime help advertises the actual flag");
             var ordinary = LlamaServerController.CreateStartInfo(Path.Combine(root, "llama-server.exe"), plan.DestinationPath, 8081, 4096);
             var offline = LlamaServerController.CreateStartInfo(Path.Combine(root, "llama-server.exe"), plan.DestinationPath, 8081, 4096, offlineMode: true);

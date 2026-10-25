@@ -76,6 +76,44 @@ internal static class LlamaServerChecks
             check(arguments.Contains("--no-ui-mcp-proxy")
                   && arguments[Array.IndexOf(arguments, "--cors-origins") + 1] == "http://127.0.0.1:8081",
                 "Portable launch disables its UI tool proxy and restricts allowed browser origin");
+            var offlineArguments = LlamaServerController.CreateStartInfo(executable, model, 8081, 4096, offlineMode: true).ArgumentList.ToArray();
+            check(offlineArguments.Count(argument => argument == "--offline") == 1
+                && offlineArguments.Where(argument => argument != "--offline").SequenceEqual(arguments),
+                "Offline launch preserves the selected local configuration and explicitly requests --offline");
+            LlamaRuntimeCapabilities.RequireAdvertisedOffline("Usage\n  --offline  disable network\n", "");
+            LlamaRuntimeCapabilities.RequireAdvertisedOffline("", "Usage\n--offline\n");
+            check(true, "Offline capability preflight recognizes the exact advertised option on either output stream");
+            check(await ThrowsAsync<NotSupportedException>(() =>
+            {
+                LlamaRuntimeCapabilities.RequireAdvertisedOffline("Use --offline if available", "--offline-other option");
+                return Task.CompletedTask;
+            }), "Missing offline support fails explicitly without an online fallback");
+            check(await ThrowsAsync<ArgumentException>(() => LlamaRuntimeCapabilities.RequireOfflineSupportAsync("llama-server.exe", model, 4096, default)),
+                "Offline help preflight rejects relative runtime paths before executing anything");
+            check(await ThrowsAsync<InvalidDataException>(() => LlamaRuntimeCapabilities.RequireOfflineSupportAsync(executable, badModel, 4096, default)),
+                "Offline help preflight validates the selected local model before executing anything");
+            // A capability fixture isolates unsupported-runtime handling from executable launching.
+            // The invalid executable above would fail if startup tried any fallback launch.
+            var capabilityChecks = 0;
+            await using (var unsupported = new LlamaServerController((_, _, _, _) =>
+            {
+                capabilityChecks++;
+                return Task.FromException(new NotSupportedException("Fixture: offline mode unsupported"));
+            }))
+            {
+                check(await ThrowsAsync<ArgumentException>(() => unsupported.StartAsync(@"\\unapproved-server\share\llama-server.exe", model, 8081, offlineMode: true))
+                    && await ThrowsAsync<ArgumentException>(() => unsupported.StartAsync(executable, @"\\unapproved-server\share\model.gguf", 8081, offlineMode: true))
+                    && capabilityChecks == 0,
+                    "Offline startup rejects network runtime and model paths before filesystem preflight or capability execution");
+                var freePort = new TcpListener(IPAddress.Loopback, 0);
+                freePort.Start();
+                var port = ((IPEndPoint)freePort.LocalEndpoint).Port;
+                freePort.Stop();
+                check(await ThrowsAsync<NotSupportedException>(() => unsupported.StartAsync(executable, model, port, offlineMode: true))
+                    && capabilityChecks == 1 && !unsupported.IsRunning && unsupported.Pid is null && unsupported.Endpoint is null
+                    && unsupported.LastError == "Fixture: offline mode unsupported",
+                    "Unsupported offline mode rejects startup without a fallback process or fabricated ownership");
+            }
             check(!info.Environment.Keys.Any(name => name.StartsWith("LLAMA_", StringComparison.OrdinalIgnoreCase)
                   || name.Contains("TOKEN", StringComparison.OrdinalIgnoreCase) || name.Contains("APIKEY", StringComparison.OrdinalIgnoreCase)
                   || name.Contains("API_KEY", StringComparison.OrdinalIgnoreCase)),
@@ -104,6 +142,8 @@ internal static class LlamaServerChecks
                 var occupiedPort = ((IPEndPoint)existing.LocalEndpoint).Port;
                 check(await ThrowsAsync<InvalidOperationException>(() => controller.StartAsync(executable, model, occupiedPort)),
                     "An occupied loopback port is rejected before creating a portable child process");
+                check(await ThrowsAsync<InvalidOperationException>(() => controller.StartAsync(executable, model, occupiedPort, offlineMode: true)),
+                    "Offline startup rejects an occupied loopback port before probing the selected executable");
                 await controller.StopAsync();
                 using var client = new TcpClient(AddressFamily.InterNetwork);
                 await client.ConnectAsync(IPAddress.Loopback, occupiedPort).WaitAsync(TimeSpan.FromSeconds(3));

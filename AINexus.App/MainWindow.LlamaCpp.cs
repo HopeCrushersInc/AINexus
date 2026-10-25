@@ -96,15 +96,15 @@ public partial class MainWindow
         _llamaLifecycleBusy = true;
         _ownedLlamaEndpoint = null;
         RefreshLlamaRuntimeControls();
-        LlamaCppRuntimeStatusText.Text = "Starting the selected portable server hidden and loading the selected model...";
+        LlamaCppRuntimeStatusText.Text = "Checking offline support before starting the selected portable server hidden and loading the selected model...";
         try
         {
-            await _llamaServer.StartAsync(LlamaCppExecutableText.Text.Trim(), LlamaCppModelPathText.Text.Trim(), port, context, _lifetime.Token);
+            await _llamaServer.StartAsync(LlamaCppExecutableText.Text.Trim(), LlamaCppModelPathText.Text.Trim(), port, context, _lifetime.Token, offlineMode: true);
             if (_lifetime.IsCancellationRequested) return;
             _ownedLlamaEndpoint = _llamaServer.Endpoint
                 ?? throw new InvalidOperationException("The started server did not report its local endpoint.");
             LlamaCppEndpointText.Text = _ownedLlamaEndpoint.GetLeftPart(UriPartial.Authority);
-            LlamaCppRuntimeStatusText.Text = $"Portal-owned server is ready (PID {_llamaServer.Pid}). It stops when this portal closes.";
+            LlamaCppRuntimeStatusText.Text = $"Portal-owned server is ready in runtime offline mode (PID {_llamaServer.Pid}). It stops when this portal closes. Windows network isolation was not established.";
             await PersistLlamaCppPreferencesAsync();
             await QueryLlamaCppAsync(allowDuringStart: true);
         }

@@ -71,6 +71,14 @@ Install/update, resource limits, and agent controls will only be exposed as thos
 
 ## Offline verification checkpoint
 
+Normal **Start server** now requests llama.cpp runtime offline mode too. The selected runtime must advertise the exact `--offline` option in its bounded help query. Unsupported runtimes are rejected rather than started online. Runtime/model paths must be local and must not traverse reparse points. This does not establish Windows network isolation or create a new verification receipt.
+
+The opt-in development check below loads an existing model, exercises actual generation, and verifies owned-server cleanup without changing saved launch preferences:
+
+```powershell
+dotnet run --project AINexus.Checks/AINexus.Checks.csproj -c Release -- --offline-launch-live '<llama-server.exe path>' '<existing GGUF path>'
+```
+
 The **Verify Offline** tab separates a read-only artifact audit from an explicit model-loading smoke test. Select a saved acquisition receipt and an existing llama.cpp executable. Audit checks the receipt and actual model hash without launching a runtime. The smoke test checks runtime file identities, current hardware/resources and advertised `--offline` support, then starts one owned loopback server, requests a brief completion, stops the server and saves successful evidence beside the model under `.ainexus/verification`.
 
 This establishes actual generation with runtime offline mode; it does not establish Windows firewall isolation, response quality or future compatibility after files/hardware change. No Windows settings are changed. Cancellation and window close stop only the test's owned server. Existing model bytes do not require another download's worth of free disk during verification.

@@ -1,11 +1,8 @@
-using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Security.Cryptography;
-using System.Text;
 using System.Text.Json;
-using System.Text.RegularExpressions;
 
 namespace AINexus.App;
 
@@ -28,7 +25,7 @@ public sealed record OfflineVerificationEvidence(
 /// local offline-mode smoke test. No external HTTP, downloads, installers or Windows changes occur.
 /// The selected model/runtime files are held read-only during execution. Only this test's child is stopped.
 /// </summary>
-public static partial class OfflineModelVerifier
+public static class OfflineModelVerifier
 {
     internal const int MaximumReceiptBytes = 1024 * 1024;
     private const long MaximumRuntimeBytes = 4L * 1024 * 1024 * 1024;
@@ -72,8 +69,6 @@ public static partial class OfflineModelVerifier
             throw new InvalidDataException("The current model hash differs from the acquisition receipt. No runtime was launched.");
 
         using var runtime = await RuntimeLease.CaptureAsync(executablePath, token).ConfigureAwait(false);
-        if (!await SupportsOfflineAsync(executablePath, receipt.Plan.DestinationPath, contextSize, token).ConfigureAwait(false))
-            throw new NotSupportedException("The selected runtime does not advertise --offline. Select a compatible runtime; no model was launched.");
 
         var machine = await HardwareCapabilityScanner.ScanAsync(token).ConfigureAwait(false);
         var monitor = new ResourceMonitor();
@@ -186,51 +181,6 @@ public static partial class OfflineModelVerifier
             || !string.Equals(evidence.Path, receipt.Plan.DestinationPath, StringComparison.OrdinalIgnoreCase)
             || !string.Equals(evidence.ActualSha256, receipt.Plan.Artifact.Sha256, StringComparison.OrdinalIgnoreCase))
             throw new InvalidDataException("The acquisition receipt lacks matching artifact integrity evidence.");
-    }
-
-    internal static bool AdvertisesOffline(string help) => OfflineOption().IsMatch(help);
-    [GeneratedRegex(@"(?m)^\s*--offline(?:\s|$)", RegexOptions.CultureInvariant)] private static partial Regex OfflineOption();
-
-    private static async Task<bool> SupportsOfflineAsync(string executable, string model, int context, CancellationToken token)
-    {
-        using var process = new Process { StartInfo = LlamaServerController.CreateStartInfo(executable, model, 1024, context) };
-        process.StartInfo.ArgumentList.Clear();
-        process.StartInfo.ArgumentList.Add("--help");
-        token.ThrowIfCancellationRequested();
-        if (!process.Start()) throw new InvalidOperationException("The selected runtime help query could not start.");
-        using var timeout = CancellationTokenSource.CreateLinkedTokenSource(token);
-        timeout.CancelAfter(TimeSpan.FromSeconds(10));
-        var stdout = ReadBoundedHelpAsync(process.StandardOutput, timeout.Token);
-        var stderr = ReadBoundedHelpAsync(process.StandardError, timeout.Token);
-        var all = Task.WhenAll(process.WaitForExitAsync(timeout.Token), stdout, stderr);
-        try
-        {
-            await all.WaitAsync(timeout.Token).ConfigureAwait(false);
-            if (process.ExitCode != 0) throw new InvalidOperationException("The selected runtime help query failed.");
-            return AdvertisesOffline(await stdout.ConfigureAwait(false)) || AdvertisesOffline(await stderr.ConfigureAwait(false));
-        }
-        catch (OperationCanceledException)
-        {
-            try { if (!process.HasExited) process.Kill(entireProcessTree: true); }
-            catch (Exception ex) when (ex is System.ComponentModel.Win32Exception or InvalidOperationException) { }
-            try { await all.WaitAsync(TimeSpan.FromSeconds(2)).ConfigureAwait(false); }
-            catch (Exception ex) when (ex is not OutOfMemoryException) { }
-            if (!all.IsCompleted) _ = all.ContinueWith(task => _ = task.Exception, TaskContinuationOptions.OnlyOnFaulted);
-            token.ThrowIfCancellationRequested();
-            throw new TimeoutException("The selected runtime help query exceeded its time limit.");
-        }
-    }
-
-    private static async Task<string> ReadBoundedHelpAsync(StreamReader reader, CancellationToken token)
-    {
-        var text = new StringBuilder();
-        var buffer = new char[4096];
-        int read;
-        while ((read = await reader.ReadAsync(buffer, token).ConfigureAwait(false)) > 0)
-        {
-            if (text.Length < 262144) text.Append(buffer, 0, Math.Min(read, 262144 - text.Length));
-        }
-        return text.ToString();
     }
 
     private static int SelectLoopbackPort()

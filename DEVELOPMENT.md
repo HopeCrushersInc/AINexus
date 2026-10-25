@@ -1,5 +1,13 @@
 # Development state
 
+## Everyday offline launch
+
+The native owned llama.cpp Start action now explicitly requests runtime offline mode. After local-drive/reparse/configuration checks and occupied-port rejection, a shared hidden, sanitized, bounded `--help` probe must advertise the exact `--offline` option. Unsupported runtimes fail before model launch, with no online fallback. Offline verification uses the same gate. Existing external servers remain separately owned; no Windows network policy changes are made.
+
+Validation: Release build passed with zero warnings/errors. 487 default regression checks plus five opt-in real-launch checks passed (492 total). The existing official Qwen2.5-Coder-7B Q4_K_M model returned `Portal ready.`; Stop cleared ownership and closed its port. This establishes runtime offline-mode generation, not OS-enforced network isolation, publisher authenticity, comprehensive coding quality, or continued readiness after artifacts change. Gemini and local Qwen supplied independent design-review suggestions; unsupported fallback advice was rejected.
+
+The work is isolated on `collaboration/offline-launch` in `F:\AINexus\Workspace\AINexus-Codex`. The original phase11 checkout's uncommitted workload setup is preserved. This branch also carries the earlier tested stale-verification display fix.
+
 ## Verification display integrity
 
 Changing the acquisition receipt, runtime executable or context clears displayed offline-verification evidence and asks for a fresh audit/test. Starting another operation clears earlier evidence; failure and cancellation also clear partial evidence. Saved evidence files remain intact. Native regression checks exercise each input and operation recovery without loading a model.

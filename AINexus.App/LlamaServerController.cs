@@ -33,6 +33,14 @@ public sealed class LlamaServerController : IDisposable, IAsyncDisposable
     private bool _disposed;
     private long _stopEpoch;
     private Task? _disposeTask;
+    private readonly Func<string, string, int, CancellationToken, Task> _requireOfflineSupport;
+
+    public LlamaServerController() : this(LlamaRuntimeCapabilities.RequireOfflineSupportAsync) { }
+
+    internal LlamaServerController(Func<string, string, int, CancellationToken, Task> requireOfflineSupport)
+    {
+        _requireOfflineSupport = requireOfflineSupport ?? throw new ArgumentNullException(nameof(requireOfflineSupport));
+    }
 
     public event Action<string>? StatusChanged;
 
@@ -74,6 +82,7 @@ public sealed class LlamaServerController : IDisposable, IAsyncDisposable
                 _lastError = null;
             }
             if (_owned is not null) await StopOwnedAsync().ConfigureAwait(false);
+            if (offlineMode) LlamaRuntimeCapabilities.ValidateOfflinePaths(executablePath, modelPath);
             await ValidateConfigurationAsync(executablePath, modelPath, port, contextSize, starting.Token).ConfigureAwait(false);
             lock (_outputGate) { _outputHead = 0; _outputCount = 0; }
 
@@ -88,6 +97,8 @@ public sealed class LlamaServerController : IDisposable, IAsyncDisposable
                     throw new InvalidOperationException("The selected loopback port is unavailable. Existing servers were left untouched.", ex);
                 }
             }
+            if (offlineMode)
+                await _requireOfflineSupport(executablePath, modelPath, contextSize, starting.Token).ConfigureAwait(false);
             starting.Token.ThrowIfCancellationRequested();
             var endpoint = new Uri($"http://127.0.0.1:{port}");
             var process = new Process { StartInfo = CreateStartInfo(executablePath, modelPath, port, contextSize, offlineMode), EnableRaisingEvents = true };

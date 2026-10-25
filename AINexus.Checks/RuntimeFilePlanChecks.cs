@@ -72,5 +72,9 @@ internal static class RuntimeFilePlanChecks
         check(details.Text.Contains("Prepare a new review"), "Changing the runtime destination invalidates the displayed review");
         window.RenderDiscoveryReport(RuntimeSetupChecks.Report(RuntimeSetupChecks.Machine()));
         check(selector.Items.Count == 0 && !button.IsEnabled, "Changing runtime results clears an obsolete selected archive");
+        ((TextBox)window.FindName("RuntimeReleaseTagText")).Text = "";
+        ((Button)window.FindName("RuntimeReleaseLookupButton")).RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+        check(((TextBlock)window.FindName("DiscoveryStatusText")).Text.Contains("Enter an exact upstream"),
+            "Native explicit runtime lookup cannot silently choose a release when the tag is empty");
     }
 }

@@ -102,3 +102,15 @@ Naming/packaging references: [upstream release workflow](https://github.com/ggml
 The runtime archive selector requires an explicit choice. **Review selected files** lists that archive's exact URL, compressed bytes and SHA-256, plus a uniquely matching same-release CUDA support archive when one is published. CPU selection excludes GPU alternatives. Missing or ambiguous CUDA dependencies are reported; other releases and architectures are never substituted.
 
 The review identity covers selected files, destination, declared license, release flags, source timestamps and hardware evidence. Changing the destination or selection clears the displayed review. Missing digests, stale evidence, dependency licensing, expanded size and runtime compatibility remain explicit requirements. Creating a review grants no approval and does not download, install or run anything. Archive inspection and approval-bound runtime acquisition remain incomplete.
+
+## Explicit runtime release lookup
+
+Enter an exact upstream tag in **Explicit release tag**, then choose **Look up release**. This queries only the public llama.cpp repository and that named release; it performs no model search, follows no release-marker file, and never substitutes latest/nightly. **Load saved release** uses the tag-specific catalog and refreshes local hardware evidence without making an online request. Existing ordinary-search cache keys are preserved.
+
+A release mismatch, missing tag, unsafe tag or unavailable source is reported rather than replaced. Successful metadata feeds the same hardware assessment and exact-file review. Named release lookup does not approve downloading or installing that release.
+
+Opt-in metadata-only live check:
+
+```powershell
+dotnet run --project AINexus.Checks/AINexus.Checks.csproj -c Release -- --runtime-release-live '<explicit upstream release tag>'
+```

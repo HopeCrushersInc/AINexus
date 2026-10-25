@@ -65,3 +65,9 @@ Validation: Release build passed with zero warnings/errors; 431 checks passed in
 Added explicit native archive selection and an exact-file review with reproducible identity. It binds current hardware/source evidence, release flags, files/hashes/bytes, license and destination. Recognized CUDA support companions must match release/backend/architecture and be unambiguous; CPU plans exclude unrelated GPU alternatives. Review invalidation follows input changes. This is not an executable install plan and saves no approval. Pending: actual archive inspection, dependency verification and approval-bound runtime acquisition.
 
 Validation: Release build passed without warnings/errors; 439 checks passed, including exact file identity, same-release companions, ambiguous/missing dependencies, wrong-platform and foreign-origin rejection, native selection and review invalidation. No download, installation or runtime launch occurred.
+
+## Explicit release lookup increment
+
+Added explicit upstream tag lookup and tag-specific saved metadata to the native discovery screen. The provider makes only repository/tag API requests, validates the returned tag, preserves cancellation/source failures and never silently falls back. Runtime caches cannot substitute another tag's metadata; ordinary-search cache keys retain their previous format. Exact file selection remains review-only with no install authorization.
+
+Validation: Release build passed without warnings/errors; 451 checks passed including live explicit `b11669` metadata (36 archives) and an actual native-platform CPU-file review. No runtime archive was downloaded, extracted or installed; the proposed destination remained absent.

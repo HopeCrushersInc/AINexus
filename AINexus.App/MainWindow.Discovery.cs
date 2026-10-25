@@ -57,6 +57,9 @@ public partial class MainWindow
             RuntimeSetupReviewButton.IsEnabled = !_discoveryBusy && _lastDiscoveryReport is not null
                 && DiscoveryResultsGrid.SelectedItem is DiscoveryRow { Recommendation.Item.RuntimeRelease: not null };
         if (RuntimeDestinationText is not null) RuntimeDestinationText.IsEnabled = !_discoveryBusy;
+        if (RuntimeReleaseLookupButton is not null) RuntimeReleaseLookupButton.IsEnabled = !_discoveryBusy;
+        if (RuntimeReleaseSavedButton is not null) RuntimeReleaseSavedButton.IsEnabled = !_discoveryBusy;
+        if (RuntimeReleaseTagText is not null) RuntimeReleaseTagText.IsEnabled = !_discoveryBusy;
         if (RuntimeArchiveSelector is not null)
             RuntimeArchiveSelector.IsEnabled = !_discoveryBusy && DiscoveryResultsGrid.SelectedItem is DiscoveryRow { Recommendation.Item.RuntimeRelease: not null };
         if (RuntimeFileReviewButton is not null)
@@ -106,10 +109,25 @@ public partial class MainWindow
     private async void DiscoverySearchButton_Click(object sender, RoutedEventArgs e) => await RunDiscoverySearchAsync(online: true);
     private async void DiscoverySavedButton_Click(object sender, RoutedEventArgs e) => await RunDiscoverySearchAsync(online: false);
 
-    private async Task RunDiscoverySearchAsync(bool online)
+    private async void RuntimeReleaseLookupButton_Click(object sender, RoutedEventArgs e) => await RunRuntimeReleaseLookupAsync(true);
+    private async void RuntimeReleaseSavedButton_Click(object sender, RoutedEventArgs e) => await RunRuntimeReleaseLookupAsync(false);
+
+    private async Task RunRuntimeReleaseLookupAsync(bool online)
+    {
+        var tag = RuntimeReleaseTagText.Text.Trim();
+        if (tag.Length == 0)
+        {
+            DiscoveryStatusText.Text = "Enter an exact upstream runtime release tag. No release will be chosen automatically.";
+            return;
+        }
+        await RunDiscoverySearchAsync(online, tag);
+    }
+
+    private async Task RunDiscoverySearchAsync(bool online, string? runtimeTag = null)
     {
         if (DiscoveryInterestSelector.SelectedItem is not DiscoveryWorkflow workflow || _discoveryPipeline is null) return;
-        var request = new OnlineDiscoveryRequest(workflow.Interest, DiscoveryQueryText.Text.Trim());
+        var request = runtimeTag is null ? new OnlineDiscoveryRequest(workflow.Interest, DiscoveryQueryText.Text.Trim())
+            : new OnlineDiscoveryRequest(DiscoveryInterest.LocalAssistants, "", 1, runtimeTag);
         await RunDiscoveryOperationAsync(async token =>
         {
             DiscoveryResultsGrid.ItemsSource = null;

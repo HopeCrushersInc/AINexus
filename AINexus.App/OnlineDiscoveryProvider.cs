@@ -47,6 +47,8 @@ public sealed partial class VerifiedOnlineDiscoveryProvider(HttpClient httpClien
         if (request.Limit is < 1 or > 12) throw new ArgumentOutOfRangeException(nameof(request.Limit), "Choose between 1 and 12 results.");
         if (request.Query is null || request.Query.Length > 160 || request.Query.Any(char.IsControl))
             throw new ArgumentException("Search text must contain at most 160 characters without control characters.", nameof(request));
+        if (request.RuntimeReleaseTag is not null && !RuntimeTag().IsMatch(request.RuntimeReleaseTag))
+            throw new ArgumentException("Choose an explicit release tag using letters, digits, dots, underscores or hyphens (maximum 128 characters).", nameof(request));
         cancellationToken.ThrowIfCancellationRequested();
         if (!Supports(request.Interest)) return Snapshot([], ["This workflow's online discovery adapter is not implemented. No recommendations were fabricated."]);
         if (_http.DefaultRequestHeaders.Authorization is not null)
@@ -56,6 +58,17 @@ public sealed partial class VerifiedOnlineDiscoveryProvider(HttpClient httpClien
         deadline.CancelAfter(TimeSpan.FromSeconds(60));
         var items = new List<DiscoveredItem>();
         var notes = new List<string>();
+        if (request.RuntimeReleaseTag is { } requestedTag)
+        {
+            try { items.Add(await ReadRuntimeAsync(request.Interest, deadline.Token, requestedTag)); }
+            catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+            { notes.Add("The release lookup deadline was reached. No alternate release was selected."); }
+            catch (Exception ex) when (IsSourceFailure(ex))
+            { notes.Add("The explicitly requested runtime release is unavailable: " + FailureMessage(ex)); }
+            cancellationToken.ThrowIfCancellationRequested();
+            notes.Add("Explicit runtime release metadata only. No model search, release substitution, download or installation was performed.");
+            return Snapshot(items, notes);
+        }
         try
         {
             // Budget: one search + at most four metadata/tree pairs + two supporting
@@ -157,13 +170,15 @@ public sealed partial class VerifiedOnlineDiscoveryProvider(HttpClient httpClien
             .ToList().AsReadOnly();
     }
 
-    private async Task<DiscoveredItem> ReadRuntimeAsync(DiscoveryInterest interest, CancellationToken token)
+    private async Task<DiscoveredItem> ReadRuntimeAsync(DiscoveryInterest interest, CancellationToken token, string? requestedTag = null)
     {
         using var repository = await GetJsonAsync(new Uri("https://api.github.com/repos/ggml-org/llama.cpp"), token);
-        using var release = await GetJsonAsync(new Uri("https://api.github.com/repos/ggml-org/llama.cpp/releases/latest"), token);
+        using var release = await GetJsonAsync(new Uri("https://api.github.com/repos/ggml-org/llama.cpp/releases/" +
+            (requestedTag is null ? "latest" : "tags/" + Uri.EscapeDataString(requestedTag))), token);
         if (repository.RootElement.ValueKind != JsonValueKind.Object) throw new InvalidDataException("The runtime repository metadata was not an object.");
         var tag = ReadString(release.RootElement, "tag_name");
         if (string.IsNullOrWhiteSpace(tag) || tag.Length > 128) throw new InvalidDataException("The runtime source did not provide a release tag.");
+        if (requestedTag is not null && tag != requestedTag) throw new InvalidDataException("The runtime response does not match the explicitly requested release. No substitute was accepted.");
         var license = repository.RootElement.TryGetProperty("license", out var value) ? ReadString(value, "spdx_id") : null;
         if (license == "NOASSERTION") license = null;
         var at = DateTimeOffset.UtcNow;
@@ -208,6 +223,9 @@ public sealed partial class VerifiedOnlineDiscoveryProvider(HttpClient httpClien
         }
         catch (OperationCanceledException) when (!token.IsCancellationRequested) { throw new TimeoutException("The public metadata request timed out."); }
     }
+
+    [GeneratedRegex(@"^[A-Za-z0-9][A-Za-z0-9._-]{0,127}\z", RegexOptions.CultureInvariant)]
+    private static partial Regex RuntimeTag();
 
     private static OnlineDiscoverySnapshot Snapshot(IEnumerable<DiscoveredItem> items, IEnumerable<string> notes) =>
         new(items.ToList().AsReadOnly(), notes.Distinct(StringComparer.Ordinal).ToList().AsReadOnly(), DateTimeOffset.UtcNow);

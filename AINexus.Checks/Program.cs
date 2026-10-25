@@ -28,6 +28,7 @@ internal static class Program
             RuntimeReleaseChecks.Run(Check);
             RuntimeSetupChecks.Run(Check);
             RuntimeFilePlanChecks.Run(Check);
+            RuntimeReleaseLookupChecks.RunAsync(Check).GetAwaiter().GetResult();
             OnlineDiscoveryChecks.RunAsync(Check).GetAwaiter().GetResult();
             DiscoveryPipelineChecks.RunAsync(Check).GetAwaiter().GetResult();
             AcquisitionPlanChecks.RunAsync(Check).GetAwaiter().GetResult();
@@ -49,6 +50,12 @@ internal static class Program
                 AcquisitionLiveChecks.RunAsync(args[index + 1], downloadIndex >= 0, Check).GetAwaiter().GetResult();
             }
             var offlineIndex = Array.IndexOf(args, "--offline-verification-live");
+            var runtimeIndex = Array.IndexOf(args, "--runtime-release-live");
+            if (runtimeIndex >= 0)
+            {
+                if (runtimeIndex + 1 >= args.Length) throw new ArgumentException("--runtime-release-live requires an explicit upstream release tag.");
+                RuntimeReleaseLookupChecks.RunLiveAsync(args[runtimeIndex + 1], Check).GetAwaiter().GetResult();
+            }
             if (offlineIndex >= 0)
             {
                 if (offlineIndex + 2 >= args.Length) throw new ArgumentException("--offline-verification-live requires an acquisition receipt and local runtime executable path.");

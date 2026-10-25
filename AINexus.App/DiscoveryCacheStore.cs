@@ -67,13 +67,17 @@ public sealed class DiscoveryCacheStore(string directory)
                         + Uri.EscapeDataString(runtime.Tag) + "/" + Uri.EscapeDataString(asset.Name))))
                 throw new InvalidDataException("Saved runtime release evidence is invalid.");
         }
+        if (request.RuntimeReleaseTag is { } tag && (envelope.Snapshot.Items.Count != 1
+            || envelope.Snapshot.Items[0].Kind != "Runtime" || envelope.Snapshot.Items[0].RuntimeRelease?.Tag != tag))
+            throw new InvalidDataException("Saved runtime evidence does not match the explicitly requested release.");
         return envelope.Snapshot with { IsCached = true };
     }
 
     private string CachePath(OnlineDiscoveryRequest request)
     {
         var key = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(
-            $"{request.Interest}\n{request.Query}\n{request.Limit}")));
+            $"{request.Interest}\n{request.Query}\n{request.Limit}" +
+            (request.RuntimeReleaseTag is null ? "" : "\nruntime-tag\n" + request.RuntimeReleaseTag))));
         return Path.Combine(directory, key + ".json");
     }
 }

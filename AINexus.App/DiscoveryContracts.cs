@@ -23,7 +23,7 @@ public sealed record RuntimeReleaseAsset(string Name, long SizeBytes, string? Sh
 public sealed record RuntimeReleaseMetadata(string Tag, bool Prerelease, bool Immutable,
     IReadOnlyList<RuntimeReleaseAsset> Archives, IReadOnlyList<string> Notes);
 
-public sealed record OnlineDiscoveryRequest(DiscoveryInterest Interest, string Query, int Limit = 8);
+public sealed record OnlineDiscoveryRequest(DiscoveryInterest Interest, string Query, int Limit = 8, string? RuntimeReleaseTag = null);
 
 public sealed record OnlineDiscoverySnapshot(
     IReadOnlyList<DiscoveredItem> Items, IReadOnlyList<string> Notes,

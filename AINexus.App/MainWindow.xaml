@@ -101,6 +101,14 @@
                 <TextBox Grid.Row="5" x:Name="DiscoveryDetailsText" IsReadOnly="True" AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" Background="#111A29" Foreground="#E6F7FF" Padding="12" Text="Select a result to review its source evidence, requirement estimate, assumptions, and unknowns. No software is installed by discovery."/>
                 <StackPanel Grid.Row="6" Margin="0,10,0,0">
                 <DockPanel Margin="0,0,0,8">
+                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                        <Button x:Name="RuntimeReleaseLookupButton" Content="LOOK UP RELEASE" Click="RuntimeReleaseLookupButton_Click" Padding="10,8" Margin="8,0,0,0"/>
+                        <Button x:Name="RuntimeReleaseSavedButton" Content="LOAD SAVED RELEASE" Click="RuntimeReleaseSavedButton_Click" Padding="10,8" Margin="8,0,0,0"/>
+                    </StackPanel>
+                    <TextBlock DockPanel.Dock="Left" Text="EXPLICIT RELEASE TAG" VerticalAlignment="Center" Foreground="#8CA6BC" Margin="0,0,8,0"/>
+                    <TextBox x:Name="RuntimeReleaseTagText" Padding="8" MaxLength="128" ToolTip="Enter an exact upstream llama.cpp release tag. No latest or nightly fallback is selected."/>
+                </DockPanel>
+                <DockPanel Margin="0,0,0,8">
                     <TextBlock DockPanel.Dock="Left" Text="NEW RUNTIME FOLDER" VerticalAlignment="Center" Foreground="#8CA6BC" Margin="0,0,8,0"/>
                     <Button x:Name="RuntimeSetupReviewButton" DockPanel.Dock="Right" Content="REVIEW RUNTIME SETUP" Click="RuntimeSetupReviewButton_Click" IsEnabled="False" Padding="10,8" Margin="8,0,0,0"/>
                     <TextBox x:Name="RuntimeDestinationText" Padding="8" TextChanged="RuntimeDestinationText_TextChanged" ToolTip="New runtime folder on the assessed volume; existing folders cannot be used"/>

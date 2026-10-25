@@ -32,6 +32,7 @@ internal static class Program
             RuntimeArchiveChecks.RunAsync(Check).GetAwaiter().GetResult();
             RuntimeInstallationChecks.RunAsync(Check).GetAwaiter().GetResult();
             ImageWorkflowChecks.RunAsync(Check).GetAwaiter().GetResult();
+            WorkloadSetupChecks.RunAsync(Check).GetAwaiter().GetResult();
             OnlineDiscoveryChecks.RunAsync(Check).GetAwaiter().GetResult();
             DiscoveryPipelineChecks.RunAsync(Check).GetAwaiter().GetResult();
             AcquisitionPlanChecks.RunAsync(Check).GetAwaiter().GetResult();
@@ -151,6 +152,7 @@ internal static class Program
         var app = new Application { ShutdownMode = ShutdownMode.OnExplicitShutdown };
         var window = new MainWindow();
         Check(window.FindName("CpuText") is TextBlock, "Hardware XAML loads");
+        WorkloadSetupChecks.RunNative(window, Check);
         ImageWorkflowChecks.RunNative(window, Check);
         RuntimeSetupChecks.RunNative(window, Check);
         RuntimeFilePlanChecks.RunNative(window, Check);

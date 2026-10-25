@@ -71,13 +71,13 @@
         <Border Background="#131F2D" Padding="16,24"><DockPanel LastChildFill="True">
             <StackPanel DockPanel.Dock="Top" Margin="8,0,0,30"><TextBlock Text="AI NEXUS" FontSize="24" FontWeight="Bold" Foreground="#66C0F4"/><TextBlock Text="Your local AI workspace" Foreground="#829AB2" FontSize="12" Margin="0,5,0,0"/></StackPanel>
             <TextBlock DockPanel.Dock="Bottom" Text="Local first. Yours to control." Foreground="#6F879E" FontSize="11" Margin="8,20,0,0"/>
-            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"><StackPanel x:Name="StoreNavigation">
+            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"><StackPanel x:Name="StoreNavigation" Visibility="Collapsed">
                 <RadioButton x:Name="HomeNav" Style="{StaticResource NavStyle}" GroupName="StoreNav" Content="Home" Tag="StoreHomeTab" IsChecked="True" Click="StoreNavigate_Click"/>
                 <RadioButton Style="{StaticResource NavStyle}" GroupName="StoreNav" Content="Discover" Tag="DiscoveryTab" Click="StoreNavigate_Click"/>
                 <RadioButton Style="{StaticResource NavStyle}" GroupName="StoreNav" Content="Library" Tag="LibraryTab" Click="StoreNavigate_Click"/>
-                <TextBlock Text="CREATE" Foreground="#637E98" FontSize="11" Margin="18,25,0,7"/>
-                <RadioButton Style="{StaticResource NavStyle}" GroupName="StoreNav" Content="Images" Tag="ImageStudioTab" Click="StoreNavigate_Click"/>
-                <RadioButton Style="{StaticResource NavStyle}" GroupName="StoreNav" Content="Assistant" Tag="AssistantTab" Click="StoreNavigate_Click"/>
+                <TextBlock x:Name="CreateWorkspaceHeading" Text="CREATE" Foreground="#637E98" FontSize="11" Margin="18,25,0,7"/>
+                <RadioButton x:Name="ImageWorkspaceNav" Style="{StaticResource NavStyle}" GroupName="StoreNav" Content="Images" Visibility="Collapsed" Tag="ImageStudioTab" Click="StoreNavigate_Click"/>
+                <RadioButton x:Name="AssistantWorkspaceNav" Style="{StaticResource NavStyle}" GroupName="StoreNav" Content="Assistant" Visibility="Collapsed" Tag="AssistantTab" Click="StoreNavigate_Click"/>
                 <TextBlock Text="MANAGE" Foreground="#637E98" FontSize="11" Margin="18,25,0,7"/>
                 <RadioButton Style="{StaticResource NavStyle}" GroupName="StoreNav" Content="Downloads &amp; setup" Tag="DownloadsTab" Click="StoreNavigate_Click"/>
                 <RadioButton Style="{StaticResource NavStyle}" GroupName="StoreNav" Content="Performance" Tag="ResourcesTab" Click="StoreNavigate_Click"/>
@@ -97,13 +97,32 @@
             <TabControl x:Name="WorkspaceTabs" Grid.Row="1" Background="#101925" Foreground="#E6EEF8" BorderThickness="0" SelectionChanged="WorkspaceTabs_SelectionChanged">
                 <TabControl.Template><ControlTemplate TargetType="TabControl"><Border Background="{TemplateBinding Background}"><Grid><TabPanel IsItemsHost="True" Height="0" ClipToBounds="True" VerticalAlignment="Top"/><ContentPresenter x:Name="PART_SelectedContentHost" ContentSource="SelectedContent" Margin="0"/></Grid></Border></ControlTemplate></TabControl.Template>
 
+
+        <TabItem x:Name="WorkloadSetupTab" Header="Set up your workspace"><ScrollViewer VerticalScrollBarVisibility="Auto"><StackPanel Margin="32">
+            <TextBlock Text="Let's build your AI workspace" FontSize="30" FontWeight="SemiBold"/>
+            <TextBlock Text="Scan this computer → Choose your workloads → Review compatible tools → Approve downloads" Foreground="#AABFD4" TextWrapping="Wrap" Margin="0,12,0,24"/>
+            <Border Style="{StaticResource PanelStyle}"><StackPanel>
+                <DockPanel><Button x:Name="WorkloadRescanButton" DockPanel.Dock="Right" Content="Rescan hardware" Click="WorkloadRescanButton_Click" IsEnabled="False" Margin="12,0,0,0"/><TextBlock Text="1. Your hardware" FontSize="22" FontWeight="SemiBold"/></DockPanel>
+                <ProgressBar x:Name="WorkloadScanProgress" IsIndeterminate="True" Height="4" Margin="0,16,0,12"/>
+                <TextBlock x:Name="WorkloadHardwareText" Text="Waiting for the local hardware scan..." Foreground="#E6EEF8" TextWrapping="Wrap" Margin="0,8,0,12"/>
+                <TextBlock x:Name="WorkloadScanStatusText" Text="The hardware scan runs first. No downloads, installs or engines will start." Foreground="#AABFD4" TextWrapping="Wrap"/>
+            </StackPanel></Border>
+            <StackPanel x:Name="WorkloadOptionsPanel" Visibility="Collapsed">
+                <TextBlock Text="2. What would you like to do?" FontSize="24" FontWeight="SemiBold" Margin="0,6,0,8"/>
+                <TextBlock Text="Choose one or more interests. This only shapes your workspace—it does not choose software for you or approve a download." Foreground="#AABFD4" TextWrapping="Wrap" Margin="0,0,0,16"/>
+                <ItemsControl x:Name="WorkloadChoices"><ItemsControl.ItemsPanel><ItemsPanelTemplate><UniformGrid Columns="2"/></ItemsPanelTemplate></ItemsControl.ItemsPanel><ItemsControl.ItemTemplate><DataTemplate>
+                    <Border Style="{StaticResource PanelStyle}"><CheckBox IsChecked="{Binding Selected, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Foreground="#E6EEF8" VerticalContentAlignment="Top"><StackPanel Margin="6,0,0,0"><TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="17" TextWrapping="Wrap"/><TextBlock Text="{Binding Description}" Foreground="#AABFD4" TextWrapping="Wrap" Margin="0,8,0,0"/></StackPanel></CheckBox></Border>
+                </DataTemplate></ItemsControl.ItemTemplate></ItemsControl>
+                <Button x:Name="WorkloadContinueButton" Content="Build my workspace" Click="WorkloadContinueButton_Click" Background="#286E9A" HorizontalAlignment="Left" IsEnabled="False" Margin="0,8,0,12"/>
+                <TextBlock Text="You will choose specific tools and models next. Nothing is installed or loaded until you explicitly ask." Foreground="#829AB2" TextWrapping="Wrap"/>
+            </StackPanel>
+        </StackPanel></ScrollViewer></TabItem>
         <TabItem x:Name="StoreHomeTab" Header="Home"><ScrollViewer VerticalScrollBarVisibility="Auto"><StackPanel Margin="28">
-            <Border CornerRadius="12" Padding="30" Margin="0,0,0,24"><Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="1,1"><GradientStop Color="#254A66" Offset="0"/><GradientStop Color="#17283A" Offset="1"/></LinearGradientBrush></Border.Background><StackPanel><TextBlock Text="Make more. Keep it local." FontSize="34" FontWeight="SemiBold"/><TextBlock Text="Find AI for your hardware, build your library, and create without a cloud subscription." Foreground="#BCD0E2" FontSize="16" TextWrapping="Wrap" Margin="0,12,0,24"/><Button Content="Explore AI" Tag="DiscoveryTab" Click="StoreNavigate_Click" HorizontalAlignment="Left" Background="#286E9A"/></StackPanel></Border>
-            <TextBlock Text="Your workspace" FontSize="22" FontWeight="SemiBold" Margin="0,0,0,16"/>
-            <UniformGrid Columns="2">
-                <Border Style="{StaticResource PanelStyle}" Background="#21374B"><StackPanel><TextBlock Text="Image studio" FontSize="23" FontWeight="SemiBold"/><TextBlock Text="Turn an idea into an image using a local ComfyUI engine and your chosen checkpoint." Foreground="#AABFD4" TextWrapping="Wrap" Margin="0,12,0,20"/><Button Content="Open image studio" Tag="ImageStudioTab" Click="StoreNavigate_Click" HorizontalAlignment="Left"/></StackPanel></Border>
-                <Border Style="{StaticResource PanelStyle}"><StackPanel><TextBlock Text="Local assistant" FontSize="23" FontWeight="SemiBold"/><TextBlock Text="Run prompts with your installed text models. Choose a model before starting a task." Foreground="#AABFD4" TextWrapping="Wrap" Margin="0,12,0,20"/><Button Content="Open assistant" Tag="AssistantTab" Click="StoreNavigate_Click" HorizontalAlignment="Left"/></StackPanel></Border>
-            </UniformGrid>
+            <Border CornerRadius="12" Padding="30" Margin="0,0,0,24"><Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="1,1"><GradientStop Color="#254A66" Offset="0"/><GradientStop Color="#17283A" Offset="1"/></LinearGradientBrush></Border.Background><StackPanel><TextBlock Text="Your workspace, your choices." FontSize="34" FontWeight="SemiBold"/><TextBlock Text="Find compatible options for your selected workloads. You decide what gets downloaded and installed." Foreground="#BCD0E2" FontSize="16" TextWrapping="Wrap" Margin="0,12,0,24"/><StackPanel Orientation="Horizontal"><Button Content="Find compatible options" Tag="DiscoveryTab" Click="StoreNavigate_Click" Background="#286E9A"/><Button Content="Change workloads" Click="ChangeWorkloadsButton_Click" Margin="12,0,0,0"/></StackPanel></StackPanel></Border>
+            <TextBlock x:Name="StoreSetupNoticeText" Foreground="#AABFD4" TextWrapping="Wrap" Margin="0,0,0,20"/><TextBlock Text="Your selected workloads" FontSize="22" FontWeight="SemiBold" Margin="0,0,0,16"/>
+            <ItemsControl x:Name="WorkspaceWorkloadCards"><ItemsControl.ItemsPanel><ItemsPanelTemplate><UniformGrid Columns="2"/></ItemsPanelTemplate></ItemsControl.ItemsPanel><ItemsControl.ItemTemplate><DataTemplate>
+                <Border Style="{StaticResource PanelStyle}"><StackPanel><TextBlock Text="{Binding Name}" FontSize="22" FontWeight="SemiBold" TextWrapping="Wrap"/><TextBlock Text="{Binding Description}" Foreground="#AABFD4" TextWrapping="Wrap" Margin="0,12,0,20"/><Button Content="{Binding Action}" IsEnabled="{Binding Available}" Click="WorkloadCardAction_Click" HorizontalAlignment="Left"/></StackPanel></Border>
+            </DataTemplate></ItemsControl.ItemTemplate></ItemsControl>
             <Border Style="{StaticResource PanelStyle}"><StackPanel><TextBlock Text="Your computer" FontSize="20" FontWeight="SemiBold"/><TextBlock Text="{Binding Text, ElementName=CpuText}" Foreground="#AABFD4" Margin="0,12,0,4" TextWrapping="Wrap"/><TextBlock Text="{Binding Text, ElementName=SoftwareStatusText}" Foreground="#829AB2" TextWrapping="Wrap"/><Button Content="View library" Tag="LibraryTab" Click="StoreNavigate_Click" HorizontalAlignment="Left" Margin="0,16,0,0"/></StackPanel></Border>
         </StackPanel></ScrollViewer></TabItem>
         <TabItem x:Name="DownloadsTab" Header="Downloads &amp; setup"><ScrollViewer VerticalScrollBarVisibility="Auto"><StackPanel Margin="28">

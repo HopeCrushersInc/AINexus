@@ -137,6 +137,14 @@ dotnet run --project AINexus.Checks/AINexus.Checks.csproj -c Release -- --runtim
 
 ## Store workspace and image generation
 
+### Local portable runtime installation
+
+For a reviewed **native Windows CPU ZIP**, choose **Inspect local zip files**, **Review local install**, and **Read bundled license terms**. After reviewing the exact source identities, new folder, storage requirements and terms, accept all three approvals and choose **Install reviewed files**. Existing destinations are preserved. The archive must contain a root server file and readable license text; GPU/support packages and runtime downloads are not supported by this recipe.
+
+Installation writes portable files and an extraction receipt, and runs no payload. **Use installed runtime** selects it for an explicit offline smoke test with your chosen model. Extraction alone does not verify dependencies or runtime compatibility. Cancelled/failed extraction may retain an identified sibling staging folder for inspection; automatic recursive cleanup is deliberately avoided.
+
+Model-size columns use appropriate byte units. Empty model placeholders are excluded from the local list with an explanation, while their files are preserved. Missing model-size metadata is shown as unknown.
+
 The native WPF shell now starts at Home with persistent sidebar navigation for Discover, Library, Images, Assistant, Downloads & setup, and Performance. Existing hardware, package, runtime, embedded-app and offline-verification pages remain under Advanced tools. Search results use shorter labels; exact file hashes/source details and runtime-package controls are separated from browsing. Sidebar navigation, PNG preview, checkpoint gating and source-plan behavior have regression coverage.
 
 Image studio connects only to an explicitly chosen literal-loopback ComfyUI endpoint. It discovers actual standard nodes and installed checkpoints, requires explicit model selection, checks current CPU/RAM admission and an idle image-engine queue, then submits a standard 512×512 checkpoint workflow. It waits for that exact job's successful history and decodes the returned PNG before showing a result. Cancellation addresses only that job ID; an unavailable cancellation endpoint never falls back to a global interrupt. Model fit/architecture support are established by actual execution, not inferred from filenames. Broader image architectures, image editing, audio/video and online image-model discovery remain incomplete.

@@ -1,5 +1,13 @@
 # Development state
 
+## Approved local runtime extraction and model-list cleanup
+
+Downloads & setup now supports an explicit installation review after exact-file review and local ZIP inspection. The initial recipe accepts a single native Windows CPU runtime archive with a nonempty root server and bounded readable bundled license files. Reading verified terms grants no approval: separate declared-license, bundled-terms and destination-write acceptances are required. The service rehashes the held archive, reinspects paths and sizes, checks current disk space, extracts into a new sibling staging folder, validates the complete output inventory, writes a receipt and publishes without overwriting. It never downloads or executes a runtime. Failures/cancellation retain clearly identified staging for inspection instead of recursively deleting possibly changed paths. Use installed runtime selects it for a separate actual offline test; extraction is not successful execution evidence. GPU/multiple-archive recipes, missing license text, acquisition and dependency installers remain unsupported.
+
+Model library, discovery and Ollama tables now show adaptive byte units instead of rounding small files to zero GiB. Unknown model sizes stay unknown; zero-byte local placeholders are omitted with a warning and preserved on disk. No model files are deleted.
+
+Validation: clean Release build, 522 regression/native checks passed. Tests use inert generated archives and cover exact approvals, changed identities, no-overwrite behavior, terms bounds/encoding, staged extra files, cancellation, malformed decompression sizes, upstream tagged archive names and native installation/configuration controls. No real runtime ZIP was installed by this increment. Native layout was rendered and visually inspected.
+
 ## Everyday offline launch
 
 The native owned llama.cpp Start action now explicitly requests runtime offline mode. After local-drive/reparse/configuration checks and occupied-port rejection, a shared hidden, sanitized, bounded `--help` probe must advertise the exact `--offline` option. Unsupported runtimes fail before model launch, with no online fallback. Offline verification uses the same gate. Existing external servers remain separately owned; no Windows network policy changes are made.

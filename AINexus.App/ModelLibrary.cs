@@ -5,8 +5,7 @@ namespace AINexus.App;
 
 public sealed record ModelFile(string Name, string FullPath, string Format, long SizeBytes, DateTimeOffset LastWriteTime)
 {
-    public string SizeDisplay => SizeBytes >= 1_073_741_824
-        ? $"{SizeBytes / 1_073_741_824d:N2} GiB" : $"{SizeBytes / 1_048_576d:N1} MiB";
+    public string SizeDisplay => ByteSizeDisplay.Format(SizeBytes);
 }
 
 public sealed record ModelLibrarySnapshot(
@@ -134,6 +133,11 @@ public static class ModelLibrary
                         }
                         if (!Formats.TryGetValue(Path.GetExtension(path), out var format) || files.ContainsKey(path)) continue;
                         var info = new FileInfo(path);
+                        if (info.Length == 0)
+                        {
+                            warnings.Add($"Skipped an empty model placeholder (0 B): {info.FullName}. The file was preserved.");
+                            continue;
+                        }
                         files.Add(path, new ModelFile(info.Name, info.FullName, format, info.Length,
                             new DateTimeOffset(DateTime.SpecifyKind(info.LastWriteTimeUtc, DateTimeKind.Utc))));
                     }

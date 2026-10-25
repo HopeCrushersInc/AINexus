@@ -21,6 +21,7 @@ public partial class MainWindow
     private void InitializeDiscovery()
     {
         InitializeAcquisition();
+        InitializeRuntimeInstallation();
         _discoveryPipeline = new(new VerifiedOnlineDiscoveryProvider(_discoveryHttp), DiscoveryCacheStore.ForCurrentUser());
         DiscoveryInterestSelector.ItemsSource = VerifiedOnlineDiscoveryProvider.Workflows;
         DiscoveryInterestSelector.SelectedIndex = 0;
@@ -48,6 +49,7 @@ public partial class MainWindow
 
     private void RefreshDiscoveryControls()
     {
+        RefreshRuntimeInstallationControls();
         DiscoveryScanButton.IsEnabled = !_discoveryBusy;
         DiscoveryInterestSelector.IsEnabled = DiscoveryQueryText.IsEnabled = DiscoveryVolumeSelector.IsEnabled = !_discoveryBusy;
         var supported = DiscoveryInterestSelector.SelectedItem is DiscoveryWorkflow workflow && VerifiedOnlineDiscoveryProvider.Supports(workflow.Interest);
@@ -203,9 +205,11 @@ public partial class MainWindow
 
     private void InvalidateRuntimeReviewDisplay()
     {
+        var hadInstallation = _runtimeInstallationPlan is not null || _runtimeInstallationResult is not null;
+        InvalidateRuntimeInstallation();
         _reviewedRuntimeFiles = null;
         if (RuntimeInspectButton is not null) RuntimeInspectButton.IsEnabled = false;
-        if (DiscoveryDetailsText is not null && (DiscoveryDetailsText.Text.StartsWith("EXACT RUNTIME FILE REVIEW", StringComparison.Ordinal)
+        if (DiscoveryDetailsText is not null && (hadInstallation || DiscoveryDetailsText.Text.StartsWith("EXACT RUNTIME FILE REVIEW", StringComparison.Ordinal)
             || DiscoveryDetailsText.Text.StartsWith("RUNTIME SETUP REVIEW", StringComparison.Ordinal)))
         {
             DiscoveryDetailsText.Text = "Runtime selection or destination changed. Prepare a new review for the current inputs.";
@@ -218,6 +222,7 @@ public partial class MainWindow
         if (_discoveryBusy || _lastDiscoveryReport is null || DiscoveryResultsGrid.SelectedItem is not DiscoveryRow row
             || RuntimeArchiveSelector.SelectedItem is not RuntimeReleaseAsset archive) return;
         InvalidateAcquisitionReview();
+        InvalidateRuntimeInstallation();
         try
         {
             var plan = RuntimeFilePlanner.Create(_lastDiscoveryReport, row.Recommendation.Item.Id, RuntimeDestinationText.Text.Trim(), archive.Name);
@@ -234,10 +239,13 @@ public partial class MainWindow
         if (_discoveryBusy || _reviewedRuntimeFiles is not { } plan) return;
         var dialog = new Microsoft.Win32.OpenFolderDialog { Title = "Choose the local folder containing the exact reviewed ZIP files", Multiselect = false };
         if (dialog.ShowDialog(this) != true) return;
+        InvalidateRuntimeInstallation();
         await RunDiscoveryOperationAsync(async token =>
         {
             DiscoveryStatusText.Text = "Hashing the selected local archives and inspecting ZIP paths and declared sizes. Nothing will be extracted or run...";
             var result = await RuntimeArchiveInspector.InspectAsync(plan, dialog.FolderName, token);
+            _runtimeInspection = result;
+            _runtimeArchiveDirectory = dialog.FolderName;
             var text = new StringBuilder(RuntimeFilePlanner.Describe(plan));
             text.AppendLine($"\nLOCAL ARCHIVE INSPECTION\nEntries: {result.Entries.Count}\nDeclared expanded bytes: {result.DeclaredExpandedBytes:N0}\nRoot server filename present: {result.HasServer}");
             foreach (var entry in result.Entries.Take(100)) text.AppendLine($"{entry.Archive} | {entry.RelativePath} | {entry.DeclaredBytes:N0} bytes");
@@ -341,7 +349,7 @@ public partial class MainWindow
     {
         public string Name => Recommendation.Item.Name;
         public string Publisher => Recommendation.Item.Publisher;
-        public string SizeDisplay => Recommendation.Item.Artifact?.SizeBytes is { } size ? (size / 1073741824d).ToString("N2") : "Unknown";
+        public string SizeDisplay => ByteSizeDisplay.ModelSize(Recommendation.Item.Artifact?.SizeBytes);
         public string LicenseDisplay => Recommendation.Item.License ?? "Unknown";
         public string ExecutionPath => Recommendation.ExecutionPath;
         public string StatusDisplay => Recommendation.Status switch

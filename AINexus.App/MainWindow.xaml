@@ -109,7 +109,7 @@
         <TabItem x:Name="DownloadsTab" Header="Downloads &amp; setup"><ScrollViewer VerticalScrollBarVisibility="Auto"><StackPanel Margin="28">
             <TextBlock Text="Review before installing" FontSize="28" FontWeight="SemiBold"/><TextBlock Text="Choose an item in Discover, then review its files, destination and requirements here." Foreground="#AABFD4" TextWrapping="Wrap" Margin="0,10,0,16"/>
             <TextBlock Text="{Binding Text, ElementName=StoreSelectionTitleText}" FontSize="20" Margin="0,0,0,12"/>
-            <Expander Header="Runtime packages (advanced)" Foreground="#AABFD4" Margin="0,0,0,16"><StackPanel Margin="0,10,0,0"><DockPanel Margin="0,0,0,8">
+            <Expander x:Name="RuntimePackagesExpander" Header="Runtime packages (advanced)" Foreground="#AABFD4" Margin="0,0,0,16"><StackPanel Margin="0,10,0,0"><DockPanel Margin="0,0,0,8">
                     <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
                         <Button x:Name="RuntimeReleaseLookupButton" Content="Look up release" Click="RuntimeReleaseLookupButton_Click" Padding="10,8" Margin="8,0,0,0"/>
                         <Button x:Name="RuntimeReleaseSavedButton" Content="Load saved release" Click="RuntimeReleaseSavedButton_Click" Padding="10,8" Margin="8,0,0,0"/>
@@ -123,13 +123,27 @@
                     <TextBox x:Name="RuntimeDestinationText" Padding="8" TextChanged="RuntimeDestinationText_TextChanged" ToolTip="New runtime folder on the assessed volume; existing folders cannot be used"/>
                 </DockPanel>
                 <DockPanel Margin="0,0,0,8">
-                    <Button x:Name="RuntimeFileReviewButton" DockPanel.Dock="Right" Content="Review selected files" Click="RuntimeFileReviewButton_Click" IsEnabled="False" Padding="10,8" Margin="8,0,0,0"/>
-                    <Button x:Name="RuntimeInspectButton" DockPanel.Dock="Right" Content="Inspect local zip files" Click="RuntimeInspectButton_Click" IsEnabled="False" Padding="10,8" Margin="8,0,0,0"/>
                     <TextBlock DockPanel.Dock="Left" Text="RUNTIME ARCHIVE" VerticalAlignment="Center" Foreground="#8CA6BC" Margin="0,0,8,0"/>
                     <ComboBox x:Name="RuntimeArchiveSelector" DisplayMemberPath="Name" SelectionChanged="RuntimeArchiveSelector_SelectionChanged" IsEnabled="False" Padding="8" ToolTip="Explicitly select a published runtime archive; no archive is chosen automatically"/>
                 </DockPanel>
+                <WrapPanel Margin="0,0,0,8">
+                    <Button x:Name="RuntimeFileReviewButton" Content="Review selected files" Click="RuntimeFileReviewButton_Click" IsEnabled="False" Padding="10,8" Margin="0,0,8,6"/>
+                    <Button x:Name="RuntimeInspectButton" Content="Inspect local zip files" Click="RuntimeInspectButton_Click" IsEnabled="False" Padding="10,8" Margin="0,0,8,6"/>
+                    <Button x:Name="RuntimeInstallReviewButton" Content="Review local install" Click="RuntimeInstallReviewButton_Click" IsEnabled="False" Padding="10,8" Margin="0,0,8,6"/>
+                </WrapPanel>
+                <StackPanel x:Name="RuntimeInstallApprovalPanel" Visibility="Collapsed" Margin="0,4,0,10">
+                    <TextBlock Text="Local CPU runtime archives only. Files are installed into a new portable folder; compatibility and execution still need verification." Foreground="#8CA6BC" TextWrapping="Wrap"/>
+                    <Button x:Name="RuntimeInstallTermsButton" Content="Read bundled license terms" Click="RuntimeInstallTermsButton_Click" IsEnabled="False" HorizontalAlignment="Left" Padding="10,6" Margin="0,6,0,0"/>
+                    <CheckBox x:Name="RuntimeInstallLicenseCheck" Foreground="#E6EEF8" Margin="0,6,0,0" Checked="RuntimeInstallationApprovalChanged" Unchecked="RuntimeInstallationApprovalChanged"><TextBlock Text="I accept the declared runtime license shown in this review." TextWrapping="Wrap"/></CheckBox>
+                    <CheckBox x:Name="RuntimeInstallBundledCheck" Foreground="#E6EEF8" Margin="0,6,0,0" Checked="RuntimeInstallationApprovalChanged" Unchecked="RuntimeInstallationApprovalChanged"><TextBlock Text="I have reviewed and accept the bundled dependency terms; the runtime license may not cover them." TextWrapping="Wrap"/></CheckBox>
+                    <CheckBox x:Name="RuntimeInstallWritesCheck" Foreground="#E6EEF8" Margin="0,6,0,0" Checked="RuntimeInstallationApprovalChanged" Unchecked="RuntimeInstallationApprovalChanged"><TextBlock Text="I approve extracting these exact reviewed files into the new folder shown." TextWrapping="Wrap"/></CheckBox>
+                    <WrapPanel Margin="0,8,0,0">
+                        <Button x:Name="RuntimeInstallButton" Content="Install reviewed files" Click="RuntimeInstallButton_Click" IsEnabled="False" Padding="12,8"/>
+                        <Button x:Name="RuntimeUseInstalledButton" Content="Use installed runtime" Click="RuntimeUseInstalledButton_Click" IsEnabled="False" Padding="12,8" Margin="8,0,0,0"/>
+                    </WrapPanel>
+                </StackPanel>
 </StackPanel></Expander>
-            <Expander Header="Model download" IsExpanded="True" Foreground="#E6EEF8"><StackPanel>                <StackPanel Margin="0,10,0,0">
+            <Expander x:Name="ModelDownloadExpander" Header="Model download" IsExpanded="True" Foreground="#E6EEF8"><StackPanel>                <StackPanel Margin="0,10,0,0">
                                 <Grid>
                     <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
                     <TextBox x:Name="DiscoveryDestinationText" Padding="8" ToolTip="Model destination folder on the assessed volume" TextChanged="DiscoveryDestinationText_TextChanged"/>
@@ -195,7 +209,7 @@
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="3*"/>
 
-                        <DataGridTextColumn Header="Download (GiB)" Binding="{Binding SizeDisplay}" Width="Auto"/>
+                        <DataGridTextColumn Header="Download size" Binding="{Binding SizeDisplay}" Width="Auto"/>
                         <DataGridTextColumn Header="License" Binding="{Binding LicenseDisplay}" Width="*"/>
                         <DataGridTextColumn Header="Hardware estimate" Binding="{Binding StatusDisplay}" Width="1.2*"/>
 
@@ -203,7 +217,7 @@
                 </DataGrid>
                 <StackPanel Grid.Row="5" Margin="0,8,0,0">
                     <DockPanel><Button DockPanel.Dock="Right" Content="Review setup" Tag="DownloadsTab" Click="StoreNavigate_Click" Margin="16,0,0,0"/><StackPanel><TextBlock x:Name="StoreSelectionTitleText" Text="Choose a result" FontSize="20" FontWeight="SemiBold"/><TextBlock x:Name="StoreSelectionSummaryText" Text="Select an item to see what is known about compatibility." Foreground="#AABFD4" TextWrapping="Wrap" Margin="0,6,0,10"/></StackPanel></DockPanel>
-                    <Expander Header="Compatibility and source details" Foreground="#AABFD4" Margin="0,8,0,0"><TextBox x:Name="DiscoveryDetailsText" IsReadOnly="True" AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" Background="#182638" Foreground="#E6F7FF" Padding="12" Height="220" Text="Select a result to review its source evidence, requirement estimate, assumptions, and unknowns. No software is installed by discovery."/></Expander>
+                    <Expander x:Name="DiscoveryDetailsExpander" Header="Compatibility and source details" Foreground="#AABFD4" Margin="0,8,0,0"><TextBox x:Name="DiscoveryDetailsText" IsReadOnly="True" AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" Background="#182638" Foreground="#E6F7FF" Padding="12" Height="220" Text="Select a result to review its source evidence, requirement estimate, assumptions, and unknowns. No software is installed by discovery."/></Expander>
                 </StackPanel>
                 <TextBlock Grid.Row="6" x:Name="DiscoveryStatusText" Text="Online search reads public metadata only. Hardware evaluation stays on this PC. Installation, builds, and remote-server access require separate approval." Foreground="#8CA6BC" TextWrapping="Wrap" Margin="0,10,0,0"/>
             </Grid>
@@ -438,7 +452,7 @@
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="Model file" Binding="{Binding Name}" Width="2*"/>
                         <DataGridTextColumn Header="Format" Binding="{Binding Format}" Width="Auto"/>
-                        <DataGridTextColumn Header="GiB" Binding="{Binding SizeDisplay}" Width="Auto"/>
+                        <DataGridTextColumn Header="Size" Binding="{Binding SizeDisplay}" Width="Auto"/>
                         <DataGridTextColumn Header="Location" Binding="{Binding FullPath}" Width="3*"/>
                     </DataGrid.Columns>
                 </DataGrid>
@@ -504,7 +518,7 @@
                         <DataGrid x:Name="OllamaAvailableGrid" IsReadOnly="True" AutoGenerateColumns="False" CanUserAddRows="False" Background="#182638" Foreground="#E6EEF8" HeadersVisibility="Column">
                             <DataGrid.Columns>
                                 <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="2*"/>
-                                <DataGridTextColumn Header="Disk GiB" Binding="{Binding SizeDisplay}" Width="*"/>
+                                <DataGridTextColumn Header="Disk size" Binding="{Binding SizeDisplay}" Width="*"/>
                                 <DataGridTextColumn Header="Parameters" Binding="{Binding ParameterDisplay}" Width="*"/>
                                 <DataGridTextColumn Header="Quantization" Binding="{Binding QuantizationDisplay}" Width="*"/>
                             </DataGrid.Columns>
@@ -514,8 +528,8 @@
                         <DataGrid x:Name="OllamaRunningGrid" IsReadOnly="True" AutoGenerateColumns="False" CanUserAddRows="False" Background="#182638" Foreground="#E6EEF8" HeadersVisibility="Column">
                             <DataGrid.Columns>
                                 <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="2*"/>
-                                <DataGridTextColumn Header="Loaded GiB" Binding="{Binding SizeDisplay}" Width="*"/>
-                                <DataGridTextColumn Header="VRAM GiB" Binding="{Binding VramDisplay}" Width="*"/>
+                                <DataGridTextColumn Header="Loaded size" Binding="{Binding SizeDisplay}" Width="*"/>
+                                <DataGridTextColumn Header="VRAM used" Binding="{Binding VramDisplay}" Width="*"/>
                                 <DataGridTextColumn Header="Expires" Binding="{Binding ExpiresDisplay}" Width="2*"/>
                             </DataGrid.Columns>
                         </DataGrid>

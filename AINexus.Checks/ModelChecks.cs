@@ -18,9 +18,20 @@ internal static class ModelChecks
             Directory.CreateDirectory(Path.Combine(models, "nested"));
             File.WriteAllBytes(Path.Combine(models, "fixture.GGUF"), new byte[17]);
             File.WriteAllBytes(Path.Combine(models, "nested", "fixture.safetensors"), new byte[23]);
+            File.WriteAllBytes(Path.Combine(models, "empty-placeholder.gguf"), []);
             File.WriteAllText(Path.Combine(models, "personal.txt"), "Unrelated fixture - leave untouched");
             var scan = ModelLibrary.ScanLocations([models, models.ToUpperInvariant(), Path.Combine(models, "nested")]);
             check(scan.Files.Count == 2 && scan.Files.Sum(file => file.SizeBytes) == 40, "Model library detects formats and exact file sizes without duplicates");
+            check(scan.Warnings.Any(warning => warning.Contains("empty model placeholder"))
+                && File.Exists(Path.Combine(models, "empty-placeholder.gguf")),
+                "Empty model placeholders are excluded from lists with an explanation and their files preserved");
+            check(scan.Files.Single(file => file.Name == "fixture.GGUF").SizeDisplay == "17 B"
+                && ByteSizeDisplay.Format(1024) == "1 KiB" && ByteSizeDisplay.Format(1_048_576) == "1 MiB"
+                && ByteSizeDisplay.Format(1_073_741_824) == "1 GiB",
+                "Small actual model files retain their nonzero sizes with explicit units");
+            check(ByteSizeDisplay.ModelSize(null) == "Unknown" && ByteSizeDisplay.ModelSize(0) == "Unknown"
+                && ByteSizeDisplay.Format(0) == "0 B" && ByteSizeDisplay.Format(-1) == "Unknown",
+                "Unknown model sizes stay unknown while a measured zero-byte resource reading is explicit");
             check(File.ReadAllText(Path.Combine(models, "personal.txt")) == "Unrelated fixture - leave untouched", "Library scan preserves unrelated files");
             check(ModelLibrary.ScanLocations([models], maxEntries: 1).Truncated, "Library traversal enforces its entry limit");
             check(ModelLibrary.ScanLocations([models], maxDepth: 0).Truncated, "Library traversal enforces its depth limit");

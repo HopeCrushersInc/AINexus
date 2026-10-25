@@ -31,7 +31,7 @@ public static partial class RuntimeSetupPlanner
         var assessments = release.Archives.Select(asset => Assess(asset, release.Tag, report.Machine)).ToArray();
         var blockers = new List<string>
         {
-            "Review only: runtime downloading, archive inspection/extraction and installation execution are not implemented by this plan. It cannot authorize an install.",
+            "Review only: this plan cannot authorize a download or install. Inspect local archives first; supported CPU extraction requires a separate explicit installation review.",
             "Archive contents, expanded storage, companion dependencies, CPU instruction requirements and driver minima are not verified by filenames. A platform match is not a working-runtime claim.",
             "Any future download/install needs explicit approval of its exact files, destination and license terms. System-wide dependency or driver changes need separate approval."
         };
@@ -106,7 +106,7 @@ public static partial class RuntimeSetupPlanner
         return new(asset, status, role, architecture, backend, reasons.AsReadOnly());
     }
 
-    private static string ValidateNewDirectory(string directory)
+    internal static string ValidateNewDirectory(string directory)
     {
         OfflineModelVerifier.RequireLocalDrivePath(directory);
         var full = Path.TrimEndingDirectorySeparator(Path.GetFullPath(directory));

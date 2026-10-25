@@ -30,6 +30,7 @@ internal static class Program
             RuntimeFilePlanChecks.Run(Check);
             RuntimeReleaseLookupChecks.RunAsync(Check).GetAwaiter().GetResult();
             RuntimeArchiveChecks.RunAsync(Check).GetAwaiter().GetResult();
+            RuntimeInstallationChecks.RunAsync(Check).GetAwaiter().GetResult();
             ImageWorkflowChecks.RunAsync(Check).GetAwaiter().GetResult();
             OnlineDiscoveryChecks.RunAsync(Check).GetAwaiter().GetResult();
             DiscoveryPipelineChecks.RunAsync(Check).GetAwaiter().GetResult();
@@ -153,6 +154,7 @@ internal static class Program
         ImageWorkflowChecks.RunNative(window, Check);
         RuntimeSetupChecks.RunNative(window, Check);
         RuntimeFilePlanChecks.RunNative(window, Check);
+        RuntimeInstallationUiChecks.Run(window, Check);
         OfflineVerificationUiChecks.RunNative(window, Check);
         Check(window.FindName("OfflineVerificationTab") is TabItem, "Offline verification XAML loads");
         ((TextBox)window.FindName("OfflineReceiptText")).Text = "";

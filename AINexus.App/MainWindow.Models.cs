@@ -104,7 +104,7 @@ public partial class MainWindow
             ModelFileGrid.ItemsSource = snapshot.Files.Select(file => new
             {
                 file.Name, file.FullPath, file.Format,
-                SizeDisplay = (file.SizeBytes / 1073741824d).ToString("N2")
+                file.SizeDisplay
             }).ToList();
             LibraryStatusText.Text = $"{snapshot.Files.Count} model files indexed from {_settings.ModelRoots.Count} tracked folders at {snapshot.ScannedAt.ToLocalTime():HH:mm:ss}" +
                 (snapshot.Truncated ? " - scan limit reached; results are partial" : "");
@@ -168,8 +168,8 @@ public partial class MainWindow
     private static object ModelRow(OllamaModelInfo model) => new
     {
         model.Name,
-        SizeDisplay = model.SizeBytes.HasValue ? (model.SizeBytes.Value / 1073741824d).ToString("N2") : "Unavailable",
-        VramDisplay = model.VramSizeBytes.HasValue ? (model.VramSizeBytes.Value / 1073741824d).ToString("N2") : "Unavailable",
+        SizeDisplay = ByteSizeDisplay.ModelSize(model.SizeBytes),
+        VramDisplay = ByteSizeDisplay.Format(model.VramSizeBytes),
         ParameterDisplay = model.ParameterSize ?? "Unavailable",
         QuantizationDisplay = model.QuantizationLevel ?? "Unavailable",
         ExpiresDisplay = model.ExpiresAt?.ToLocalTime().ToString("g") ?? "Unavailable"

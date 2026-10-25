@@ -27,6 +27,7 @@ internal static class Program
             CompatibilityChecks.Run(Check);
             OnlineDiscoveryChecks.RunAsync(Check).GetAwaiter().GetResult();
             DiscoveryPipelineChecks.RunAsync(Check).GetAwaiter().GetResult();
+            AcquisitionPlanChecks.RunAsync(Check).GetAwaiter().GetResult();
             EmbeddedChecks.RunPolicy(Check);
             CheckWindow(args);
             if (args.Contains("--live")) CheckLiveDiscovery().GetAwaiter().GetResult();

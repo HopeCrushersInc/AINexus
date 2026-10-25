@@ -13,6 +13,9 @@ public partial class MainWindow
     private MachineCapabilities? _discoveryMachine;
     private CancellationTokenSource? _discoveryOperation;
     private bool _discoveryBusy;
+    private DiscoveryReport? _lastDiscoveryReport;
+    private ModelAcquisitionPlan? _reviewedAcquisitionPlan;
+    private string? _discoveryTargetVolume;
 
     private void InitializeDiscovery()
     {
@@ -33,6 +36,9 @@ public partial class MainWindow
     private void DiscoveryVolumeSelector_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         if (_discoveryBusy || DiscoveryDetailsText is null) return;
+        if (DiscoveryVolumeSelector.SelectedItem is StorageVolume volume) _discoveryTargetVolume = volume.Path;
+        _lastDiscoveryReport = null;
+        _reviewedAcquisitionPlan = null;
         DiscoveryResultsGrid.ItemsSource = null;
         DiscoveryDetailsText.Text = "Storage selection changed. Search online or load saved evidence to evaluate this volume.";
         RefreshDiscoveryControls();
@@ -46,6 +52,11 @@ public partial class MainWindow
         DiscoverySearchButton.IsEnabled = !_discoveryBusy && supported;
         DiscoverySavedButton.IsEnabled = !_discoveryBusy && DiscoveryInterestSelector.SelectedItem is DiscoveryWorkflow;
         DiscoveryCancelButton.IsEnabled = _discoveryBusy;
+        if (DiscoveryPlanButton is not null)
+            DiscoveryPlanButton.IsEnabled = !_discoveryBusy && _lastDiscoveryReport is { Catalog.IsCached: false }
+                && DiscoveryResultsGrid.SelectedItem is DiscoveryRow { Recommendation.Status: RecommendationStatus.ResourceCandidate };
+        if (DiscoveryVerifyButton is not null) DiscoveryVerifyButton.IsEnabled = !_discoveryBusy && _reviewedAcquisitionPlan is not null;
+        if (DiscoveryDestinationText is not null) DiscoveryDestinationText.IsEnabled = !_discoveryBusy;
     }
 
     private async void DiscoveryScanButton_Click(object sender, RoutedEventArgs e) =>
@@ -60,10 +71,12 @@ public partial class MainWindow
 
     private async Task ScanDiscoveryHardwareAsync(CancellationToken token)
     {
-        var selected = (DiscoveryVolumeSelector.SelectedItem as StorageVolume)?.Path;
+        await _preferencesReady.Task.WaitAsync(token);
+        var selected = _discoveryTargetVolume ?? (DiscoveryVolumeSelector.SelectedItem as StorageVolume)?.Path;
         if (selected is null && !string.IsNullOrWhiteSpace(_settings.LlamaCppModelPath))
             selected = Path.GetPathRoot(_settings.LlamaCppModelPath);
         selected ??= Path.GetPathRoot(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData));
+        _discoveryTargetVolume = selected;
         var machine = await HardwareCapabilityScanner.ScanAsync(token);
         token.ThrowIfCancellationRequested();
         _discoveryMachine = machine;
@@ -83,6 +96,8 @@ public partial class MainWindow
         await RunDiscoveryOperationAsync(async token =>
         {
             DiscoveryResultsGrid.ItemsSource = null;
+            _lastDiscoveryReport = null;
+            _reviewedAcquisitionPlan = null;
             DiscoveryDetailsText.Text = "Reading current hardware evidence before evaluating candidates...";
             DiscoveryStatusText.Text = "Refreshing local memory and selected-volume availability...";
             await ScanDiscoveryHardwareAsync(token);
@@ -128,6 +143,8 @@ public partial class MainWindow
 
     internal void RenderDiscoveryReport(DiscoveryReport report)
     {
+        _lastDiscoveryReport = report;
+        _reviewedAcquisitionPlan = null;
         var rows = report.Recommendations.Select(recommendation => new DiscoveryRow(recommendation, report)).ToArray();
         DiscoveryResultsGrid.ItemsSource = rows;
         if (rows.Length > 0) DiscoveryResultsGrid.SelectedIndex = 0;
@@ -135,11 +152,16 @@ public partial class MainWindow
         var retrieval = report.Catalog.RetrievedAt == DateTimeOffset.MinValue ? "no saved timestamp" : report.Catalog.RetrievedAt.ToLocalTime().ToString("g");
         DiscoveryStatusText.Text = $"{rows.Length} results | {(report.Catalog.IsCached ? "SAVED metadata; not refreshed online" : "Online metadata")} retrieved {retrieval} | " +
             $"Target {report.TargetVolume} | Resource estimates only; no candidate has been installed or verified by this search.";
+        if (string.IsNullOrWhiteSpace(DiscoveryDestinationText.Text))
+            DiscoveryDestinationText.Text = Path.Combine(report.TargetVolume, "AINexus", "Models");
+        RefreshDiscoveryControls();
     }
 
     private void DiscoveryResultsGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
+        _reviewedAcquisitionPlan = null;
         if (DiscoveryResultsGrid.SelectedItem is DiscoveryRow row) DiscoveryDetailsText.Text = DescribeRecommendation(row);
+        if (DiscoveryPlanButton is not null) RefreshDiscoveryControls();
     }
 
     private static string DescribeMachine(MachineCapabilities machine)

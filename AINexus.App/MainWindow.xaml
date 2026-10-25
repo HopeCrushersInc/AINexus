@@ -55,7 +55,7 @@
             <Grid Margin="18">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/><RowDefinition Height="2*"/><RowDefinition Height="3*"/><RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/><RowDefinition Height="2*"/><RowDefinition Height="3*"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
                 <StackPanel Margin="0,0,0,14">
                     <TextBlock Text="FIND AI FOR THIS COMPUTER" FontSize="24" FontWeight="Bold"/>
@@ -99,7 +99,14 @@
                     </DataGrid.Columns>
                 </DataGrid>
                 <TextBox Grid.Row="5" x:Name="DiscoveryDetailsText" IsReadOnly="True" AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" Background="#111A29" Foreground="#E6F7FF" Padding="12" Text="Select a result to review its source evidence, requirement estimate, assumptions, and unknowns. No software is installed by discovery."/>
-                <TextBlock Grid.Row="6" x:Name="DiscoveryStatusText" Text="Online search reads public metadata only. Hardware evaluation stays on this PC. Installation, builds, and remote-server access require separate approval." Foreground="#8CA6BC" TextWrapping="Wrap" Margin="0,10,0,0"/>
+                <Grid Grid.Row="6" Margin="0,10,0,0">
+                    <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                    <TextBox x:Name="DiscoveryDestinationText" Padding="8" ToolTip="Model destination folder on the assessed volume" TextChanged="DiscoveryDestinationText_TextChanged"/>
+                    <Button Grid.Column="1" Content="CHOOSE FOLDER" Click="DiscoveryChooseFolderButton_Click" Padding="10,8" Margin="8,0,0,0"/>
+                    <Button Grid.Column="2" x:Name="DiscoveryPlanButton" Content="REVIEW DOWNLOAD PLAN" Click="DiscoveryPlanButton_Click" IsEnabled="False" Padding="10,8" Margin="8,0,0,0"/>
+                    <Button Grid.Column="3" x:Name="DiscoveryVerifyButton" Content="VERIFY EXISTING FILE" Click="DiscoveryVerifyButton_Click" IsEnabled="False" Padding="10,8" Margin="8,0,0,0"/>
+                </Grid>
+                <TextBlock Grid.Row="7" x:Name="DiscoveryStatusText" Text="Online search reads public metadata only. Hardware evaluation stays on this PC. Installation, builds, and remote-server access require separate approval." Foreground="#8CA6BC" TextWrapping="Wrap" Margin="0,10,0,0"/>
             </Grid>
         </TabItem>
         <TabItem Header="Hardware" Padding="18,10">

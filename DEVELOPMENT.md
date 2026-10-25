@@ -13,6 +13,7 @@ The restored Phase 1 hardware dashboard remains native .NET 8 WPF. Subsequent lo
 7. Serial local agent generation tasks gated by actual resource admission readings.
 8. Portable llama.cpp model discovery, chat generation, native owned-server Start/Stop/close cleanup, and saved launch preferences.
 9. Hardware-aware metadata discovery, selected-volume compatibility estimates, source provenance, and saved-search offline review. Initial model recipe scope is standalone text-generation GGUF artifacts.
+10. Review-only model acquisition plans and non-destructive existing-artifact integrity verification. Stale/cached evidence, mismatched target volumes and unsafe paths are rejected. No acquisition execution is exposed by this increment.
 
 No code executes generated model output. No model files are deleted or relocated. No packages or model weights are installed automatically. All development commits remain local.
 
@@ -26,6 +27,7 @@ No code executes generated model output. No model files are deleted or relocated
 - Native hidden-server startup, health, model discovery, Stop, ownership isolation, and window-close cleanup passed against the selected real runtime/model. The actual llama.cpp web UI rendered in WebView2 without script errors.
 - Actual WinGet application installer execution remains untested; Ollama was not installed.
 - Discovery regression checks cover redirects/rate limits, response caps, cancellation, partial source failures, split GGUF exclusion, immutable identities, unknown metadata and offline re-evaluation. Live public-source checks retrieve actual artifact hashes/sizes; compatibility estimates remain explicitly unverified until a separate actual runtime test is performed.
+- Directory link protection is exercised even without Windows symlink privileges, using a same-fixture directory junction. Scanner rejection, direct-root rejection and target-preserving cleanup are checked without changing system policy.
 
 ## Resolved runtime checkpoint
 

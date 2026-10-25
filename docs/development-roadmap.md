@@ -45,3 +45,5 @@ The working WPF shell, local library, optional Ollama adapter, package controls,
 - Next: upstream runtime releases, architecture/backend selection and reviewable runtime acquisition/build recipes. Other workflow adapters remain incomplete.
 
 Runtime catalog now feeds a native hardware-aware setup review. OS/native architecture and available driver evidence inform archive assessments, while contents, dependency closure and runtime execution stay unverified. The next increment is exact archive selection and approval-bound acquisition with pre-extraction inspection, rather than silently installing every platform-matching package.
+
+Exact runtime file selection, named release lookup and read-only local ZIP inspection are now implemented and tested. Existing archive identities and metadata can be checked without executing them. Next: approval-bound acquisition and safe extraction into a new folder, with revalidation immediately before every write and explicit dependency/license decisions. An inspected ZIP remains distinct from an installed or verified-working runtime.

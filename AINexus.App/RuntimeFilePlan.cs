@@ -67,7 +67,7 @@ public static class RuntimeFilePlanner
     internal static string Fingerprint(RuntimeFilePlan plan) => Convert.ToHexString(SHA256.HashData(
         JsonSerializer.SerializeToUtf8Bytes(plan with { PlanId = "" })));
 
-    private static void ValidateIdentity(RuntimeReleaseAsset file, string tag)
+    internal static void ValidateIdentity(RuntimeReleaseAsset file, string tag)
     {
         if (file.SizeBytes <= 0 || string.IsNullOrWhiteSpace(file.Name) || file.Name.Length > 240
             || file.Name.Any(c => char.IsControl(c) || c is '/' or '\\' or ':') || file.Name.Contains("..", StringComparison.Ordinal)

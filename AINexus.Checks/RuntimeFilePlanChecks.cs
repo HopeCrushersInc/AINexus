@@ -66,10 +66,12 @@ internal static class RuntimeFilePlanChecks
         selector.SelectedIndex = 0;
         button.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
         var details = (TextBox)window.FindName("DiscoveryDetailsText");
-        check(details.Text.Contains("EXACT RUNTIME FILE REVIEW") && details.Text.Contains(cpu.Name) && !Directory.Exists(destination),
+        check(details.Text.Contains("EXACT RUNTIME FILE REVIEW") && details.Text.Contains(cpu.Name) && !Directory.Exists(destination)
+            && ((Button)window.FindName("RuntimeInspectButton")).IsEnabled,
             "Native selected-file review displays exact publisher identity without starting acquisition");
         ((TextBox)window.FindName("RuntimeDestinationText")).Text = destination + "-changed";
-        check(details.Text.Contains("Prepare a new review"), "Changing the runtime destination invalidates the displayed review");
+        check(details.Text.Contains("Prepare a new review") && !((Button)window.FindName("RuntimeInspectButton")).IsEnabled,
+            "Changing the runtime destination invalidates the displayed review and disables archive inspection");
         window.RenderDiscoveryReport(RuntimeSetupChecks.Report(RuntimeSetupChecks.Machine()));
         check(selector.Items.Count == 0 && !button.IsEnabled, "Changing runtime results clears an obsolete selected archive");
         ((TextBox)window.FindName("RuntimeReleaseTagText")).Text = "";

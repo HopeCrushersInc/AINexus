@@ -114,3 +114,15 @@ Opt-in metadata-only live check:
 ```powershell
 dotnet run --project AINexus.Checks/AINexus.Checks.csproj -c Release -- --runtime-release-live '<explicit upstream release tag>'
 ```
+
+## Read-only local ZIP inspection
+
+After reviewing exact runtime files, choose **Inspect local ZIP files** and select the local folder containing those already acquired archives. The app rechecks the review identity, each file's byte count and SHA-256, then inspects ZIP metadata without extracting or running payloads. Inspection rejects traversal/device/stream paths, links, special nodes, duplicate/case-colliding destinations, file-versus-directory collisions, split/ZIP64 archives and excessive declared sizes, ratios or directory metadata. Metadata is bounded before indexing ZIP entries. No runtime download is performed by inspection.
+
+The reported expanded size is declared by the ZIP directory. Decompression, executable authenticity, dependencies, licensing and successful runtime execution remain unverified. A root `llama-server.exe` filename is reported as a filename only, never as a working server. Inspection does not grant installation approval; all identities and destination checks must be repeated before a future extraction step.
+
+Opt-in check against existing local archives:
+
+```powershell
+dotnet run --project AINexus.Checks/AINexus.Checks.csproj -c Release -- --runtime-archive-live '<saved release report.json>' '<local archive folder>' '<exact runtime archive name>'
+```

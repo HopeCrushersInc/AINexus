@@ -29,6 +29,7 @@ internal static class Program
             RuntimeSetupChecks.Run(Check);
             RuntimeFilePlanChecks.Run(Check);
             RuntimeReleaseLookupChecks.RunAsync(Check).GetAwaiter().GetResult();
+            RuntimeArchiveChecks.RunAsync(Check).GetAwaiter().GetResult();
             OnlineDiscoveryChecks.RunAsync(Check).GetAwaiter().GetResult();
             DiscoveryPipelineChecks.RunAsync(Check).GetAwaiter().GetResult();
             AcquisitionPlanChecks.RunAsync(Check).GetAwaiter().GetResult();
@@ -50,6 +51,12 @@ internal static class Program
                 AcquisitionLiveChecks.RunAsync(args[index + 1], downloadIndex >= 0, Check).GetAwaiter().GetResult();
             }
             var offlineIndex = Array.IndexOf(args, "--offline-verification-live");
+            var archiveIndex = Array.IndexOf(args, "--runtime-archive-live");
+            if (archiveIndex >= 0)
+            {
+                if (archiveIndex + 3 >= args.Length) throw new ArgumentException("--runtime-archive-live requires a saved release report, local archive folder and exact archive name.");
+                RuntimeArchiveChecks.RunLiveAsync(args[archiveIndex + 1], args[archiveIndex + 2], args[archiveIndex + 3], Check).GetAwaiter().GetResult();
+            }
             var runtimeIndex = Array.IndexOf(args, "--runtime-release-live");
             if (runtimeIndex >= 0)
             {

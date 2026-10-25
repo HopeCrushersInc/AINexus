@@ -71,3 +71,9 @@ Validation: Release build passed without warnings/errors; 439 checks passed, inc
 Added explicit upstream tag lookup and tag-specific saved metadata to the native discovery screen. The provider makes only repository/tag API requests, validates the returned tag, preserves cancellation/source failures and never silently falls back. Runtime caches cannot substitute another tag's metadata; ordinary-search cache keys retain their previous format. Exact file selection remains review-only with no install authorization.
 
 Validation: Release build passed without warnings/errors; 451 checks passed including live explicit `b11669` metadata (36 archives) and an actual native-platform CPU-file review. No runtime archive was downloaded, extracted or installed; the proposed destination remained absent.
+
+## Local runtime archive inspection increment
+
+Added native read-only inspection of exact reviewed ZIPs. The service verifies local byte counts/SHA-256 under read leases, bounds the central directory before ZIP indexing, and checks entry paths, attributes, collisions and declared expansion policy across all selected archives. Evidence includes the full exact-file plan. No payload is decompressed, extracted or executed; expanded sizes and server names are declarations. Installing, approval-bound downloading, extraction and dependency/runtime verification remain separate incomplete stages.
+
+Validation: Release build passed without warnings/errors; 460 checks passed. Read-only live inspection matched both existing approved CUDA ZIPs against the upstream-backed exact-file review, checking 55 entries with 1,199,457,053 declared expanded bytes. The proposed destination remained absent. No download, payload decompression, extraction, installation, model launch or Windows configuration change occurred.

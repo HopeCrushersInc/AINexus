@@ -16,6 +16,7 @@ public partial class MainWindow
     private DiscoveryReport? _lastDiscoveryReport;
     private ModelAcquisitionPlan? _reviewedAcquisitionPlan;
     private string? _discoveryTargetVolume;
+    private RuntimeFilePlan? _reviewedRuntimeFiles;
 
     private void InitializeDiscovery()
     {
@@ -65,6 +66,7 @@ public partial class MainWindow
         if (RuntimeFileReviewButton is not null)
             RuntimeFileReviewButton.IsEnabled = !_discoveryBusy && RuntimeArchiveSelector?.SelectedItem is RuntimeReleaseAsset
                 && DiscoveryResultsGrid.SelectedItem is DiscoveryRow { Recommendation.Item.RuntimeRelease: not null };
+        if (RuntimeInspectButton is not null) RuntimeInspectButton.IsEnabled = !_discoveryBusy && _reviewedRuntimeFiles is not null;
         if (DiscoveryPlanButton is not null)
             DiscoveryPlanButton.IsEnabled = !_discoveryBusy && _lastDiscoveryReport is { Catalog.IsCached: false }
                 && DiscoveryResultsGrid.SelectedItem is DiscoveryRow { Recommendation.Status: RecommendationStatus.ResourceCandidate };
@@ -201,6 +203,8 @@ public partial class MainWindow
 
     private void InvalidateRuntimeReviewDisplay()
     {
+        _reviewedRuntimeFiles = null;
+        if (RuntimeInspectButton is not null) RuntimeInspectButton.IsEnabled = false;
         if (DiscoveryDetailsText is not null && (DiscoveryDetailsText.Text.StartsWith("EXACT RUNTIME FILE REVIEW", StringComparison.Ordinal)
             || DiscoveryDetailsText.Text.StartsWith("RUNTIME SETUP REVIEW", StringComparison.Ordinal)))
         {
@@ -217,11 +221,31 @@ public partial class MainWindow
         try
         {
             var plan = RuntimeFilePlanner.Create(_lastDiscoveryReport, row.Recommendation.Item.Id, RuntimeDestinationText.Text.Trim(), archive.Name);
+            _reviewedRuntimeFiles = plan;
             DiscoveryDetailsText.Text = RuntimeFilePlanner.Describe(plan);
             DiscoveryStatusText.Text = "Exact runtime files reviewed. No download or installation approved or performed.";
         }
         catch (Exception ex) { DiscoveryStatusText.Text = $"Runtime file review requires attention: {ex.Message}"; }
         RefreshDiscoveryControls();
+    }
+
+    private async void RuntimeInspectButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (_discoveryBusy || _reviewedRuntimeFiles is not { } plan) return;
+        var dialog = new Microsoft.Win32.OpenFolderDialog { Title = "Choose the local folder containing the exact reviewed ZIP files", Multiselect = false };
+        if (dialog.ShowDialog(this) != true) return;
+        await RunDiscoveryOperationAsync(async token =>
+        {
+            DiscoveryStatusText.Text = "Hashing the selected local archives and inspecting ZIP paths and declared sizes. Nothing will be extracted or run...";
+            var result = await RuntimeArchiveInspector.InspectAsync(plan, dialog.FolderName, token);
+            var text = new StringBuilder(RuntimeFilePlanner.Describe(plan));
+            text.AppendLine($"\nLOCAL ARCHIVE INSPECTION\nEntries: {result.Entries.Count}\nDeclared expanded bytes: {result.DeclaredExpandedBytes:N0}\nRoot server filename present: {result.HasServer}");
+            foreach (var entry in result.Entries.Take(100)) text.AppendLine($"{entry.Archive} | {entry.RelativePath} | {entry.DeclaredBytes:N0} bytes");
+            if (result.Entries.Count > 100) text.AppendLine("Only the first 100 entries are displayed; all entries were checked.");
+            foreach (var limitation in result.Limitations) text.AppendLine("• " + limitation);
+            DiscoveryDetailsText.Text = text.ToString();
+            DiscoveryStatusText.Text = "Archive identities and metadata inspected. No extraction, installation or execution was performed.";
+        });
     }
 
     internal void RenderDiscoveryReport(DiscoveryReport report)
@@ -242,6 +266,7 @@ public partial class MainWindow
 
     private void DiscoveryResultsGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
+        InvalidateRuntimeReviewDisplay();
         InvalidateAcquisitionReview();
         if (RuntimeArchiveSelector is not null)
         {

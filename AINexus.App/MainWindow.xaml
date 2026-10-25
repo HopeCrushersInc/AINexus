@@ -115,6 +115,7 @@
                 </DockPanel>
                 <DockPanel Margin="0,0,0,8">
                     <Button x:Name="RuntimeFileReviewButton" DockPanel.Dock="Right" Content="REVIEW SELECTED FILES" Click="RuntimeFileReviewButton_Click" IsEnabled="False" Padding="10,8" Margin="8,0,0,0"/>
+                    <Button x:Name="RuntimeInspectButton" DockPanel.Dock="Right" Content="INSPECT LOCAL ZIP FILES" Click="RuntimeInspectButton_Click" IsEnabled="False" Padding="10,8" Margin="8,0,0,0"/>
                     <TextBlock DockPanel.Dock="Left" Text="RUNTIME ARCHIVE" VerticalAlignment="Center" Foreground="#8CA6BC" Margin="0,0,8,0"/>
                     <ComboBox x:Name="RuntimeArchiveSelector" DisplayMemberPath="Name" SelectionChanged="RuntimeArchiveSelector_SelectionChanged" IsEnabled="False" Padding="8" ToolTip="Explicitly select a published runtime archive; no archive is chosen automatically"/>
                 </DockPanel>

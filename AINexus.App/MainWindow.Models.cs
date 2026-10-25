@@ -33,7 +33,6 @@ public partial class MainWindow
                 ImageEnginePathText.Text = _settings.ComfyUIRoot;
                 _preferencesReady.TrySetResult();
                 RefreshLibraryRoots();
-                if (_settings.ModelRoots.Count > 0) await ScanLibraryAsync();
                 if (loaded.Warning is not null) LibraryNoticeText.Text = loaded.Warning;
             }
             catch (OperationCanceledException) when (_lifetime.IsCancellationRequested) { }

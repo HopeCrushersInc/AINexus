@@ -10,6 +10,7 @@ public sealed record PortalSettings(IReadOnlyList<string> ModelRoots, string Oll
     public string LlamaCppEndpoint { get; init; } = "http://127.0.0.1:8080";
     public int LlamaCppContextSize { get; init; } = 4096;
     public string ComfyUIRoot { get; init; } = "";
+    public IReadOnlyList<DiscoveryInterest> SelectedWorkloads { get; init; } = Array.Empty<DiscoveryInterest>();
     public static PortalSettings Default => new(Array.Empty<string>(), "http://127.0.0.1:11434");
 }
 
@@ -30,6 +31,7 @@ public sealed class PortalSettingsStore(string path)
             await using var stream = File.OpenRead(path);
             var settings = await JsonSerializer.DeserializeAsync<PortalSettings>(stream, cancellationToken: token);
             if (settings is null || settings.ModelRoots is null || settings.OllamaEndpoint is null || settings.ModelRoots.Count > 64 ||
+                settings.SelectedWorkloads is null || settings.SelectedWorkloads.Count > Enum.GetValues<DiscoveryInterest>().Length || settings.SelectedWorkloads.Any(i => !Enum.IsDefined(i)) ||
                 settings.ModelRoots.Any(root => string.IsNullOrWhiteSpace(root) || !Path.IsPathFullyQualified(root)))
                 throw new InvalidDataException("Settings contain invalid model folders or endpoint.");
             OllamaClient.ValidateEndpoint(new Uri(settings.LlamaCppEndpoint));

@@ -23,9 +23,8 @@ public partial class MainWindow : Window
         InitializeDiscovery();
         InitializeOfflineVerification();
         InitializeImages();
-        StoreHomeTab.IsSelected = true;
+        InitializeWorkloadSetup();
         if (acquisitionService is not null) _acquisitionService = acquisitionService;
-        Loaded += async (_, _) => await Task.WhenAll(ScanHardwareAsync(), ScanSoftwareAsync());
         Closed += (_, _) => _lifetime.Cancel();
     }
 
@@ -42,6 +41,28 @@ public partial class MainWindow : Window
         {
             var snapshot = await HardwareScanner.ScanAsync(_lifetime.Token);
             if (_lifetime.IsCancellationRequested) return;
+            RenderHardwareSnapshot(snapshot);
+        }
+        catch (OperationCanceledException) when (_lifetime.IsCancellationRequested) { }
+        catch (Exception ex)
+        {
+            ScanStatusText.Text = "SCAN INCOMPLETE";
+            NoticeText.Text = $"Some hardware details could not be read: {ex.Message}";
+            CpuText.Text = "Unavailable";
+            RamText.Text = "Unavailable";
+            GpuCountText.Text = "Unavailable";
+            GpuList.ItemsSource = null;
+            StorageList.ItemsSource = null;
+        }
+        finally
+        {
+            _scanningHardware = false;
+            HardwareRescanButton.IsEnabled = true;
+        }
+    }
+
+    private void RenderHardwareSnapshot(HardwareSnapshot snapshot)
+    {
             CpuText.Text = snapshot.CpuName;
             RamText.Text = snapshot.RamGb > 0 ? $"{snapshot.RamGb:N1} GiB" : "Unavailable";
 
@@ -65,23 +86,6 @@ public partial class MainWindow : Window
             ScanStatusText.Text = $"SCAN COMPLETE · {DateTime.Now:HH:mm:ss}";
             NoticeText.Text = snapshot.ScanNote ??
                 "Hardware scan complete. NVIDIA VRAM is read from nvidia-smi when the driver utility is available.";
-        }
-        catch (OperationCanceledException) when (_lifetime.IsCancellationRequested) { }
-        catch (Exception ex)
-        {
-            ScanStatusText.Text = "SCAN INCOMPLETE";
-            NoticeText.Text = $"Some hardware details could not be read: {ex.Message}";
-            CpuText.Text = "Unavailable";
-            RamText.Text = "Unavailable";
-            GpuCountText.Text = "Unavailable";
-            GpuList.ItemsSource = null;
-            StorageList.ItemsSource = null;
-        }
-        finally
-        {
-            _scanningHardware = false;
-            HardwareRescanButton.IsEnabled = true;
-        }
     }
 
     private async void SoftwareRescanButton_Click(object sender, RoutedEventArgs e) => await ScanSoftwareAsync();

@@ -21,6 +21,7 @@ internal static class Program
             CheckProcessExecution().GetAwaiter().GetResult();
             ModelChecks.RunAsync(Check).GetAwaiter().GetResult();
             ModelMaintenanceChecks.RunAsync(Check).GetAwaiter().GetResult();
+            ModelRecoveryChecks.RunAsync(Check).GetAwaiter().GetResult();
             AgentChecks.RunAsync(Check).GetAwaiter().GetResult();
             LlamaCppChecks.RunAsync(Check).GetAwaiter().GetResult();
             LlamaServerChecks.RunAsync(Check).GetAwaiter().GetResult();
@@ -163,6 +164,7 @@ internal static class Program
         Check(window.FindName("CpuText") is TextBlock, "Hardware XAML loads");
         WorkloadSetupChecks.RunNative(window, Check);
         ModelMaintenanceUiChecks.RunNative(window, Check);
+        ModelRecoveryUiChecks.RunNative(window, Check);
         ImageWorkflowChecks.RunNative(window, Check);
         RuntimeSetupChecks.RunNative(window, Check);
         RuntimeFilePlanChecks.RunNative(window, Check);

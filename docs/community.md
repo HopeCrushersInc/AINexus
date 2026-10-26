@@ -1,19 +1,19 @@
 # Project community and guide
 
-AI Nexus uses [GitHub Discussions](https://github.com/unrelatednda-code/AINexus/discussions) as its public project forum. This is the place to check announcements, ask questions and discuss the roadmap. The repository and its discussions are public: share only information intended for public viewing.
+AI Nexus uses [GitHub Discussions](https://github.com/HopeCrushersInc/AINexus/discussions) as its public project forum. This is the place to check announcements, ask questions and discuss the roadmap. The repository and its discussions are public: share only information intended for public viewing.
 
 ## Where to communicate
 
 | Place | Purpose |
 | --- | --- |
-| [Announcements](https://github.com/unrelatednda-code/AINexus/discussions/categories/announcements) | Published project updates and important notices |
-| [Q&A](https://github.com/unrelatednda-code/AINexus/discussions/categories/q-a) | Setup questions and help using the portal |
-| [Ideas](https://github.com/unrelatednda-code/AINexus/discussions/categories/ideas) | Feature suggestions, proposed workflows and roadmap feedback |
-| [General](https://github.com/unrelatednda-code/AINexus/discussions/categories/general) | Open project conversation |
-| [Show and tell](https://github.com/unrelatednda-code/AINexus/discussions/categories/show-and-tell) | Share working setups and results |
-| [Polls](https://github.com/unrelatednda-code/AINexus/discussions/categories/polls) | Gather community preferences; polls are not implementation commitments |
-| [Issues](https://github.com/unrelatednda-code/AINexus/issues) | Reproducible bugs and agreed work items |
-| [Pull requests](https://github.com/unrelatednda-code/AINexus/pulls) | Review proposed source and documentation changes |
+| [Announcements](https://github.com/HopeCrushersInc/AINexus/discussions/categories/announcements) | Published project updates and important notices |
+| [Q&A](https://github.com/HopeCrushersInc/AINexus/discussions/categories/q-a) | Setup questions and help using the portal |
+| [Ideas](https://github.com/HopeCrushersInc/AINexus/discussions/categories/ideas) | Feature suggestions, proposed workflows and roadmap feedback |
+| [General](https://github.com/HopeCrushersInc/AINexus/discussions/categories/general) | Open project conversation |
+| [Show and tell](https://github.com/HopeCrushersInc/AINexus/discussions/categories/show-and-tell) | Share working setups and results |
+| [Polls](https://github.com/HopeCrushersInc/AINexus/discussions/categories/polls) | Gather community preferences; polls are not implementation commitments |
+| [Issues](https://github.com/HopeCrushersInc/AINexus/issues) | Reproducible bugs and agreed work items |
+| [Pull requests](https://github.com/HopeCrushersInc/AINexus/pulls) | Review proposed source and documentation changes |
 | [Changelog](../CHANGELOG.md) | Read what has actually been published, including validation and limitations |
 
 To receive updates in GitHub notifications, optionally use the repository's **Watch** settings and choose the discussion, issue and pull-request activity you want to follow. Following a discussion also helps keep a particular conversation easy to revisit.
@@ -30,7 +30,7 @@ These versioned repository pages form the project's current wiki-style guide:
 - [Published changelog](../CHANGELOG.md)
 - [Engineering state and validation evidence](../DEVELOPMENT.md)
 
-The separate [GitHub Wiki](https://github.com/unrelatednda-code/AINexus/wiki) feature is enabled, but its first page has not been initialized. The repository guide above is the available documentation; it does not depend on a separate wiki. Keeping the guide in the repository subjects edits to the normal review history and branch protections.
+The separate [GitHub Wiki](https://github.com/HopeCrushersInc/AINexus/wiki) feature is enabled, but its first page has not been initialized. The repository guide above is the available documentation; it does not depend on a separate wiki. Keeping the guide in the repository subjects edits to the normal review history and branch protections.
 
 ## Proposed private Discord space
 

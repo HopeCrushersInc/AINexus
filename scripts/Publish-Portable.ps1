@@ -158,7 +158,7 @@ any bundled third-party license and notice files when copying this package.
 PACKAGE-INFO.json records build inputs and file hashes. The manifest is not a
 signature and does not claim every model, runtime or hardware setup was tested.
 Project instructions and changelog:
-https://github.com/unrelatednda-code/AINexus
+https://github.com/HopeCrushersInc/AINexus
 "@
 [IO.File]::WriteAllText((Join-Path $publishDirectory 'README-FIRST.txt'), $readme, [Text.UTF8Encoding]::new($false))
 
@@ -172,7 +172,7 @@ $inventory = @(Get-ChildItem -LiteralPath $publishDirectory -File -Recurse | Sor
 $packageInfo = [ordered]@{
     SchemaVersion = 1
     Version = $Version
-    SourceRepository = 'https://github.com/unrelatednda-code/AINexus'
+    SourceRepository = 'https://github.com/HopeCrushersInc/AINexus'
     SourceCommit = $SourceCommit
     WorkingTreeDirty = $workingTreeDirty
     BuiltAtUtc = [DateTime]::UtcNow.ToString('o')

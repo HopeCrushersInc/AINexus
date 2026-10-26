@@ -2,6 +2,15 @@
 
 User-visible changes are recorded here. Dates identify publication updates, not a promise that every feature was first implemented on that date.
 
+## 0.1.0-preview.1 — 2026-10-26
+
+- First downloadable Windows x64 portable preview package, including the application EXE and .NET dependencies, with SHA-256 checksums and source/file inventory. Models, external runtimes and the WebView2 browser runtime are separate.
+- Added explicit read-only GGUF library integrity checks against a selected acquisition receipt, with match/missing/size/hash outcomes and stale-result clearing.
+- Added the preview version to the window title so installed builds can be distinguished.
+- Verified that the current launcher has no startup workload preselections; added regression checks of actual rendered checkboxes, explicit selection and reset. No new startup-selection defect was reproduced.
+- Validation: Release build with zero warnings/errors; 605 regression/native checks passed. Package validation is reported on the release.
+- Windows local accounts remain supported; no Microsoft account sign-in, paid service or Windows service change is part of this release.
+
 ## 2026-10-26 — Feature direction and community
 
 - Added a feature overview and phased projection for live editing, opt-in model switching, maintenance/updates/rollback, training, custom windows/popouts, workflows and services.

@@ -11,6 +11,10 @@ A native C# .NET 8 WPF dashboard for local AI tooling on Windows.
 - [Community and wiki-style guide](docs/community.md): where to check updates, ask questions and contribute ideas.
 - [Project forum](https://github.com/unrelatednda-code/AINexus/discussions) · [Wiki](https://github.com/unrelatednda-code/AINexus/wiki) · [Changelog](CHANGELOG.md). Wiki feature is enabled; its first page is pending. Private Discord is proposed, not yet created.
 
+## Download for Windows
+
+Get the portable **Windows x64 preview** from [GitHub Releases](https://github.com/unrelatednda-code/AINexus/releases). Download the ZIP asset, extract the whole folder, and run `AINexus.App.exe`. The package includes .NET; models and external AI engines are separate. Embedded interfaces need the free WebView2 Runtime. Windows stays on its local account; no Microsoft sign-in is required. See [release and installation guide](docs/releases.md) for package contents, checksums and limitations.
+
 ## Current capabilities
 
 - Hardware-aware online discovery: explicit metadata searches on Hugging Face and supporting upstream llama.cpp release metadata. Results include declared licensing, source links, immutable model revisions, artifact sizes and SHA-256 when reported. Initial supported interests are local assistants, coding, and agents; other workflow adapters are explicitly marked unavailable.
@@ -25,6 +29,7 @@ A native C# .NET 8 WPF dashboard for local AI tooling on Windows.
 - Independent rescan actions with cancellation on window close.
 - Live CPU and physical RAM usage from Windows counters, with NVIDIA utilization and VRAM telemetry where supported. Monitoring pauses while disabled, hidden, or minimized; the first CPU sample remains unknown until an interval is available.
 - WinGet package review and explicit current-user Ollama install/update controls with captured output and result logs. GPT4All is review-only because its reviewed manifest does not declare user scope and upgrades uninstall the previous version.
+- Read-only library maintenance: select a GGUF, choose **Check selected file**, and select its AI Nexus acquisition receipt. The check validates the receipt/path and compares current bytes/SHA-256, distinguishing matches, missing files and size/hash mismatches. It preserves files and does not establish runtime readiness. Checks run only when explicitly requested; selection changes and rescans clear old results. Other formats and models without acquisition receipts remain unsupported by this check.
 - Model file library: selected folders are indexed for GGUF, SafeTensors, and ONNX metadata. Whole-drive roots and symbolic links are skipped; traversal is bounded. Removing a tracked folder does not delete its files. Shards are separate file entries rather than invented logical models.
 - Existing local Ollama servers can be queried for available and loaded models using the official [tags](https://docs.ollama.com/api/tags) and [ps](https://docs.ollama.com/api/ps) endpoints. Queries accept loopback addresses only and preserve partial failures. Empty lists and unavailable endpoints are distinct states.
 - Embedded local application interfaces use the WPF WebView2 control. Enter an existing loopback web-interface address to open it inside the portal. No server or external browser is started. Navigation and intercepted resources are restricted to the selected origin; downloads and popups are blocked. This is not an operating-system network sandbox, and applications needing external authentication/assets may not work with these restrictions.

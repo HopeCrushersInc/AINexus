@@ -93,18 +93,16 @@ public partial class MainWindow
     private async Task ScanLibraryAsync()
     {
         if (_libraryBusy || _lifetime.IsCancellationRequested) return;
+        ResetMaintenanceEvidence();
         _libraryBusy = true;
+        RefreshMaintenanceControls();
         LibraryAddButton.IsEnabled = LibraryRemoveButton.IsEnabled = LibraryRescanButton.IsEnabled = false;
         LibraryStatusText.Text = "Reading model file metadata...";
         try
         {
             var snapshot = await ModelLibrary.ScanAsync(_settings.ModelRoots, _lifetime.Token);
             if (_lifetime.IsCancellationRequested) return;
-            ModelFileGrid.ItemsSource = snapshot.Files.Select(file => new
-            {
-                file.Name, file.FullPath, file.Format,
-                file.SizeDisplay
-            }).ToList();
+            ModelFileGrid.ItemsSource = snapshot.Files;
             LibraryStatusText.Text = $"{snapshot.Files.Count} model files indexed from {_settings.ModelRoots.Count} tracked folders at {snapshot.ScannedAt.ToLocalTime():HH:mm:ss}" +
                 (snapshot.Truncated ? " - scan limit reached; results are partial" : "");
             LibraryNoticeText.Text = snapshot.Warnings.Count > 0 ? string.Join(Environment.NewLine, snapshot.Warnings)
@@ -116,6 +114,7 @@ public partial class MainWindow
         {
             _libraryBusy = false;
             LibraryAddButton.IsEnabled = LibraryRemoveButton.IsEnabled = LibraryRescanButton.IsEnabled = true;
+            RefreshMaintenanceControls();
         }
     }
 

@@ -14,6 +14,9 @@ public partial class MainWindow : Window
     internal MainWindow(ModelAcquisitionService? acquisitionService, RuntimeDownloadService? runtimeDownloadService = null)
     {
         InitializeComponent();
+        Title = "AI Nexus Portal " + (typeof(MainWindow).Assembly
+            .GetCustomAttributes(typeof(System.Reflection.AssemblyInformationalVersionAttribute), false)
+            .OfType<System.Reflection.AssemblyInformationalVersionAttribute>().FirstOrDefault()?.InformationalVersion.Split('+')[0] ?? "development");
         InitializeMonitoring();
         InitializePackages();
         InitializeModels();

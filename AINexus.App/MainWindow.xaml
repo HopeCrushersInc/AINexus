@@ -484,7 +484,7 @@
                     <Button Grid.Column="2" x:Name="LibraryRemoveButton" Content="Stop tracking" Click="LibraryRemoveButton_Click" Padding="12,10" Margin="12,0,0,0"/>
                 </Grid>
                 <TextBlock Grid.Row="2" x:Name="LibraryStatusText" Text="Add a model folder to index GGUF, SafeTensors, and ONNX files." Foreground="#8CA6BC" TextWrapping="Wrap" Margin="0,0,0,12"/>
-                <DataGrid Grid.Row="3" x:Name="ModelFileGrid" IsReadOnly="True" AutoGenerateColumns="False" CanUserAddRows="False" Background="#182638" Foreground="#E6EEF8" BorderBrush="#26394E" HeadersVisibility="Column" EnableRowVirtualization="True">
+                <DataGrid Grid.Row="3" x:Name="ModelFileGrid" SelectionMode="Single" SelectionChanged="ModelFileGrid_SelectionChanged" IsReadOnly="True" AutoGenerateColumns="False" CanUserAddRows="False" Background="#182638" Foreground="#E6EEF8" BorderBrush="#26394E" HeadersVisibility="Column" EnableRowVirtualization="True">
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="Model file" Binding="{Binding Name}" Width="2*"/>
                         <DataGridTextColumn Header="Format" Binding="{Binding Format}" Width="Auto"/>
@@ -492,7 +492,14 @@
                         <DataGridTextColumn Header="Location" Binding="{Binding FullPath}" Width="3*"/>
                     </DataGrid.Columns>
                 </DataGrid>
-                <TextBlock Grid.Row="4" x:Name="LibraryNoticeText" Text="Indexing reads file metadata only. Stop tracking removes a folder from this list; model files remain on disk. File format labels come from extensions and do not validate model contents." Foreground="#8CA6BC" TextWrapping="Wrap" Margin="0,12,0,0"/>
+                <StackPanel Grid.Row="4" Margin="0,12,0,0">
+                    <TextBlock x:Name="LibraryNoticeText" Text="Indexing reads file metadata only. Stop tracking removes a folder from this list; model files remain on disk. File format labels come from extensions and do not validate model contents." Foreground="#8CA6BC" TextWrapping="Wrap"/>
+                    <WrapPanel Margin="0,10,0,8">
+                        <Button x:Name="LibraryCheckButton" Content="Check selected file" Click="LibraryCheckButton_Click" IsEnabled="False" Padding="12,8"/>
+                        <Button x:Name="LibraryCancelCheckButton" Content="Cancel check" Click="LibraryCancelCheckButton_Click" IsEnabled="False" Padding="12,8" Margin="8,0,0,0"/>
+                    </WrapPanel>
+                    <TextBlock x:Name="LibraryMaintenanceStatusText" Text="Select a GGUF file to check against an acquisition receipt. This reads local bytes only; it does not verify runtime readiness." TextWrapping="Wrap" Foreground="#8CA6BC"/>
+                </StackPanel>
             </Grid>
         </TabItem>
         <TabItem x:Name="LlamaCppTab" Header="llama.cpp" Padding="18,10" Loaded="LlamaCppTab_Loaded">

@@ -6,6 +6,8 @@ Updated 2026-10-26. This replaces the early baseline audit with the current impl
 
 **Implemented, within documented limits:** Windows WPF hardware/software scans; hardware-aware GGUF discovery; saved metadata; exact-plan model acquisition and integrity receipts; runtime release/file reviews; approved single native CPU ZIP download, inspection and extraction; local library and generation; owned llama.cpp offline-mode launch and explicit smoke-test evidence; native workload navigation; narrow local ComfyUI generation.
 
+Read-only per-model library integrity checking against an explicit acquisition receipt is now available; it is not automated repair or update management.
+
 **Not yet implemented:** general model repair/update/rollback, live artifact editing, automatic switching, dockable/popout workspaces, durable multi-step workflows, service mode, training and non-Windows portal releases. GPU/multiple-archive runtime installation and dependency/source-build recipes remain incomplete. Latest publication validation passed 582 local regression/native checks plus GitHub Windows CI; this does not establish all-model or cross-platform support.
 
 ## Projected phases

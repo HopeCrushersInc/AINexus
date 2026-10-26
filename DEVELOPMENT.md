@@ -1,5 +1,13 @@
 # Development state
 
+Current product direction: [feature overview](docs/feature-overview.md) and [roadmap](docs/development-roadmap.md). Earlier entries below are historical checkpoints; their pending items and local-only publication notes describe that increment, not today's complete repository state. Approved updates now publish through protected pull requests; see [changelog](CHANGELOG.md).
+
+## 2026-10-26 — Feature projection and community planning
+
+Published a current feature outline, platform matrix and phased roadmap, replacing stale baseline claims. Parallel agent reviews covered lifecycle/platform gates and community documentation. The configured Antigravity Gemini route returned a conceptual review; an actual offline local Qwen coding-model request returned acceptance suggestions, and its owned review server was stopped afterward. Suggestions were reviewed rather than treated as evidence of implemented support. Incorporated portable-core/worker separation, per-target tests, schema rollback and separate training-runtime gates. No DeepSeek or Discord cloud connection is claimed by this increment.
+
+Documentation/link checks apply to this increment; the application remains at the previously validated 582-check checkpoint. GitHub Discussions and wiki feature were enabled, while first-page wiki initialization and private Discord creation remain blocked by unavailable browser controls.
+
 ## Fresh workload selections on every launch
 
 Workload choices are session-only. Removed them from persisted settings and removed the setup confirmation's preference write. Each new chooser starts unchecked, including a rescan/change-workloads flow. Legacy SelectedWorkloads JSON is ignored while unrelated configuration remains readable, and future saves omit it. Release build passed with zero warnings/errors; 582 regression/native checks passed, including legacy migration and chooser-reset coverage.
@@ -48,7 +56,7 @@ The restored Phase 1 hardware dashboard remains native .NET 8 WPF. Subsequent lo
 10. Review-only model acquisition plans and non-destructive existing-artifact integrity verification. Stale/cached evidence, mismatched target volumes and unsafe paths are rejected. No acquisition execution is exposed by this increment.
 11. Explicit approved model-data acquisition with streamed HTTPS downloads, current disk-space checks, exact size/hash verification, no-overwrite publication, cancellation/close cleanup, verified reuse and saved integrity receipts. This adds acquisition execution after the review-only foundation; runtime installers and Windows changes are excluded.
 
-No code executes generated model output. No model files are deleted or relocated. No packages or model weights are installed automatically. All development commits remain local.
+No code executes generated model output. No model files are deleted or relocated. No packages or model weights are installed automatically. Historical checkpoint: development commits were local at this stage; approved integrated updates are now published through protected pull requests.
 
 ## Verification
 

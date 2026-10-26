@@ -4,6 +4,13 @@ A native C# .NET 8 WPF dashboard for local AI tooling on Windows.
 
 **Development preview · Updated 2026-10-26.** See the [changelog](CHANGELOG.md) for published changes, validation results and known limitations. The workflow is hardware scan → compatible-model discovery → explicit installation/configuration approval → verification → local offline launch. Compatibility estimates remain unverified until an actual runtime test succeeds.
 
+## Project guide and communication
+
+- [Feature overview](docs/feature-overview.md): live editing, model switching, maintenance, training, custom windows/workflows and services.
+- [Roadmap and platform projection](docs/development-roadmap.md): delivery gates for Windows, Linux, macOS and ARM64.
+- [Community and wiki-style guide](docs/community.md): where to check updates, ask questions and contribute ideas.
+- [Project forum](https://github.com/unrelatednda-code/AINexus/discussions) · [Wiki](https://github.com/unrelatednda-code/AINexus/wiki) · [Changelog](CHANGELOG.md). Wiki feature is enabled; its first page is pending. Private Discord is proposed, not yet created.
+
 ## Current capabilities
 
 - Hardware-aware online discovery: explicit metadata searches on Hugging Face and supporting upstream llama.cpp release metadata. Results include declared licensing, source links, immutable model revisions, artifact sizes and SHA-256 when reported. Initial supported interests are local assistants, coding, and agents; other workflow adapters are explicitly marked unavailable.

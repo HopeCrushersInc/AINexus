@@ -2,6 +2,12 @@
 
 Current product direction: [feature overview](docs/feature-overview.md) and [roadmap](docs/development-roadmap.md). Earlier entries below are historical checkpoints; their pending items and local-only publication notes describe that increment, not today's complete repository state. Approved updates now publish through protected pull requests; see [changelog](CHANGELOG.md).
 
+## 2026-10-26 — Recovery review increment
+
+Added a read-only recovery review after actual missing/changed model evidence. The planner rereads the validated historical receipt, binds the original path, checks current bytes, validates a separate unoccupied destination and current disk headroom, and presents the remaining acquisition/verification steps. It cannot execute a download or replace files. A repaired original invalidates review. Missing-file UI access is limited to an existing library row before rescan.
+
+Work split across backend, native-test and independent-review subagents, plus actual local Qwen and configured Gemini conceptual reviews. The local review server stopped afterward; NVIDIA reported the enforced 250 W cap during use. Independent code review caught nested artifact path flattening before publication; coverage now checks consistency with the acquisition planner. Validation: Release build passed with zero warnings/errors and 639 regression/native checks passed. Package verification is recorded in the published release/checkpoint.
+
 ## 2026-10-26 — Library maintenance and first preview package
 
 Added a separately invoked read-only library receipt check: bounded historical receipt validation, exact selected-path binding before model reads, actual byte/hash comparison, no repair/download/execution, cancellation and stale-result clearing. Backend and native controls cover altered/missing models, malformed/wrong receipts and preserved bytes. Startup rendered-control tests confirm all choices unchecked, explicit selection, and reset; the user confirmed the existing shortcut also starts unchecked.

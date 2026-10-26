@@ -2,6 +2,14 @@
 
 User-visible changes are recorded here. Dates identify publication updates, not a promise that every feature was first implemented on that date.
 
+## 0.1.0-preview.2 — 2026-10-26
+
+- Added read-only recovery reviews after a completed missing/changed GGUF integrity result. Show pinned historical source/terms, expected identity, a separate unoccupied destination and current storage evidence.
+- Recheck the original file before review; repaired/healthy files are rejected. Preserve nested artifact paths so the proposed destination matches later acquisition planning.
+- Clear recovery state on selection changes, rescans, new checks, failures and cancellation. Recovery review grants no download/replacement approval and never changes files.
+- Require fresh source/hardware/license evidence, separate acquisition approval, complete integrity verification and explicit offline testing before switching to a replacement. Automated repair remains incomplete.
+- Validation: Release build passed with zero warnings/errors and 639 regression/native checks passed; package verification is recorded on the release.
+
 ## 2026-10-26 — HopeCrushersInc organization transfer
 
 - Repository transferred to https://github.com/HopeCrushersInc/AINexus while keeping the existing personal login.

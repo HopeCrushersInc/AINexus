@@ -61,7 +61,7 @@ internal static class RuntimeSetupChecks
             && report.Recommendations[0].ExecutionPath == "Review runtime setup",
             "Runtime archive assessment cannot masquerade as a model resource candidate or verified installation");
         var review = RuntimeSetupPlanner.Create(report, "fixture/runtime", destination);
-        check(!Directory.Exists(destination) && review.Actions.Count > 0 && review.Blockers.Any(b => b.Contains("not implemented")),
+        check(!Directory.Exists(destination) && review.Actions.Count > 0 && review.Blockers.Any(b => b.Contains("cannot authorize")),
             "Runtime setup review produces concrete ordered steps without creating folders or authorizing installation");
         check(RuntimeSetupPlanner.Create(Report(machine), "fixture/runtime", destination).Blockers.Any(b => b.Contains("no supported published archives")),
             "Marker-only runtime releases do not silently become nightly downloads or source builds");

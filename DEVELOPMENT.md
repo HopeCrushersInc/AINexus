@@ -6,7 +6,7 @@ Downloads & setup now supports an explicit installation review after exact-file 
 
 Model library, discovery and Ollama tables now show adaptive byte units instead of rounding small files to zero GiB. Unknown model sizes stay unknown; zero-byte local placeholders are omitted with a warning and preserved on disk. No model files are deleted.
 
-Validation: clean Release build, 522 regression/native checks passed. Tests use inert generated archives and cover exact approvals, changed identities, no-overwrite behavior, terms bounds/encoding, staged extra files, cancellation, malformed decompression sizes, upstream tagged archive names and native installation/configuration controls. No real runtime ZIP was installed by this increment. Native layout was rendered and visually inspected.
+Validation: clean Release build, 539 integrated regression/native checks passed, including the preserved workload onboarding. Tests use inert generated archives and cover exact approvals, changed identities, no-overwrite behavior, terms bounds/encoding, staged extra files, cancellation, malformed decompression sizes, upstream tagged archive names and native installation/configuration controls. No real runtime ZIP was installed by this increment. Native layout was rendered and visually inspected. Invalid saved workload settings now recover to defaults with a warning while preserving the original settings file.
 
 ## Everyday offline launch
 

@@ -42,7 +42,7 @@ public sealed class PortalSettingsStore(string path)
                 throw new InvalidDataException("Portable runtime settings are invalid.");
             return new(settings with { ModelRoots = settings.ModelRoots.Distinct(StringComparer.OrdinalIgnoreCase).ToArray() }, null);
         }
-        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or JsonException or ArgumentException or UriFormatException)
+        catch (Exception ex) when (ex is IOException or InvalidDataException or UnauthorizedAccessException or JsonException or ArgumentException or UriFormatException)
         {
             return new(PortalSettings.Default, $"Settings could not be loaded ({ex.GetType().Name}). Existing settings have been preserved.");
         }

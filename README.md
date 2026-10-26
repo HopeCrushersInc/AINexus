@@ -2,6 +2,8 @@
 
 A native C# .NET 8 WPF dashboard for local AI tooling on Windows.
 
+**Development preview · Updated 2026-10-26.** See the [changelog](CHANGELOG.md) for published changes, validation results and known limitations. The workflow is hardware scan → compatible-model discovery → explicit installation/configuration approval → verification → local offline launch. Compatibility estimates remain unverified until an actual runtime test succeeds.
+
 ## Current capabilities
 
 - Hardware-aware online discovery: explicit metadata searches on Hugging Face and supporting upstream llama.cpp release metadata. Results include declared licensing, source links, immutable model revisions, artifact sizes and SHA-256 when reported. Initial supported interests are local assistants, coding, and agents; other workflow adapters are explicitly marked unavailable.

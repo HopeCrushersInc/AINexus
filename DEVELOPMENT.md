@@ -1,5 +1,9 @@
 # Development state
 
+## Fresh workload selections on every launch
+
+Workload choices are session-only. Removed them from persisted settings and removed the setup confirmation's preference write. Each new chooser starts unchecked, including a rescan/change-workloads flow. Legacy SelectedWorkloads JSON is ignored while unrelated configuration remains readable, and future saves omit it. Release build passed with zero warnings/errors; 582 regression/native checks passed, including legacy migration and chooser-reset coverage.
+
 ## Approved CPU runtime downloading
 
 The native runtime package panel now prepares a separate archive download review from fresh online metadata and the exact selected native CPU ZIP. Its approval binds the full source/hardware report, archive identity, declared license and canonical download folder. Cached/stale evidence, altered plans, unsupported backend recipes and unknown hashes cannot authorize a transfer. The dedicated client handles only the exact GitHub release URL and a bounded chain through the two supported public release-asset hosts; cookies, credentials, automatic redirects and content decompression are disabled.

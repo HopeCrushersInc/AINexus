@@ -1,5 +1,6 @@
 using System.IO;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Windows;
 using System.Windows.Controls;
 using AINexus.App;
@@ -31,14 +32,21 @@ internal static class WorkloadSetupChecks
         {
             var path = Path.Combine(root, "settings.json");
             var store = new PortalSettingsStore(path);
-            var settings = PortalSettings.Default with { SelectedWorkloads = [DiscoveryInterest.Images, DiscoveryInterest.Coding] };
+            var settings = PortalSettings.Default with { ComfyUIRoot = Path.Combine(root, "portable-engine") };
             await store.SaveAsync(settings);
-            check((await store.LoadAsync()).Settings.SelectedWorkloads.SequenceEqual(settings.SelectedWorkloads),
-                "Saved workload choices survive settings reload without installing or starting anything");
-            await File.WriteAllTextAsync(path, JsonSerializer.Serialize(settings with { SelectedWorkloads = [(DiscoveryInterest)999] }));
-            var invalid = await store.LoadAsync();
-            check(invalid.Warning is not null && invalid.Settings.SelectedWorkloads.Count == 0,
-                "Invalid saved interests are rejected rather than inventing configured workflows");
+            using (var saved = JsonDocument.Parse(await File.ReadAllTextAsync(path)))
+                check(!saved.RootElement.TryGetProperty("SelectedWorkloads", out _),
+                    "Workload choices are not written to preferences");
+            var legacy = JsonSerializer.SerializeToNode(settings)!;
+            legacy["SelectedWorkloads"] = new JsonArray((int)DiscoveryInterest.Images, (int)DiscoveryInterest.Coding, 999);
+            await File.WriteAllTextAsync(path, legacy.ToJsonString());
+            var restored = await store.LoadAsync();
+            check(restored.Warning is null && restored.Settings.ComfyUIRoot == settings.ComfyUIRoot,
+                "Legacy saved selections are ignored without discarding unrelated configuration");
+            await store.SaveAsync(restored.Settings);
+            using (var migrated = JsonDocument.Parse(await File.ReadAllTextAsync(path)))
+                check(!migrated.RootElement.TryGetProperty("SelectedWorkloads", out _),
+                    "Saving preferences cannot restore legacy workload selections");
         }
         finally { if (Directory.Exists(root)) Directory.Delete(root, true); }
     }
@@ -63,6 +71,10 @@ internal static class WorkloadSetupChecks
         choices.Single(c => c.Interest == DiscoveryInterest.Images).Selected = true;
         check(proceed.IsEnabled && setup.IsSelected && navigation.Visibility == Visibility.Collapsed,
             "Checking an interest enables confirmation but does not build a workspace or launch software");
+        window.CompleteWorkloadScan(DiscoveryPipelineChecks.FixtureMachine());
+        check(((IEnumerable<WorkloadChoice>)((ItemsControl)window.FindName("WorkloadChoices")).ItemsSource).All(choice => !choice.Selected)
+            && !proceed.IsEnabled,
+            "Rebuilding the chooser clears every previous choice and requires a fresh selection");
         window.ApplyWorkloadSelection([DiscoveryInterest.Images]);
         check(((TabItem)window.FindName("StoreHomeTab")).IsSelected && navigation.Visibility == Visibility.Visible
             && ((RadioButton)window.FindName("ImageWorkspaceNav")).Visibility == Visibility.Visible

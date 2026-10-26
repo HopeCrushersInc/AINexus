@@ -59,8 +59,7 @@ public partial class MainWindow
             string.Join("\n", machine.Hardware.Gpus.Select(gpu => gpu.Name + (gpu.VramGb is { } vram ? $" · {vram:N1} GiB VRAM" : " · VRAM unavailable"))) +
             "\n" + string.Join(" · ", machine.Volumes.Select(volume => $"{volume.Path} {volume.AvailableBytes / 1073741824d:N1} GiB free"));
         WorkloadScanStatusText.Text = "Hardware scan finished. Choose what you want to do next. Missing hardware details remain unknown; this scan does not establish model compatibility.";
-        var choices = VerifiedOnlineDiscoveryProvider.Workflows.Select(workflow => new WorkloadChoice(workflow,
-            _settings.SelectedWorkloads.Contains(workflow.Interest))).ToArray();
+        var choices = VerifiedOnlineDiscoveryProvider.Workflows.Select(workflow => new WorkloadChoice(workflow)).ToArray();
         foreach (var choice in choices) choice.PropertyChanged += (_, _) => RefreshWorkloadContinue();
         WorkloadChoices.ItemsSource = choices;
         WorkloadOptionsPanel.Visibility = Visibility.Visible;
@@ -98,14 +97,12 @@ public partial class MainWindow
         {
             var selected = WorkspaceProfile.Create(_workloadMachine, choices.Where(c => c.Selected).Select(c => c.Interest));
             await _preferencesReady.Task.WaitAsync(_lifetime.Token);
-            _settings = _settings with { SelectedWorkloads = selected.Interests };
-            await _settingsStore.SaveAsync(_settings, _lifetime.Token);
             ApplyWorkloadSelection(selected.Interests);
             await ScanSoftwareAsync();
             if (_settings.ModelRoots.Count > 0) await ScanLibraryAsync();
         }
         catch (OperationCanceledException) when (_lifetime.IsCancellationRequested) { }
-        catch (Exception ex) { WorkloadScanStatusText.Text = "Workspace selection could not be saved: " + ex.Message; }
+        catch (Exception ex) { WorkloadScanStatusText.Text = "Workspace selection could not be applied: " + ex.Message; }
     }
 
     private async void WorkloadRescanButton_Click(object sender, RoutedEventArgs e) => await RunWorkloadScanAsync();

@@ -109,7 +109,7 @@ Naming/packaging references: [upstream release workflow](https://github.com/ggml
 
 The runtime archive selector requires an explicit choice. **Review selected files** lists that archive's exact URL, compressed bytes and SHA-256, plus a uniquely matching same-release CUDA support archive when one is published. CPU selection excludes GPU alternatives. Missing or ambiguous CUDA dependencies are reported; other releases and architectures are never substituted.
 
-The review identity covers selected files, destination, declared license, release flags, source timestamps and hardware evidence. Changing the destination or selection clears the displayed review. Missing digests, stale evidence, dependency licensing, expanded size and runtime compatibility remain explicit requirements. Creating a review grants no approval and does not download, install or run anything. Archive inspection and approval-bound runtime acquisition remain incomplete.
+The review identity covers selected files, destination, declared license, release flags, source timestamps and hardware evidence. Changing the destination or selection clears the displayed review. Missing digests, stale evidence, dependency licensing, expanded size and runtime compatibility remain explicit requirements. Creating a review grants no approval and does not download, install or run anything. Supported CPU downloading and local extraction use the separate approval steps described below.
 
 ## Explicit runtime release lookup
 
@@ -139,7 +139,17 @@ dotnet run --project AINexus.Checks/AINexus.Checks.csproj -c Release -- --runtim
 
 ### Local portable runtime installation
 
-For a reviewed **native Windows CPU ZIP**, choose **Inspect local zip files**, **Review local install**, and **Read bundled license terms**. After reviewing the exact source identities, new folder, storage requirements and terms, accept all three approvals and choose **Install reviewed files**. Existing destinations are preserved. The archive must contain a root server file and readable license text; GPU/support packages and runtime downloads are not supported by this recipe.
+To acquire a selected **native CPU-runtime ZIP**, first use fresh online release metadata and **Review selected files**. Choose an existing **download folder** on the assessed volume, choose **Review runtime download**, review the exact bytes/hash/source and folder, then explicitly approve and choose **Download approved archive**. Hash-verified existing ZIPs can be reused; mismatched files are preserved. Downloading writes only archive bytes and a historical receipt. It never extracts or runs the payload.
+
+After transfer, **Inspect downloaded archive** feeds the same read-only inspection step used for existing ZIPs. Runtime installation and bundled-license acceptance still require their separate review and approvals. Closing or cancelling during transfer cleans only that operation's temporary file. A receipt-recording failure is reported as incomplete while preserving verified ZIP bytes.
+
+Opt-in acquisition check (downloads at most one 512 MiB CPU ZIP; does not extract or execute it):
+
+```powershell
+dotnet run --project AINexus.Checks/AINexus.Checks.csproj -c Release -- --runtime-download-live 'b11669' '<local archive folder>'
+```
+
+For a reviewed **native Windows CPU ZIP**, choose **Inspect local zip files**, **Review local install**, and **Read bundled license terms**. After reviewing the exact source identities, new folder, storage requirements and terms, accept all three approvals and choose **Install reviewed files**. Existing destinations are preserved. The archive must contain a root server file and readable license text. GPU/support packages remain unsupported; downloading uses the separate approved workflow above.
 
 Installation writes portable files and an extraction receipt, and runs no payload. **Use installed runtime** selects it for an explicit offline smoke test with your chosen model. Extraction alone does not verify dependencies or runtime compatibility. Cancelled/failed extraction may retain an identified sibling staging folder for inspection; automatic recursive cleanup is deliberately avoided.
 

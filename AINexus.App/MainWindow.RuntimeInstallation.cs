@@ -60,6 +60,7 @@ public partial class MainWindow
         RuntimeInstallApprovalPanel.Visibility = Visibility.Visible;
         DownloadsTab.IsSelected = true;
         RuntimePackagesExpander.IsExpanded = true;
+        RuntimeDownloadExpander.IsExpanded = false;
         ModelDownloadExpander.IsExpanded = false;
         DiscoveryDetailsExpander.IsExpanded = true;
         DiscoveryDetailsText.Text = RuntimeInstallationPlanner.Describe(plan);

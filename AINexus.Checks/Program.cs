@@ -31,6 +31,7 @@ internal static class Program
             RuntimeReleaseLookupChecks.RunAsync(Check).GetAwaiter().GetResult();
             RuntimeArchiveChecks.RunAsync(Check).GetAwaiter().GetResult();
             RuntimeInstallationChecks.RunAsync(Check).GetAwaiter().GetResult();
+            RuntimeDownloadChecks.RunAsync(Check).GetAwaiter().GetResult();
             ImageWorkflowChecks.RunAsync(Check).GetAwaiter().GetResult();
             WorkloadSetupChecks.RunAsync(Check).GetAwaiter().GetResult();
             OnlineDiscoveryChecks.RunAsync(Check).GetAwaiter().GetResult();
@@ -82,6 +83,12 @@ internal static class Program
             {
                 if (offlineLaunchIndex + 2 >= args.Length) throw new ArgumentException("--offline-launch-live requires an existing runtime executable and GGUF model.");
                 OfflineLaunchLiveChecks.RunAsync(args[offlineLaunchIndex + 1], args[offlineLaunchIndex + 2], Check).GetAwaiter().GetResult();
+            }
+            var runtimeDownloadIndex = Array.IndexOf(args, "--runtime-download-live");
+            if (runtimeDownloadIndex >= 0)
+            {
+                if (runtimeDownloadIndex + 2 >= args.Length) throw new ArgumentException("--runtime-download-live requires an explicit release tag and a local archive folder.");
+                RuntimeDownloadLiveChecks.RunAsync(args[runtimeDownloadIndex + 1], args[runtimeDownloadIndex + 2], Check).GetAwaiter().GetResult();
             }
             Console.WriteLine($"PASS: {_checks} checks.");
             return 0;
@@ -220,6 +227,7 @@ internal static class Program
         if (uiIndex >= 0) LlamaCppUiChecks.RunCloseCleanup(window, Check);
         window.Close();
         NativeAcquisitionChecks.Run(Check);
+        RuntimeDownloadUiChecks.Run(Check);
         app.Shutdown();
     }
 

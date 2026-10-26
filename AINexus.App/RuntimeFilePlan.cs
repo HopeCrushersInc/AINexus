@@ -24,7 +24,7 @@ public static class RuntimeFilePlanner
         var files = new List<RuntimeReleaseAsset> { selected.Asset };
         var blockers = new List<string>
         {
-            "This is an exact-file review, not approval. Local CPU extraction requires a separate inspected installation plan; runtime downloading and broader installation recipes remain unavailable.",
+            "This is an exact-file review, not approval. CPU archive downloading and inspected local extraction require their separate exact-plan approvals; broader runtime recipes remain unavailable.",
             "Expanded storage, archive contents, server executable, CPU requirements and dependency closure require inspection before extraction or execution."
         };
         if (selected.Backend.StartsWith("cuda-", StringComparison.Ordinal))

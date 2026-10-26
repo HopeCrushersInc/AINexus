@@ -22,6 +22,7 @@ public partial class MainWindow
     {
         InitializeAcquisition();
         InitializeRuntimeInstallation();
+        InitializeRuntimeDownload();
         _discoveryPipeline = new(new VerifiedOnlineDiscoveryProvider(_discoveryHttp), DiscoveryCacheStore.ForCurrentUser());
         DiscoveryInterestSelector.ItemsSource = VerifiedOnlineDiscoveryProvider.Workflows;
         DiscoveryInterestSelector.SelectedIndex = 0;
@@ -50,6 +51,7 @@ public partial class MainWindow
     private void RefreshDiscoveryControls()
     {
         RefreshRuntimeInstallationControls();
+        RefreshRuntimeDownloadControls();
         DiscoveryScanButton.IsEnabled = !_discoveryBusy;
         DiscoveryInterestSelector.IsEnabled = DiscoveryQueryText.IsEnabled = DiscoveryVolumeSelector.IsEnabled = !_discoveryBusy;
         var supported = DiscoveryInterestSelector.SelectedItem is DiscoveryWorkflow workflow && VerifiedOnlineDiscoveryProvider.Supports(workflow.Interest);
@@ -185,6 +187,7 @@ public partial class MainWindow
         if (_discoveryBusy || _lastDiscoveryReport is null || DiscoveryResultsGrid.SelectedItem is not DiscoveryRow row
             || row.Recommendation.Item.RuntimeRelease is null) return;
         InvalidateAcquisitionReview();
+        InvalidateRuntimeReviewDisplay();
         try
         {
             var review = RuntimeSetupPlanner.Create(_lastDiscoveryReport, row.Recommendation.Item.Id, RuntimeDestinationText.Text.Trim());
@@ -206,10 +209,12 @@ public partial class MainWindow
     private void InvalidateRuntimeReviewDisplay()
     {
         var hadInstallation = _runtimeInstallationPlan is not null || _runtimeInstallationResult is not null;
+        var hadDownload = _runtimeDownloadPlan is not null || _runtimeDownloadResult is not null;
+        InvalidateRuntimeDownload();
         InvalidateRuntimeInstallation();
         _reviewedRuntimeFiles = null;
         if (RuntimeInspectButton is not null) RuntimeInspectButton.IsEnabled = false;
-        if (DiscoveryDetailsText is not null && (hadInstallation || DiscoveryDetailsText.Text.StartsWith("EXACT RUNTIME FILE REVIEW", StringComparison.Ordinal)
+        if (DiscoveryDetailsText is not null && (hadInstallation || hadDownload || DiscoveryDetailsText.Text.StartsWith("EXACT RUNTIME FILE REVIEW", StringComparison.Ordinal)
             || DiscoveryDetailsText.Text.StartsWith("RUNTIME SETUP REVIEW", StringComparison.Ordinal)))
         {
             DiscoveryDetailsText.Text = "Runtime selection or destination changed. Prepare a new review for the current inputs.";
@@ -222,11 +227,13 @@ public partial class MainWindow
         if (_discoveryBusy || _lastDiscoveryReport is null || DiscoveryResultsGrid.SelectedItem is not DiscoveryRow row
             || RuntimeArchiveSelector.SelectedItem is not RuntimeReleaseAsset archive) return;
         InvalidateAcquisitionReview();
+        InvalidateRuntimeDownload();
         InvalidateRuntimeInstallation();
         try
         {
             var plan = RuntimeFilePlanner.Create(_lastDiscoveryReport, row.Recommendation.Item.Id, RuntimeDestinationText.Text.Trim(), archive.Name);
             _reviewedRuntimeFiles = plan;
+            RuntimeDownloadExpander.IsExpanded = true;
             DiscoveryDetailsText.Text = RuntimeFilePlanner.Describe(plan);
             DiscoveryStatusText.Text = "Exact runtime files reviewed. No download or installation approved or performed.";
         }

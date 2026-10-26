@@ -150,6 +150,23 @@
                     <Button x:Name="RuntimeInspectButton" Content="Inspect local zip files" Click="RuntimeInspectButton_Click" IsEnabled="False" Padding="10,8" Margin="0,0,8,6"/>
                     <Button x:Name="RuntimeInstallReviewButton" Content="Review local install" Click="RuntimeInstallReviewButton_Click" IsEnabled="False" Padding="10,8" Margin="0,0,8,6"/>
                 </WrapPanel>
+                <Expander x:Name="RuntimeDownloadExpander" Header="Runtime archive download" Foreground="#AABFD4" Margin="0,4,0,12"><StackPanel Margin="0,6,0,0">
+                    <TextBlock Text="Single CPU runtime ZIP; installation approval is separate." Foreground="#AABFD4" TextWrapping="Wrap"/>
+                    <DockPanel Margin="0,6,0,6">
+                        <Button x:Name="RuntimeDownloadBrowseButton" DockPanel.Dock="Right" Content="Choose download folder" Click="RuntimeDownloadBrowseButton_Click" Padding="10,8" Margin="8,0,0,0"/>
+                        <TextBox x:Name="RuntimeDownloadDirectoryText" Padding="8" TextChanged="RuntimeDownloadDirectoryChanged" ToolTip="Existing local folder for the exact reviewed ZIP; separate from the new installation folder"/>
+                    </DockPanel>
+                    <WrapPanel>
+                        <Button x:Name="RuntimeDownloadReviewButton" Content="Review runtime download" Click="RuntimeDownloadReviewButton_Click" IsEnabled="False" Padding="10,8" Margin="0,0,8,6"/>
+                        <Button x:Name="RuntimeDownloadButton" Content="Download approved archive" Click="RuntimeDownloadButton_Click" IsEnabled="False" Padding="10,8" Margin="0,0,8,6"/>
+                        <Button x:Name="RuntimeDownloadCancelButton" Content="Cancel download" Click="RuntimeDownloadCancelButton_Click" IsEnabled="False" Padding="10,8" Margin="0,0,8,6"/>
+                        <Button x:Name="RuntimeDownloadedInspectButton" Content="Inspect downloaded archive" Click="RuntimeDownloadedInspectButton_Click" IsEnabled="False" Padding="10,8" Margin="0,0,8,6"/>
+                    </WrapPanel>
+                    <CheckBox x:Name="RuntimeDownloadApprovalCheck" Foreground="#E6EEF8" IsEnabled="False" Checked="RuntimeDownloadApprovalChanged" Unchecked="RuntimeDownloadApprovalChanged">
+                        <TextBlock Text="I approve this exact runtime ZIP and download folder, accept its declared runtime license, and understand bundled terms need separate review before installation." TextWrapping="Wrap"/>
+                    </CheckBox>
+                    <ProgressBar x:Name="RuntimeDownloadProgressBar" Minimum="0" Maximum="100" Height="5" Margin="0,8,0,0"/>
+                </StackPanel></Expander>
                 <StackPanel x:Name="RuntimeInstallApprovalPanel" Visibility="Collapsed" Margin="0,4,0,10">
                     <TextBlock Text="Local CPU runtime archives only. Files are installed into a new portable folder; compatibility and execution still need verification." Foreground="#8CA6BC" TextWrapping="Wrap"/>
                     <Button x:Name="RuntimeInstallTermsButton" Content="Read bundled license terms" Click="RuntimeInstallTermsButton_Click" IsEnabled="False" HorizontalAlignment="Left" Padding="10,6" Margin="0,6,0,0"/>

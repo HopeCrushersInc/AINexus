@@ -85,7 +85,7 @@ internal static class RuntimeInstallationUiChecks
     }
 
     private static T Find<T>(MainWindow window, string name) where T : class => (T)window.FindName(name);
-    private static void SaveLayoutPreview(MainWindow window)
+    internal static void SaveLayoutPreview(MainWindow window)
     {
         var surface = (FrameworkElement)window.Content;
         surface.Measure(new Size(1440, 1000));

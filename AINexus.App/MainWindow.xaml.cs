@@ -11,7 +11,7 @@ public partial class MainWindow : Window
 
     public MainWindow() : this(null) { }
 
-    internal MainWindow(ModelAcquisitionService? acquisitionService)
+    internal MainWindow(ModelAcquisitionService? acquisitionService, RuntimeDownloadService? runtimeDownloadService = null)
     {
         InitializeComponent();
         InitializeMonitoring();
@@ -25,6 +25,7 @@ public partial class MainWindow : Window
         InitializeImages();
         InitializeWorkloadSetup();
         if (acquisitionService is not null) _acquisitionService = acquisitionService;
+        if (runtimeDownloadService is not null) _runtimeDownloadService = runtimeDownloadService;
         Closed += (_, _) => _lifetime.Cancel();
     }
 

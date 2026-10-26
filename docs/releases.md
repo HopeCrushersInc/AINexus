@@ -1,6 +1,6 @@
 # Releases and portable Windows packages
 
-AI Nexus releases are development previews. The first planned package version is **0.1.0-preview.1**. A version number in this guide does not mean that its release has already been uploaded; use the [GitHub Releases page](https://github.com/unrelatednda-code/AINexus/releases) for actual published assets.
+AI Nexus releases are development previews. The first planned package version is **0.1.0-preview.1**. A version number in this guide does not mean that its release has already been uploaded; use the [GitHub Releases page](https://github.com/HopeCrushersInc/AINexus/releases) for actual published assets.
 
 ## Run a published package
 

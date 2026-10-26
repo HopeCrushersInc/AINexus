@@ -51,4 +51,4 @@ Start with CPU fallback where feasible, then validate GPU/accelerator backends i
 - Prefer portable, user-selected locations and configurable storage volumes; disclose caches, logs and service registrations.
 - Preserve user data and known-good configurations during updates, migration and recovery.
 - Show unknowns honestly. Offer local/offline operation where the selected workflow supports it, with network activity visible when needed.
-- Communicate completed changes in the [changelog](../CHANGELOG.md), proposals in the roadmap, and decisions/questions through [Discussions](https://github.com/unrelatednda-code/AINexus/discussions).
+- Communicate completed changes in the [changelog](../CHANGELOG.md), proposals in the roadmap, and decisions/questions through [Discussions](https://github.com/HopeCrushersInc/AINexus/discussions).

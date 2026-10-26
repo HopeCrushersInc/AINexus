@@ -9,11 +9,11 @@ A native C# .NET 8 WPF dashboard for local AI tooling on Windows.
 - [Feature overview](docs/feature-overview.md): live editing, model switching, maintenance, training, custom windows/workflows and services.
 - [Roadmap and platform projection](docs/development-roadmap.md): delivery gates for Windows, Linux, macOS and ARM64.
 - [Community and wiki-style guide](docs/community.md): where to check updates, ask questions and contribute ideas.
-- [Project forum](https://github.com/unrelatednda-code/AINexus/discussions) · [Wiki](https://github.com/unrelatednda-code/AINexus/wiki) · [Changelog](CHANGELOG.md). Wiki feature is enabled; its first page is pending. Private Discord is proposed, not yet created.
+- [Project forum](https://github.com/HopeCrushersInc/AINexus/discussions) · [Wiki](https://github.com/HopeCrushersInc/AINexus/wiki) · [Changelog](CHANGELOG.md). Wiki feature is enabled; its first page is pending. Private Discord is proposed, not yet created.
 
 ## Download for Windows
 
-Get the portable **Windows x64 preview** from [GitHub Releases](https://github.com/unrelatednda-code/AINexus/releases). Download the ZIP asset, extract the whole folder, and run `AINexus.App.exe`. The package includes .NET; models and external AI engines are separate. Embedded interfaces need the free WebView2 Runtime. Windows stays on its local account; no Microsoft sign-in is required. See [release and installation guide](docs/releases.md) for package contents, checksums and limitations.
+Get the portable **Windows x64 preview** from [GitHub Releases](https://github.com/HopeCrushersInc/AINexus/releases). Download the ZIP asset, extract the whole folder, and run `AINexus.App.exe`. The package includes .NET; models and external AI engines are separate. Embedded interfaces need the free WebView2 Runtime. Windows stays on its local account; no Microsoft sign-in is required. See [release and installation guide](docs/releases.md) for package contents, checksums and limitations.
 
 ## Current capabilities
 

@@ -2,6 +2,12 @@
 
 User-visible changes are recorded here. Dates identify publication updates, not a promise that every feature was first implemented on that date.
 
+## 2026-10-26 — HopeCrushersInc organization transfer
+
+- Repository transferred to https://github.com/HopeCrushersInc/AINexus while keeping the existing personal login.
+- Verified public visibility, active branch rules, administrator access, Discussions/Wiki settings and unchanged release-asset hashes.
+- Updated current documentation and future package source/support links. Existing published assets retain their original manifests and hashes; historical URLs redirect.
+
 ## 0.1.0-preview.1 — 2026-10-26
 
 - First downloadable Windows x64 portable preview package, including the application EXE and .NET dependencies, with SHA-256 checksums and source/file inventory. Models, external runtimes and the WebView2 browser runtime are separate.

@@ -58,6 +58,69 @@ if (!(Test-Path -LiteralPath (Join-Path $publishDirectory 'AINexus.App.exe') -Pa
     throw "Publish produced no AINexus.App.exe. Staging was preserved: $stage"
 }
 
+# Self-contained publishing does not copy every redistributable notice from its NuGet packages.
+# Bind notices to the versions actually selected in this published application's dependency graph.
+$dependencyPath = Join-Path $publishDirectory 'AINexus.App.deps.json'
+$assetsPath = Join-Path $repositoryRoot 'AINexus.App\obj\project.assets.json'
+$dependencies = Get-Content -LiteralPath $dependencyPath -Raw | ConvertFrom-Json
+$assets = Get-Content -LiteralPath $assetsPath -Raw | ConvertFrom-Json
+$packageFolders = @($assets.packageFolders.PSObject.Properties.Name)
+if ($packageFolders.Count -eq 0) { throw 'The restore assets identify no NuGet package folders for required notices.' }
+$noticeComponents = @(
+    [pscustomobject]@{ LibraryName = 'runtimepack.Microsoft.NETCore.App.Runtime.win-x64'; RequireNotice = $true },
+    [pscustomobject]@{ LibraryName = 'runtimepack.Microsoft.WindowsDesktop.App.Runtime.win-x64'; RequireNotice = $false },
+    [pscustomobject]@{ LibraryName = 'Microsoft.Web.WebView2'; RequireNotice = $true }
+)
+$noticeDirectory = Join-Path $publishDirectory 'ThirdPartyNotices'
+if (Test-Path -LiteralPath $noticeDirectory) { throw 'The package notice directory already exists; it will not be overwritten.' }
+New-Item -ItemType Directory -Path $noticeDirectory | Out-Null
+$noticeIndex = [Collections.Generic.List[string]]::new()
+$noticeIndex.Add('AI Nexus bundled third-party licenses and notices')
+$noticeIndex.Add('')
+$noticeIndex.Add('The files below were copied unchanged from local restored NuGet package content.')
+$noticeIndex.Add('Package identities and exact versions come from the published AINexus.App.deps.json.')
+$noticeIndex.Add('Keep these notices with the corresponding redistributed components.')
+$noticeIndex.Add('External AI engines and model weights are not included in this package.')
+$noticeIndex.Add('')
+foreach ($component in $noticeComponents) {
+    $libraryMatches = @($dependencies.libraries.PSObject.Properties | Where-Object {
+        $_.Name.StartsWith($component.LibraryName + '/', [StringComparison]::OrdinalIgnoreCase)
+    })
+    if ($libraryMatches.Count -ne 1) {
+        throw "Expected exactly one published dependency for $($component.LibraryName); required notices cannot be resolved."
+    }
+    $identityParts = $libraryMatches[0].Name.Split('/')
+    if ($identityParts.Count -ne 2 -or $identityParts[1] -notmatch '^[0-9A-Za-z][0-9A-Za-z.+-]*$') {
+        throw 'A published dependency has an invalid package version for notice resolution.'
+    }
+    $nugetPackageName = ($identityParts[0] -replace '^runtimepack\.', '').ToLowerInvariant()
+    $nugetVersion = $identityParts[1].ToLowerInvariant()
+    $packageDirectories = @($packageFolders | ForEach-Object {
+        Join-Path (Join-Path $_ $nugetPackageName) $nugetVersion
+    } | Where-Object { Test-Path -LiteralPath $_ -PathType Container })
+    if ($packageDirectories.Count -eq 0) {
+        throw "The restored NuGet package $nugetPackageName/$nugetVersion is unavailable for notice collection."
+    }
+    $sourceNotices = @(Get-ChildItem -LiteralPath $packageDirectories[0] -File | Where-Object {
+        $_.Name -match '^(LICENSE|NOTICE|THIRD-PARTY-NOTICES)'
+    } | Sort-Object Name)
+    $licenses = @($sourceNotices | Where-Object { $_.Name -match '^LICENSE' -and $_.Length -gt 0 })
+    $notices = @($sourceNotices | Where-Object { $_.Name -match '^(NOTICE|THIRD-PARTY-NOTICES)' -and $_.Length -gt 0 })
+    if ($licenses.Count -eq 0 -or ($component.RequireNotice -and $notices.Count -eq 0)) {
+        throw "Required license/notice text is missing from $nugetPackageName/$nugetVersion."
+    }
+    $componentNoticeDirectory = Join-Path (Join-Path $noticeDirectory $nugetPackageName) $nugetVersion
+    [IO.Directory]::CreateDirectory($componentNoticeDirectory) | Out-Null
+    $noticeIndex.Add("Package: $nugetPackageName/$nugetVersion")
+    $noticeIndex.Add("Published dependency: $($libraryMatches[0].Name)")
+    foreach ($sourceNotice in $sourceNotices) {
+        [IO.File]::Copy($sourceNotice.FullName, (Join-Path $componentNoticeDirectory $sourceNotice.Name), $false)
+        $noticeIndex.Add("File: $nugetPackageName/$nugetVersion/$($sourceNotice.Name)")
+    }
+    $noticeIndex.Add('')
+}
+[IO.File]::WriteAllText((Join-Path $noticeDirectory 'README.txt'), ($noticeIndex -join "`n"), [Text.UTF8Encoding]::new($false))
+
 $readme = @"
 AI Nexus Portal $Version - Windows x64 development preview
 Source commit: $SourceCommit

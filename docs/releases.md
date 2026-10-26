@@ -34,7 +34,7 @@ Optional parameters:
 - `-OutputRoot 'F:\AINexus\ReleasePackages'` selects the output location; the default is the repository's `artifacts` folder.
 - `-SourceCommit '<full 40-character commit hash>'` binds the build to the currently checked-out commit; it must match `HEAD`.
 
-Versions accept a SemVer numeric core and optional prerelease suffix. Build metadata is reserved for the source commit appended to the informational version. Publish settings are Release, `net8.0-windows`, `win-x64`, self-contained, non-single-file, and untrimmed. The full directory is intentional: copying only the EXE omits required dependencies. Preserve any third-party license/notice files in the publish output; packaging does not grant additional rights to external models or engines.
+Versions accept a SemVer numeric core and optional prerelease suffix. Build metadata is reserved for the source commit appended to the informational version. Publish settings are Release, `net8.0-windows`, `win-x64`, self-contained, non-single-file, and untrimmed. The full directory is intentional: copying only the EXE omits required dependencies. The script collects the exact published .NET/WebView2 package licenses and notices, and stops if required text is missing. Preserve these third-party files; packaging does not grant additional rights to external models or engines.
 
 The script creates a fresh GUID staging folder, never recursively deletes an existing folder, and refuses to overwrite an existing archive or checksum file. A failed operation preserves its stage for inspection. Repeated builds of the same version need a different output directory or an explicit manual review of old outputs.
 

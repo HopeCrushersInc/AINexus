@@ -2,6 +2,14 @@
 
 User-visible changes are recorded here. Dates identify publication updates, not a promise that every feature was first implemented on that date.
 
+## 2026-10-26 — Feature direction and community
+
+- Added a feature overview and phased projection for live editing, opt-in model switching, maintenance/updates/rollback, training, custom windows/popouts, workflows and services.
+- Added explicit Windows/Linux/macOS and x64/ARM64 target boundaries, dependencies and acceptance gates; these planned features are not presented as implemented.
+- Replaced the stale baseline roadmap and linked the planning documents from README.
+- Enabled GitHub Discussions and the wiki feature. Added a versioned community/wiki-style guide; wiki first-page initialization and a private Discord server remain pending.
+- Documentation update only; no application behavior changed.
+
 ## 2026-10-26 — Public development update
 
 This update brings the integrated development work onto `main`. AI Nexus Portal remains a Windows development preview; compatibility estimates are not proof that a model will run.

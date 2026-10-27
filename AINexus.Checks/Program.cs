@@ -22,6 +22,11 @@ internal static class Program
             ModelChecks.RunAsync(Check).GetAwaiter().GetResult();
             ModelMaintenanceChecks.RunAsync(Check).GetAwaiter().GetResult();
             ModelRecoveryChecks.RunAsync(Check).GetAwaiter().GetResult();
+            FeaturedModelCatalogChecks.RunAsync(Check).GetAwaiter().GetResult();
+            LocalChatChecks.RunAsync(Check).GetAwaiter().GetResult();
+            LargeModelStartupChecks.RunAsync(Check).GetAwaiter().GetResult();
+            GuidedRuntimeSetupChecks.RunAsync(Check).GetAwaiter().GetResult();
+            GpuPowerPolicyChecks.RunAsync(Check).GetAwaiter().GetResult();
             AgentChecks.RunAsync(Check).GetAwaiter().GetResult();
             LlamaCppChecks.RunAsync(Check).GetAwaiter().GetResult();
             LlamaServerChecks.RunAsync(Check).GetAwaiter().GetResult();
@@ -165,6 +170,13 @@ internal static class Program
         WorkloadSetupChecks.RunNative(window, Check);
         ModelMaintenanceUiChecks.RunNative(window, Check);
         ModelRecoveryUiChecks.RunNative(window, Check);
+        GuidedInstallChecks.RunNative(window, Check);
+        var featuredLive = Array.IndexOf(args, "--featured-install-live");
+        if (featuredLive >= 0)
+        {
+            if (featuredLive + 3 >= args.Length) throw new ArgumentException("--featured-install-live requires catalog ID, existing download folder and existing runtime path.");
+            GuidedInstallChecks.RunLive(args[featuredLive + 1], args[featuredLive + 2], args[featuredLive + 3], Check);
+        }
         ImageWorkflowChecks.RunNative(window, Check);
         RuntimeSetupChecks.RunNative(window, Check);
         RuntimeFilePlanChecks.RunNative(window, Check);

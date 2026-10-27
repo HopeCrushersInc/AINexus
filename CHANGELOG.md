@@ -2,6 +2,17 @@
 
 User-visible changes are recorded here. Dates identify publication updates, not a promise that every feature was first implemented on that date.
 
+## 0.2.0-preview.1 — 2026-10-26
+
+- Added prominent model cards and a guided download → engine setup → load → chat path. Advanced workspace choices are collapsed; no workload or adult-model option is preselected.
+- Added exact-source catalog lookups for Qwen 7B, Qwen Coder 7B, Qwen 32B and opt-in NSFW Stheno/Lexi entries. Fresh metadata determines sizes, hashes and licenses; no substitute artifact is silently selected.
+- Added real multi-turn local chat, explicit cancellation/truncation, model-stop binding resets and session-only history.
+- Added a portable CPU-engine download/extraction route with separate archive and bundled-license approvals. Existing GPU-capable engines can be selected directly.
+- Extended bounded cold-load health startup from 30 seconds to five minutes; added cancellation and lifecycle guards.
+- Added pre-load 250 W NVIDIA power-cap enforcement/readback. Unsupported or denied control is reported instead of claiming a cap was set.
+- Verified real Qwen 32B installation/generation/two-turn chat and official Qwen Coder 7B reuse/generation/two-turn chat. Latest default validation: 735 regression/native checks passed; live runs added five actual install/chat/cleanup checks each.
+- Unfinished image-model acquisition/switching, active catalog, fan/thermal controls and iCUE research were saved separately and are not presented as complete in this release.
+
 ## 0.1.0-preview.2 — 2026-10-26
 
 - Added read-only recovery reviews after a completed missing/changed GGUF integrity result. Show pinned historical source/terms, expected identity, a separate unoccupied destination and current storage evidence.

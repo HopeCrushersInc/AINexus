@@ -24,6 +24,7 @@ public partial class MainWindow
         if (_workloadScanBusy || _lifetime.IsCancellationRequested) return;
         _workloadScanBusy = true;
         _workloadMachine = null;
+        RefreshGuidedControls();
         WorkloadOptionsPanel.Visibility = Visibility.Collapsed;
         WorkloadContinueButton.IsEnabled = false;
         WorkloadRescanButton.IsEnabled = false;
@@ -64,6 +65,7 @@ public partial class MainWindow
         WorkloadChoices.ItemsSource = choices;
         WorkloadOptionsPanel.Visibility = Visibility.Visible;
         RefreshWorkloadContinue();
+        RefreshGuidedControls();
     }
 
     private void RefreshWorkloadContinue() => WorkloadContinueButton.IsEnabled = _workloadMachine is not null

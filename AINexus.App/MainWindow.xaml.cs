@@ -27,6 +27,7 @@ public partial class MainWindow : Window
         InitializeOfflineVerification();
         InitializeImages();
         InitializeWorkloadSetup();
+        InitializeGuidedSetup();
         if (acquisitionService is not null) _acquisitionService = acquisitionService;
         if (runtimeDownloadService is not null) _runtimeDownloadService = runtimeDownloadService;
         Closed += (_, _) => _lifetime.Cancel();

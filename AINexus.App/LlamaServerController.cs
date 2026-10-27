@@ -34,13 +34,26 @@ public sealed class LlamaServerController : IDisposable, IAsyncDisposable
     private long _stopEpoch;
     private Task? _disposeTask;
     private readonly Func<string, string, int, CancellationToken, Task> _requireOfflineSupport;
+    private readonly TimeSpan _startupTimeout;
 
-    public LlamaServerController() : this(LlamaRuntimeCapabilities.RequireOfflineSupportAsync) { }
+    public LlamaServerController() : this(LlamaRuntimeCapabilities.RequireOfflineSupportAsync, null) { }
 
-    internal LlamaServerController(Func<string, string, int, CancellationToken, Task> requireOfflineSupport)
+    public LlamaServerController(TimeSpan? startupTimeout)
+        : this(LlamaRuntimeCapabilities.RequireOfflineSupportAsync, startupTimeout) { }
+
+    internal LlamaServerController(Func<string, string, int, CancellationToken, Task> requireOfflineSupport,
+        TimeSpan? startupTimeout = null)
     {
         _requireOfflineSupport = requireOfflineSupport ?? throw new ArgumentNullException(nameof(requireOfflineSupport));
+        _startupTimeout = startupTimeout ?? TimeSpan.FromMinutes(5);
+        if (_startupTimeout < TimeSpan.FromSeconds(1) || _startupTimeout > TimeSpan.FromMinutes(10))
+            throw new ArgumentOutOfRangeException(nameof(startupTimeout), "Choose a model startup timeout from one second to ten minutes.");
     }
+
+    internal TimeSpan StartupTimeout => _startupTimeout;
+
+    /// <summary>Requests cancellation of this controller's active startup only. No unrelated process is affected.</summary>
+    public void CancelStartup() => CancelStarting();
 
     public event Action<string>? StatusChanged;
 
@@ -218,10 +231,10 @@ public sealed class LlamaServerController : IDisposable, IAsyncDisposable
         return info;
     }
 
-    private static async Task WaitForReadyAsync(Process process, Uri endpoint, CancellationToken cancellationToken)
+    private async Task WaitForReadyAsync(Process process, Uri endpoint, CancellationToken cancellationToken)
     {
         using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-        deadline.CancelAfter(TimeSpan.FromSeconds(30));
+        deadline.CancelAfter(_startupTimeout);
         using var http = OllamaClient.CreateLocalHttpClient();
         try
         {
@@ -264,7 +277,7 @@ public sealed class LlamaServerController : IDisposable, IAsyncDisposable
         }
         catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
         {
-            throw new TimeoutException("The owned portable server did not become healthy within 30 seconds.");
+            throw new TimeoutException($"The owned portable server did not become healthy within the configured {_startupTimeout.TotalSeconds:0.###}-second startup limit. Its owned process was stopped; no working-model result was recorded.");
         }
     }
 

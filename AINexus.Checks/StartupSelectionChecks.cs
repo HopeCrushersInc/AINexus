@@ -22,6 +22,7 @@ internal static class StartupSelectionChecks
                 "A separate native startup window opens setup without an approved workload");
 
             window.CompleteWorkloadScan(DiscoveryPipelineChecks.FixtureMachine());
+            ((Expander)window.FindName("WorkloadOptionsPanel")).IsExpanded = true;
             Layout(window);
             var choices = ((IEnumerable<WorkloadChoice>)choicesControl.ItemsSource).ToArray();
             var boxes = Descendants<CheckBox>(choicesControl).ToArray();

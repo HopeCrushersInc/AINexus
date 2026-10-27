@@ -6,6 +6,17 @@
         MinHeight="650" MinWidth="950" Background="#090D16" Foreground="#E6F7FF"
         FontFamily="Segoe UI" FontSize="14" WindowStartupLocation="CenterScreen">
     <Window.Resources>
+        <DataTemplate x:Key="FeaturedModelCard">
+            <Border Background="#152538" BorderBrush="#31506B" BorderThickness="1" CornerRadius="12" Padding="22" Margin="0,0,12,12">
+                <StackPanel>
+                    <TextBlock Text="{Binding NsfwLabel}" Foreground="#F4B87A" FontWeight="SemiBold" TextWrapping="Wrap"/>
+                    <TextBlock Text="{Binding Name}" FontSize="24" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,6,0,8"/>
+                    <TextBlock Text="{Binding Description}" Foreground="#B3C5D6" TextWrapping="Wrap" MinHeight="56"/>
+                    <TextBlock Text="{Binding LicenseNote}" Foreground="#8CA6BC" TextWrapping="Wrap" Margin="0,12,0,14"/>
+                    <Button Content="Install and chat" Tag="{Binding}" Click="FeaturedModelInstall_Click" HorizontalAlignment="Left" Background="#246C94"/>
+                </StackPanel>
+            </Border>
+        </DataTemplate>
         <SolidColorBrush x:Key="PanelBrush" Color="#182638"/>
         <SolidColorBrush x:Key="BorderBrush" Color="#26394E"/>
         <SolidColorBrush x:Key="AccentBrush" Color="#66C0F4"/>
@@ -73,6 +84,8 @@
             <TextBlock DockPanel.Dock="Bottom" Text="Local first. Yours to control." Foreground="#6F879E" FontSize="11" Margin="8,20,0,0"/>
             <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"><StackPanel x:Name="StoreNavigation" Visibility="Collapsed">
                 <RadioButton x:Name="HomeNav" Style="{StaticResource NavStyle}" GroupName="StoreNav" Content="Home" Tag="StoreHomeTab" IsChecked="True" Click="StoreNavigate_Click"/>
+                <RadioButton Style="{StaticResource NavStyle}" GroupName="StoreNav" Content="Install a model" Tag="CatalogTab" Click="StoreNavigate_Click"/>
+                <RadioButton Style="{StaticResource NavStyle}" GroupName="StoreNav" Content="Chat" Tag="ChatTab" Click="StoreNavigate_Click"/>
                 <RadioButton Style="{StaticResource NavStyle}" GroupName="StoreNav" Content="Discover" Tag="DiscoveryTab" Click="StoreNavigate_Click"/>
                 <RadioButton Style="{StaticResource NavStyle}" GroupName="StoreNav" Content="Library" Tag="LibraryTab" Click="StoreNavigate_Click"/>
                 <TextBlock x:Name="CreateWorkspaceHeading" Text="CREATE" Foreground="#637E98" FontSize="11" Margin="18,25,0,7"/>
@@ -107,7 +120,13 @@
                 <TextBlock x:Name="WorkloadHardwareText" Text="Waiting for the local hardware scan..." Foreground="#E6EEF8" TextWrapping="Wrap" Margin="0,8,0,12"/>
                 <TextBlock x:Name="WorkloadScanStatusText" Text="The hardware scan runs first. No downloads, installs or engines will start." Foreground="#AABFD4" TextWrapping="Wrap"/>
             </StackPanel></Border>
-            <StackPanel x:Name="WorkloadOptionsPanel" Visibility="Collapsed">
+            <StackPanel Margin="0,16,0,12">
+                <TextBlock Text="Choose a model. Start a conversation." FontSize="28" FontWeight="SemiBold"/>
+                <TextBlock Text="Pick a model → review its real download size → install → chat locally. Nothing starts until you choose." Foreground="#AABFD4" TextWrapping="Wrap" Margin="0,8,0,14"/>
+                <CheckBox x:Name="FeaturedNsfwCheck" Content="Show adult-oriented / less-filtered models (NSFW)" IsChecked="False" Foreground="#F4B87A" Checked="FeaturedNsfw_Changed" Unchecked="FeaturedNsfw_Changed" Margin="0,0,0,14"/>
+                <ItemsControl x:Name="FeaturedCards" IsEnabled="False" ItemTemplate="{StaticResource FeaturedModelCard}"><ItemsControl.ItemsPanel><ItemsPanelTemplate><UniformGrid Columns="2"/></ItemsPanelTemplate></ItemsControl.ItemsPanel></ItemsControl>
+            </StackPanel>
+            <Expander x:Name="WorkloadOptionsPanel" Header="Other workflows and advanced workspace choices" Visibility="Collapsed" Foreground="#AABFD4"><StackPanel Margin="0,16,0,0">
                 <TextBlock Text="2. What would you like to do?" FontSize="24" FontWeight="SemiBold" Margin="0,6,0,8"/>
                 <TextBlock Text="Choose one or more interests. This only shapes your workspace—it does not choose software for you or approve a download." Foreground="#AABFD4" TextWrapping="Wrap" Margin="0,0,0,16"/>
                 <ItemsControl x:Name="WorkloadChoices"><ItemsControl.ItemsPanel><ItemsPanelTemplate><UniformGrid Columns="2"/></ItemsPanelTemplate></ItemsControl.ItemsPanel><ItemsControl.ItemTemplate><DataTemplate>
@@ -115,8 +134,46 @@
                 </DataTemplate></ItemsControl.ItemTemplate></ItemsControl>
                 <Button x:Name="WorkloadContinueButton" Content="Build my workspace" Click="WorkloadContinueButton_Click" Background="#286E9A" HorizontalAlignment="Left" IsEnabled="False" Margin="0,8,0,12"/>
                 <TextBlock Text="You will choose specific tools and models next. Nothing is installed or loaded until you explicitly ask." Foreground="#829AB2" TextWrapping="Wrap"/>
-            </StackPanel>
+            </StackPanel></Expander>
         </StackPanel></ScrollViewer></TabItem>
+        <TabItem x:Name="CatalogTab" Header="Install a model"><ScrollViewer VerticalScrollBarVisibility="Auto"><StackPanel Margin="28">
+            <TextBlock Text="Install a local model" FontSize="30" FontWeight="SemiBold"/>
+            <TextBlock Text="Choose the model, review its exact download, then open chat. No subscriptions." Foreground="#AABFD4" TextWrapping="Wrap" Margin="0,8,0,18"/>
+            <CheckBox Content="Show adult-oriented / less-filtered models (NSFW)" IsChecked="{Binding IsChecked, ElementName=FeaturedNsfwCheck, Mode=TwoWay}" Foreground="#F4B87A" Margin="0,0,0,16"/>
+            <ItemsControl ItemsSource="{Binding ItemsSource, ElementName=FeaturedCards}" ItemTemplate="{StaticResource FeaturedModelCard}"><ItemsControl.ItemsPanel><ItemsPanelTemplate><UniformGrid Columns="2"/></ItemsPanelTemplate></ItemsControl.ItemsPanel></ItemsControl>
+        </StackPanel></ScrollViewer></TabItem>
+        <TabItem x:Name="GuidedSetupTab" Header="Install &amp; chat"><ScrollViewer VerticalScrollBarVisibility="Auto"><StackPanel Margin="28">
+            <TextBlock x:Name="GuidedModelTitleText" Text="Install and chat" FontSize="30" FontWeight="SemiBold"/>
+            <TextBlock x:Name="GuidedStatusText" Text="Choose a model card to begin." Foreground="#91C7E5" TextWrapping="Wrap" Margin="0,8,0,18"/>
+            <Button Content="Open chat" Click="GuidedStartChat_Click" IsEnabled="{Binding IsEnabled, ElementName=GuidedStartChatButton}" Background="#246C94" HorizontalAlignment="Left" Margin="0,0,0,16"/>
+            <ProgressBar x:Name="GuidedProgress" Height="6" Minimum="0" Maximum="100" Margin="0,0,0,16"/>
+            <Border Style="{StaticResource PanelStyle}"><Expander x:Name="GuidedModelStep" Header="1 · Model download" IsExpanded="True" Foreground="#C3D5E5"><StackPanel>
+                <DockPanel Margin="0,12,0,10"><Button Content="Choose folder" Click="GuidedChooseFolder_Click" DockPanel.Dock="Right" Margin="10,0,0,0"/><TextBox x:Name="GuidedModelFolderText" ToolTip="Existing folder for model data" TextChanged="GuidedInputsChanged"/></DockPanel>
+                <Button x:Name="GuidedReviewButton" Content="Check download size and fit" Click="GuidedReview_Click" HorizontalAlignment="Left"/>
+                <Expander Header="Source, license and file details" Foreground="#AABFD4" Margin="0,12,0,10"><TextBox x:Name="GuidedModelDetailsText" IsReadOnly="True" Height="145" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto"/></Expander>
+                <Button Content="Read model card and license" Click="GuidedLicense_Click" HorizontalAlignment="Left" Margin="0,0,0,10"/>
+                <CheckBox x:Name="GuidedModelApprovalCheck" Foreground="#C3D5E5" Checked="GuidedApproval_Changed" Unchecked="GuidedApproval_Changed"><TextBlock Text="I accept the displayed source license terms and approve this exact model download and destination." TextWrapping="Wrap"/></CheckBox>
+                <Button x:Name="GuidedDownloadButton" Content="Download model" Click="GuidedDownload_Click" IsEnabled="False" HorizontalAlignment="Left" Margin="0,12,0,0"/>
+            </StackPanel></Expander></Border>
+            <Border Style="{StaticResource PanelStyle}"><Expander x:Name="GuidedEngineStep" Header="2 · Local engine" IsExpanded="True" Foreground="#C3D5E5"><StackPanel>
+                <TextBlock Text="Use an existing llama.cpp engine, or get the portable CPU engine below. CPU inference is slower; GPU acceleration depends on your selected engine." Foreground="#AABFD4" TextWrapping="Wrap" Margin="0,8,0,10"/>
+                <DockPanel><Button Content="Use existing engine" Click="GuidedRuntimeBrowse_Click" DockPanel.Dock="Right" Margin="10,0,0,0"/><TextBox x:Name="GuidedRuntimePathText" ToolTip="llama-server.exe path" TextChanged="GuidedRuntimePath_Changed"/></DockPanel>
+                <TextBlock x:Name="GuidedRuntimeStatusText" Foreground="#91C7E5" TextWrapping="Wrap" Margin="0,8,0,8"/>
+                <Button x:Name="GuidedRuntimeReviewButton" Content="Review portable CPU engine" Click="GuidedRuntimeReview_Click" HorizontalAlignment="Left"/>
+                <TextBox x:Name="GuidedRuntimeDetailsText" IsReadOnly="True" Height="125" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" Margin="0,10,0,8"/>
+                <CheckBox x:Name="GuidedRuntimeDownloadApprovalCheck" Foreground="#C3D5E5" Checked="GuidedRuntimeApproval_Changed" Unchecked="GuidedRuntimeApproval_Changed"><TextBlock Text="I accept the displayed upstream license and approve this exact runtime archive download." TextWrapping="Wrap"/></CheckBox>
+                <Button x:Name="GuidedRuntimeDownloadButton" Content="Download engine archive" Click="GuidedRuntimeDownload_Click" HorizontalAlignment="Left" IsEnabled="False" Margin="0,8,0,10"/>
+                <CheckBox x:Name="GuidedRuntimeInstallApprovalCheck" Foreground="#C3D5E5" Checked="GuidedRuntimeApproval_Changed" Unchecked="GuidedRuntimeApproval_Changed"><TextBlock Text="I accept the displayed upstream and bundled license terms and approve extracting these exact files into the new folder shown." TextWrapping="Wrap"/></CheckBox>
+                <Button x:Name="GuidedRuntimeInstallButton" Content="Install portable engine" Click="GuidedRuntimeInstall_Click" HorizontalAlignment="Left" IsEnabled="False" Margin="0,8,0,0"/>
+            </StackPanel></Expander></Border>
+            <WrapPanel Margin="0,10,0,12"><Button x:Name="GuidedStartChatButton" Content="3 · Load model and open chat" Click="GuidedStartChat_Click" IsEnabled="False" Background="#246C94"/><Button x:Name="GuidedCancelButton" Content="Cancel current step" Click="GuidedCancel_Click" IsEnabled="False" Margin="12,0,0,0"/></WrapPanel>
+        </StackPanel></ScrollViewer></TabItem>
+        <TabItem x:Name="ChatTab" Header="Chat"><Grid Margin="28"><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+            <DockPanel Margin="0,0,0,14"><Button Content="New conversation" Click="ChatClear_Click" DockPanel.Dock="Right"/><Button x:Name="ChatStopButton" Content="Stop model" Click="ChatStop_Click" IsEnabled="False" DockPanel.Dock="Right" Margin="0,0,10,0"/><TextBlock x:Name="ChatModelText" Text="No model loaded" FontSize="24" FontWeight="SemiBold"/></DockPanel>
+            <TextBox x:Name="ChatTranscriptText" Grid.Row="1" IsReadOnly="True" AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto"/>
+            <DockPanel Grid.Row="2" Margin="0,14,0,10"><StackPanel DockPanel.Dock="Right" Margin="12,0,0,0"><Button x:Name="ChatSendButton" Content="Send" Click="ChatSend_Click" IsEnabled="False"/><Button x:Name="ChatCancelButton" Content="Cancel reply" Click="ChatCancel_Click" IsEnabled="False" Margin="0,8,0,0"/></StackPanel><TextBox x:Name="ChatPromptText" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="90" MaxHeight="180" VerticalScrollBarVisibility="Auto" MaxLength="16000" ToolTip="Write your message"/></DockPanel>
+            <TextBlock x:Name="ChatStatusText" Grid.Row="3" Text="Conversation stays in memory. Load a model from Install &amp; chat to begin." Foreground="#AABFD4" TextWrapping="Wrap"/>
+        </Grid></TabItem>
         <TabItem x:Name="StoreHomeTab" Header="Home"><ScrollViewer VerticalScrollBarVisibility="Auto"><StackPanel Margin="28">
             <Border CornerRadius="12" Padding="30" Margin="0,0,0,24"><Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="1,1"><GradientStop Color="#254A66" Offset="0"/><GradientStop Color="#17283A" Offset="1"/></LinearGradientBrush></Border.Background><StackPanel><TextBlock Text="Your workspace, your choices." FontSize="34" FontWeight="SemiBold"/><TextBlock Text="Find compatible options for your selected workloads. You decide what gets downloaded and installed." Foreground="#BCD0E2" FontSize="16" TextWrapping="Wrap" Margin="0,12,0,24"/><StackPanel Orientation="Horizontal"><Button Content="Find compatible options" Tag="DiscoveryTab" Click="StoreNavigate_Click" Background="#286E9A"/><Button Content="Change workloads" Click="ChangeWorkloadsButton_Click" Margin="12,0,0,0"/></StackPanel></StackPanel></Border>
             <TextBlock x:Name="StoreSetupNoticeText" Foreground="#AABFD4" TextWrapping="Wrap" Margin="0,0,0,20"/><TextBlock Text="Your selected workloads" FontSize="22" FontWeight="SemiBold" Margin="0,0,0,16"/>

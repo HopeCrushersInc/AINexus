@@ -28,6 +28,7 @@ public partial class MainWindow
                 if (_lifetime.IsCancellationRequested) return;
                 LlamaCppRuntimeStatusText.Text = status;
                 RefreshLlamaRuntimeControls();
+                if (!_llamaServer.IsRunning) ResetChatAfterRuntimeStop();
                 if (!_llamaServer.IsRunning && _ownedLlamaEndpoint is not null)
                 {
                     if (_agentModelCatalogs.TryGetValue(LocalGenerationRuntime.LlamaCpp, out var catalog)

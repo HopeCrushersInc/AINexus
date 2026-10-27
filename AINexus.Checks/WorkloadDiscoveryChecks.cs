@@ -30,15 +30,17 @@ internal static class WorkloadDiscoveryChecks
             var items = report.Catalog.Items.Where(item => item.Interest == interest).ToArray();
             Console.WriteLine($"Live {interest}: {items.Length} results; sources: " +
                 string.Join(", ", items.SelectMany(item => item.Sources).Select(source => source.Url.Host).Distinct()));
-            check(items.Length > 0 && items.All(item => item.Kind == "Tool" && item.Sources.Count > 0),
-                $"Live {interest} search returns actual source-backed tool metadata for the confirmed category");
+            check(items.Length > 0 && items.All(item => item.Sources.Count > 0
+                && (item.Kind == "Tool" && item.Artifact is null
+                    || interest == DiscoveryInterest.Images && item.Kind == "Model" && item.Artifact is { Format: "Safetensors" })),
+                $"Live {interest} search returns source-backed tool or image-artifact metadata for the confirmed category");
         }
         check(ReferenceEquals(report.Machine, machine) && report.Machine.ScannedAt == machine.ScannedAt
             && report.TargetVolume == target.Path && !report.Catalog.IsCached,
             "Live multi-workload discovery retains the actual startup hardware scan and selected volume without claiming cached evidence is new");
         check(report.Recommendations.Count > 0 && report.Recommendations.All(result => result.Status == RecommendationStatus.NeedsDetails)
-            && report.Catalog.Items.All(item => item.Artifact is null),
-            "Live image/video tool search honestly reports missing requirements recipes instead of fabricating offline-model hardware fit");
+            && report.Catalog.Items.All(item => item.Artifact is null || item.Interest == DiscoveryInterest.Images && item.Artifact.Format == "Safetensors"),
+            "Live image/video sources retain unassessed requirements rather than applying text-model hardware rules to image artifacts");
         check(Directory.GetFiles(cacheFolder, "*", SearchOption.AllDirectories).All(path => Path.GetExtension(path) == ".json"),
             "Live selected-workload discovery writes metadata evidence only, without model-weight or installer downloads");
         foreach (var note in report.Catalog.Notes) Console.WriteLine("Live source limitation: " + note);

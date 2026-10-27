@@ -18,7 +18,7 @@ public sealed partial class VerifiedOnlineDiscoveryProvider(HttpClient httpClien
     {
         new DiscoveryWorkflow(DiscoveryInterest.LocalAssistants, "Local assistants", "Find local text models and their runtime requirements."),
         new DiscoveryWorkflow(DiscoveryInterest.Coding, "Coding and software development", "Search GGUF model metadata; coding ability requires separate evaluation."),
-        new DiscoveryWorkflow(DiscoveryInterest.Images, "Image generation and editing", "Search online image-tool sources. An existing image engine can be configured separately."),
+        new DiscoveryWorkflow(DiscoveryInterest.Images, "Image generation and editing", "Search public image-artifact and tool metadata. Checkpoint completeness and hardware fit require separate evidence."),
         new DiscoveryWorkflow(DiscoveryInterest.MusicAudio, "Music and audio production", "Search online tool sources; automated installation support is not yet implemented for this workflow."),
         new DiscoveryWorkflow(DiscoveryInterest.Video, "Video generation", "Search online tool sources; automated installation support is not yet implemented for this workflow."),
         new DiscoveryWorkflow(DiscoveryInterest.Speech, "Speech recognition and synthesis", "Search online tool sources; automated installation support is not yet implemented for this workflow."),
@@ -32,7 +32,7 @@ public sealed partial class VerifiedOnlineDiscoveryProvider(HttpClient httpClien
     });
 
     public static bool Supports(DiscoveryInterest interest) => interest is
-        DiscoveryInterest.LocalAssistants or DiscoveryInterest.Coding or DiscoveryInterest.Agents;
+        DiscoveryInterest.LocalAssistants or DiscoveryInterest.Coding or DiscoveryInterest.Agents or DiscoveryInterest.Images;
 
     /// <summary>Caller owns this dedicated unauthenticated metadata client.</summary>
     public static HttpClient CreateHttpClient() => new(new SocketsHttpHandler
@@ -55,6 +55,8 @@ public sealed partial class VerifiedOnlineDiscoveryProvider(HttpClient httpClien
 
         using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         deadline.CancelAfter(TimeSpan.FromSeconds(60));
+        if (request.Interest == DiscoveryInterest.Images && request.RuntimeReleaseTag is null)
+            return await SearchImageArtifactsAndToolsAsync(request, deadline.Token, cancellationToken);
         if (!Supports(request.Interest) && request.RuntimeReleaseTag is null)
         {
             try { return await SearchWorkflowToolsAsync(request, deadline.Token); }

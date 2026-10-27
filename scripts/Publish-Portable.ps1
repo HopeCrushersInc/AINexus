@@ -133,25 +133,25 @@ $sqliteLibraries = @($dependencies.libraries.PSObject.Properties | Where-Object 
 if ($sqliteLibraries.Count -lt 2) { throw 'The published catalog has no complete SQLite dependency graph.' }
 foreach ($library in $sqliteLibraries) {
     $parts = $library.Name.Split('/')
-    $packageName = $parts[0].ToLowerInvariant()
+    $sqlitePackageName = $parts[0].ToLowerInvariant()
     $packageVersion = $parts[1]
-    $isMicrosoft = $packageName.StartsWith('microsoft.data.sqlite', [StringComparison]::Ordinal)
+    $isMicrosoft = $sqlitePackageName.StartsWith('microsoft.data.sqlite', [StringComparison]::Ordinal)
     $expectedVersion = if ($isMicrosoft) { '10.0.14' } else { '2.1.13' }
     $expectedLicense = if ($isMicrosoft) { 'MIT' } else { 'Apache-2.0' }
     if ($packageVersion -ne $expectedVersion) { throw 'SQLite package version changed; review and update notice bindings before packaging.' }
-    $nuspecCandidates = @($packageFolders | ForEach-Object { Join-Path (Join-Path (Join-Path $_ $packageName) $packageVersion) ($packageName + '.nuspec') } | Where-Object { Test-Path -LiteralPath $_ -PathType Leaf })
+    $nuspecCandidates = @($packageFolders | ForEach-Object { Join-Path (Join-Path (Join-Path $_ $sqlitePackageName) $packageVersion) ($sqlitePackageName + '.nuspec') } | Where-Object { Test-Path -LiteralPath $_ -PathType Leaf })
     if ($nuspecCandidates.Count -eq 0) { throw "Missing SQLite package declaration for $($library.Name)." }
     [xml]$declaration = Get-Content -LiteralPath $nuspecCandidates[0] -Raw
     if ($declaration.package.metadata.license.InnerText -ne $expectedLicense) { throw 'SQLite package license changed; notice review required.' }
-    $targetDirectory = Join-Path (Join-Path $noticeDirectory $packageName) $packageVersion
+    $targetDirectory = Join-Path (Join-Path $noticeDirectory $sqlitePackageName) $packageVersion
     [IO.Directory]::CreateDirectory($targetDirectory) | Out-Null
-    [IO.File]::Copy($nuspecCandidates[0], (Join-Path $targetDirectory ($packageName + '.nuspec')), $false)
+    [IO.File]::Copy($nuspecCandidates[0], (Join-Path $targetDirectory ($sqlitePackageName + '.nuspec')), $false)
     $licenseName = if ($isMicrosoft) { 'Microsoft-MIT.txt' } else { 'Apache-2.0.txt' }
     [IO.File]::Copy((Join-Path $sqliteSourceRoot $licenseName), (Join-Path $targetDirectory 'LICENSE.txt'), $false)
     if (!$isMicrosoft) {
         [IO.File]::Copy((Join-Path $sqliteSourceRoot 'SQLitePCLRaw-NOTICE.txt'), (Join-Path $targetDirectory 'NOTICE.txt'), $false)
     }
-    if ($packageName -eq 'sqlitepclraw.lib.e_sqlite3') {
+    if ($sqlitePackageName -eq 'sqlitepclraw.lib.e_sqlite3') {
         [IO.File]::Copy((Join-Path $sqliteSourceRoot 'SQLite-copyright.html'), (Join-Path $targetDirectory 'SQLite-copyright.html'), $false)
     }
     $noticeIndex.Add("Published SQLite dependency: $($library.Name); $expectedLicense; copyright retained in unchanged nuspec.")

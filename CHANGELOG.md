@@ -8,6 +8,7 @@ User-visible changes are recorded here. Dates identify publication updates, not 
 - Added session-only Standard and LCARS appearances. Hold Shift while clicking LCARS to reveal the hidden Retro appearance with cyan/magenta controls, stars and scanlines. Startup uses Standard.
 - Added Shift-wheel text/button scaling from 75% to 175%, plus a Size menu and reset to 100%. Sidebar and action widths scale with the controls. Ordinary scrolling retains its normal behavior.
 - Preserved native title-bar dragging and resizing from all edges and corners. Appearance and sizing do not select workloads, approve downloads, start engines or change GPU power settings.
+- Corrected portable checksum filenames so the checksum entry names the actual AI Nexus ZIP rather than a bundled dependency.
 - Validation: 862 default regression/native checks, including appearance selection, startup choices, scaling bounds/reset, native window settings and unchanged approval state. Rendered previews cover Standard, LCARS, Retro, 150% and 175% sizing. The seven live model checks recorded for preview.5 remain earlier evidence; this appearance release does not claim a new live model download or chat run.
 
 ## 0.2.0-preview.5 — 2026-10-27 — User-selected setup and persistent catalog

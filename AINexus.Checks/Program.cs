@@ -44,6 +44,7 @@ internal static class Program
             WorkloadSetupChecks.RunAsync(Check).GetAwaiter().GetResult();
             OnlineDiscoveryChecks.RunAsync(Check).GetAwaiter().GetResult();
             DiscoveryPipelineChecks.RunAsync(Check).GetAwaiter().GetResult();
+            WorkloadDiscoveryChecks.RunAsync(Check).GetAwaiter().GetResult();
             AcquisitionPlanChecks.RunAsync(Check).GetAwaiter().GetResult();
             ModelAcquisitionServiceChecks.RunAsync(Check).GetAwaiter().GetResult();
             OfflineVerificationChecks.RunAsync(Check).GetAwaiter().GetResult();
@@ -53,6 +54,7 @@ internal static class Program
             if (args.Contains("--llama-live")) CheckLiveLlamaCpp().GetAwaiter().GetResult();
             if (args.Contains("--discovery-live")) OnlineDiscoveryChecks.RunLiveAsync(Check).GetAwaiter().GetResult();
             if (args.Contains("--discovery-live")) DiscoveryPipelineChecks.RunLiveAsync(Check).GetAwaiter().GetResult();
+            if (args.Contains("--selected-workloads-live")) WorkloadDiscoveryChecks.RunLiveAsync(Check).GetAwaiter().GetResult();
             if (args.Contains("--live")) HardwareCapabilityChecks.RunLiveAsync(Check).GetAwaiter().GetResult();
             var acquisitionIndex = Array.IndexOf(args, "--acquisition-live");
             var downloadIndex = Array.IndexOf(args, "--acquisition-download-live");
@@ -169,6 +171,7 @@ internal static class Program
         StartupSelectionChecks.RunNative(window, Check);
         Check(window.FindName("CpuText") is TextBlock, "Hardware XAML loads");
         WorkloadSetupChecks.RunNative(window, Check);
+        WorkloadDiscoveryChecks.RunNative(window, Check);
         ModelMaintenanceUiChecks.RunNative(window, Check);
         ModelRecoveryUiChecks.RunNative(window, Check);
         GuidedInstallChecks.RunNative(window, Check);

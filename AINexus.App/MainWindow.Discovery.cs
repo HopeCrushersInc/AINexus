@@ -33,7 +33,8 @@ public partial class MainWindow
     private void DiscoveryInterestSelector_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         if (DiscoveryScopeText is null) return;
-        if (DiscoveryInterestSelector.SelectedItem is DiscoveryWorkflow workflow) DiscoveryScopeText.Text = workflow.Scope;
+        DiscoveryScopeText.Text = DiscoveryInterestSelector.SelectedItem is DiscoveryWorkflow workflow ? workflow.Scope
+            : "Search all confirmed workloads using this computer's hardware scan.";
         if (DiscoverySearchButton is not null) RefreshDiscoveryControls();
     }
 
@@ -44,18 +45,24 @@ public partial class MainWindow
         _lastDiscoveryReport = null;
         InvalidateAcquisitionReview();
         DiscoveryResultsGrid.ItemsSource = null;
+        DiscoveryFitSummaryText.Text = "Storage changed. Search again to assess the selected volume.";
         DiscoveryDetailsText.Text = "Storage selection changed. Search online or load saved evidence to evaluate this volume.";
         RefreshDiscoveryControls();
     }
 
     private void RefreshDiscoveryControls()
     {
+        if (WorkloadContinueButton is not null) RefreshWorkloadContinue();
+        if (WorkloadRescanButton is not null) WorkloadRescanButton.IsEnabled = !_discoveryBusy && !_workloadScanBusy;
         RefreshRuntimeInstallationControls();
         RefreshRuntimeDownloadControls();
         DiscoveryScanButton.IsEnabled = !_discoveryBusy;
         DiscoveryInterestSelector.IsEnabled = DiscoveryQueryText.IsEnabled = DiscoveryVolumeSelector.IsEnabled = !_discoveryBusy;
-        var supported = DiscoveryInterestSelector.SelectedItem is DiscoveryWorkflow workflow && Enum.IsDefined(workflow.Interest);
+        var supported = DiscoveryInterestSelector.SelectedItem is DiscoveryWorkflow workflow && Enum.IsDefined(workflow.Interest)
+            || _workspaceProfile is { Interests.Count: > 0 };
         DiscoverySearchButton.IsEnabled = !_discoveryBusy && supported;
+        DiscoverySearchAllButton.Visibility = _workspaceProfile is { Interests.Count: > 1 } ? Visibility.Visible : Visibility.Collapsed;
+        DiscoverySearchAllButton.IsEnabled = !_discoveryBusy;
         DiscoverySavedButton.IsEnabled = !_discoveryBusy && DiscoveryInterestSelector.SelectedItem is DiscoveryWorkflow;
         DiscoveryCancelButton.IsEnabled = _discoveryBusy;
         if (RuntimeSetupReviewButton is not null)
@@ -89,6 +96,9 @@ public partial class MainWindow
         await RunDiscoveryOperationAsync(async token =>
         {
             DiscoveryStatusText.Text = "Reading actual hardware, drivers, memory availability and fixed volumes...";
+            _lastDiscoveryReport = null;
+            InvalidateAcquisitionReview();
+            DiscoveryFitSummaryText.Text = "Hardware evidence is being refreshed. Search again afterwards.";
             await ScanDiscoveryHardwareAsync(token);
             DiscoveryResultsGrid.ItemsSource = null;
             DiscoveryDetailsText.Text = DescribeMachine(_discoveryMachine!);
@@ -106,6 +116,7 @@ public partial class MainWindow
         var machine = await HardwareCapabilityScanner.ScanAsync(token);
         token.ThrowIfCancellationRequested();
         _discoveryMachine = machine;
+        _workloadMachine = machine;
         DiscoveryHardwareText.Text = $"{machine.Hardware.CpuName} | {machine.OsArchitecture} | {machine.Hardware.RamGb:N1} GiB RAM | " +
             $"{machine.Hardware.Gpus.Count} GPU(s) | scanned {machine.ScannedAt.ToLocalTime():HH:mm:ss}";
         DiscoveryVolumeSelector.ItemsSource = machine.Volumes;
@@ -113,6 +124,7 @@ public partial class MainWindow
     }
 
     private async void DiscoverySearchButton_Click(object sender, RoutedEventArgs e) => await RunDiscoverySearchAsync(online: true);
+    private async void DiscoverySearchAllButton_Click(object sender, RoutedEventArgs e) => await FindSelectedWorkloadsAsync();
     private async void DiscoverySavedButton_Click(object sender, RoutedEventArgs e) => await RunDiscoverySearchAsync(online: false);
 
     private async void RuntimeReleaseLookupButton_Click(object sender, RoutedEventArgs e) => await RunRuntimeReleaseLookupAsync(true);
@@ -131,6 +143,11 @@ public partial class MainWindow
 
     private async Task RunDiscoverySearchAsync(bool online, string? runtimeTag = null)
     {
+        if (online && runtimeTag is null && DiscoveryInterestSelector.SelectedItem is not DiscoveryWorkflow)
+        {
+            await FindSelectedWorkloadsAsync();
+            return;
+        }
         if (DiscoveryInterestSelector.SelectedItem is not DiscoveryWorkflow workflow || _discoveryPipeline is null) return;
         var request = runtimeTag is null ? new OnlineDiscoveryRequest(workflow.Interest, DiscoveryQueryText.Text.Trim())
             : new OnlineDiscoveryRequest(DiscoveryInterest.LocalAssistants, "", 1, runtimeTag);
@@ -139,6 +156,7 @@ public partial class MainWindow
             DiscoveryResultsGrid.ItemsSource = null;
             _lastDiscoveryReport = null;
             InvalidateAcquisitionReview();
+            DiscoveryFitSummaryText.Text = "Searching…";
             DiscoveryDetailsText.Text = "Reading current hardware evidence before evaluating candidates...";
             DiscoveryStatusText.Text = "Refreshing local memory and selected-volume availability...";
             await ScanDiscoveryHardwareAsync(token);
@@ -151,6 +169,31 @@ public partial class MainWindow
             var report = online
                 ? await _discoveryPipeline.SearchOnlineAsync(request, _discoveryMachine!, volume.Path, token: token)
                 : await _discoveryPipeline.LoadSavedAsync(request, _discoveryMachine!, volume.Path, token: token);
+            token.ThrowIfCancellationRequested();
+            RenderDiscoveryReport(report);
+        });
+    }
+
+    internal async Task FindSelectedWorkloadsAsync()
+    {
+        if (_workspaceProfile is not { } profile || (_discoveryMachine ?? _workloadMachine) is not { } machine || _discoveryPipeline is null) return;
+        var query = DiscoveryQueryText.Text.Trim();
+        var target = _discoveryTargetVolume;
+        await RunDiscoveryOperationAsync(async token =>
+        {
+            _lastDiscoveryReport = null;
+            InvalidateAcquisitionReview();
+            DiscoveryResultsGrid.ItemsSource = null;
+            DiscoveryFitSummaryText.Text = "Searching selected workloads…";
+            if (target is null || !machine.Volumes.Any(v => string.Equals(v.Path, target, StringComparison.OrdinalIgnoreCase)))
+            {
+                DiscoveryStatusText.Text = "Choose a scanned storage volume before searching for models that fit.";
+                return;
+            }
+            DiscoveryDetailsText.Text = "Searching every confirmed workload. Hardware stays on this PC; only category/search terms go to public sources.";
+            DiscoveryStatusText.Text = "Searching: " + string.Join(", ", VerifiedOnlineDiscoveryProvider.Workflows
+                .Where(w => profile.Interests.Contains(w.Interest)).Select(w => w.Name)) + ". No downloads or installation.";
+            var report = await _discoveryPipeline.SearchWorkloadsOnlineAsync(profile.Interests, machine, target, query, token);
             token.ThrowIfCancellationRequested();
             RenderDiscoveryReport(report);
         });
@@ -267,16 +310,39 @@ public partial class MainWindow
     {
         _lastDiscoveryReport = report;
         InvalidateAcquisitionReview();
-        var rows = report.Recommendations.Select(recommendation => new DiscoveryRow(recommendation, report)).ToArray();
-        DiscoveryResultsGrid.ItemsSource = rows;
-        DiscoveryResultsGrid.SelectedIndex = -1;
+        RefreshDiscoveryResults();
         DiscoveryDetailsText.Text = "Select a result yourself. No installation, compilation or runtime verification was performed." + Environment.NewLine + string.Join(Environment.NewLine, report.Catalog.Notes);
         var retrieval = report.Catalog.RetrievedAt == DateTimeOffset.MinValue ? "no saved timestamp" : report.Catalog.RetrievedAt.ToLocalTime().ToString("g");
-        DiscoveryStatusText.Text = $"{rows.Length} results | {(report.Catalog.IsCached ? "SAVED metadata; not refreshed online" : "Online metadata")} retrieved {retrieval} | " +
+        DiscoveryStatusText.Text = $"{report.Recommendations.Count} results | {(report.Catalog.IsCached ? "SAVED metadata; not refreshed online" : "Online metadata")} retrieved {retrieval} | " +
             $"Target {report.TargetVolume} | Resource estimates only; no candidate has been installed or verified by this search.";
         if (string.IsNullOrWhiteSpace(DiscoveryDestinationText.Text))
             DiscoveryDestinationText.Text = Path.Combine(report.TargetVolume, "AINexus", "Models");
         RefreshDiscoveryControls();
+    }
+
+    private void DiscoveryShowUnassessedCheck_Changed(object sender, RoutedEventArgs e)
+    {
+        if (DiscoveryResultsGrid is not null) RefreshDiscoveryResults();
+    }
+
+    private void RefreshDiscoveryResults()
+    {
+        if (_lastDiscoveryReport is not { } report) return;
+        var showOthers = DiscoveryShowUnassessedCheck.IsChecked == true;
+        DiscoveryResultsGrid.ItemsSource = report.Recommendations
+            .Where(r => showOthers || r.Status == RecommendationStatus.ResourceCandidate)
+            .Select(r => new DiscoveryRow(r, report)).ToArray();
+        DiscoveryResultsGrid.SelectedIndex = -1;
+        var fit = report.Recommendations.Count(r => r.Status == RecommendationStatus.ResourceCandidate);
+        var unknown = report.Recommendations.Count(r => r.Status == RecommendationStatus.NeedsDetails);
+        var insufficient = report.Recommendations.Count(r => r.Status == RecommendationStatus.InsufficientResources);
+        var unsupported = report.Recommendations.Count(r => r.Status == RecommendationStatus.Unsupported);
+        var missingMediaRecipe = report.Catalog.Items.Any(i => i.Interest is DiscoveryInterest.Images or DiscoveryInterest.Video)
+            || _workspaceProfile?.Interests.Any(i => i is DiscoveryInterest.Images or DiscoveryInterest.Video) == true;
+        DiscoveryFitSummaryText.Text = $"{fit} estimated to fit · {unknown} need compatibility evidence · {insufficient} exceed available resources · {unsupported} need a platform recipe. "
+            + (fit == 0 ? "No hardware-fit matches established. " : "")
+            + (missingMediaRecipe ? "Image/video tool listings currently need dedicated model/runtime requirements before fit can be assessed." : "")
+            + (showOthers ? " Showing all results." : " Showing estimated-fit results only; reveal the others below.");
     }
 
     private void DiscoveryResultsGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -355,6 +421,7 @@ public partial class MainWindow
     private sealed record DiscoveryRow(CompatibilityRecommendation Recommendation, DiscoveryReport Report)
     {
         public string Name => Recommendation.Item.Name;
+        public string Workload => VerifiedOnlineDiscoveryProvider.Workflows.Single(w => w.Interest == Recommendation.Item.Interest).Name;
         public string Publisher => Recommendation.Item.Publisher;
         public string SizeDisplay => ByteSizeDisplay.ModelSize(Recommendation.Item.Artifact?.SizeBytes);
         public string LicenseDisplay => Recommendation.Item.License ?? "Unknown";

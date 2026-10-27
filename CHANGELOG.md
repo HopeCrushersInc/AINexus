@@ -2,6 +2,13 @@
 
 User-visible changes are recorded here. Dates identify publication updates, not a promise that every feature was first implemented on that date.
 
+## Unreleased — Selected-workload searches
+
+- Confirming workload choices now starts a source search for every checked category, without requiring another category selection or search click. The initial hardware scan and selected drive are reused for local assessment; hardware details are not sent to search providers.
+- Default results show only estimated hardware-fit candidates. Unknown, insufficient-resource and unsupported-platform results remain available through an explicit review toggle with separate counts and category labels. No model is selected, downloaded, installed or started by discovery.
+- Category source failures retain other category results, and cancellation stops remaining searches. Rescanning or changing storage clears obsolete fit evidence.
+- Image/video results still lack dedicated model/runtime compatibility recipes and are explicitly shown as unassessed. This change does not claim complete offline image/video discovery.
+
 ## 0.2.0-preview.2 — Workload-first correction
 
 - Restored every workload category directly after the hardware scan, visible and unchecked. Removed preset model promotion from startup and primary navigation.

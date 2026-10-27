@@ -2,7 +2,9 @@
 
 User-visible changes are recorded here. Dates identify publication updates, not a promise that every feature was first implemented on that date.
 
-## Unreleased — Persistent catalog and selected-workload searches
+## 0.2.0-preview.5 — 2026-10-27 — User-selected setup and persistent catalog
+
+This release collects the local preview.3–preview.5 increments; preview.3 and preview.4 were not separate GitHub releases. Validation: 839 default regression/native checks and seven additional live checks through the generic selected-model workflow. The live run reused existing weights and runtime, completed two actual chat turns and stopped its owned server. Four-card identity/power controls are covered by fixtures; actual four-GPU model execution remains unverified. See [current status](docs/project-status.md) for implemented behavior and remaining gaps.
 
 - Removed the fixed 250 W all-GPU requirement and its unconditional model-launch gate. The development workstation's owner-selected setting is no longer a product default.
 - Added optional per-GPU power inspection and explicit, range-checked changes under Performance. No GPU or wattage is selected automatically; unselected adapters are untouched and launch does not depend on power-control support.

@@ -4,11 +4,11 @@
 
 AI Nexus scans the computer, shows workload categories, and searches live internet sources after the user asks. It does not choose a model, promote a provider, or install software automatically.
 
-### [Download for Windows x64](https://github.com/HopeCrushersInc/AINexus/releases/download/v0.2.0-preview.2/AINexus-0.2.0-preview.2-win-x64.zip)
+### [Download for Windows x64](https://github.com/HopeCrushersInc/AINexus/releases/download/v0.2.0-preview.5/AINexus-0.2.0-preview.5-win-x64.zip)
 
-**0.2.0-preview.2 · Development preview**
+**0.2.0-preview.5 · Development preview**
 
-[Release notes & checksums](https://github.com/HopeCrushersInc/AINexus/releases/tag/v0.2.0-preview.2) · [Changelog](CHANGELOG.md) · [Discussions](https://github.com/HopeCrushersInc/AINexus/discussions)
+[Release notes & checksums](https://github.com/HopeCrushersInc/AINexus/releases/tag/v0.2.0-preview.5) · [What works / what is unfinished](docs/project-status.md) · [Changelog](CHANGELOG.md) · [Discussions](https://github.com/HopeCrushersInc/AINexus/discussions)
 
 ![Workload-first startup with unchecked categories](docs/assets/workload-choices.png)
 
@@ -28,7 +28,7 @@ AI Nexus scans the computer, shows workload categories, and searches live intern
 | --- | --- |
 | Text/coding model discovery | Live public GGUF metadata with pinned source identities and resource estimates |
 | Other workload discovery | Live public tool-repository metadata; install adapters vary and are explicitly identified |
-| Persistent catalog and Library (local development build) | SQLite source catalog, merged task categories, offline browsing and private acquisition-receipt links |
+| Persistent catalog and Library | SQLite source catalog, merged task categories, offline browsing and private acquisition-receipt links |
 | Supported model acquisition | Exact-plan approval, size/SHA-256 verification, receipts and no overwrite of different files |
 | Runtime and local use | Explicit engine setup, local chat, image-engine configuration and owned-process controls |
 
@@ -36,7 +36,7 @@ AI Nexus scans the computer, shows workload categories, and searches live intern
 
 Image/video discovery currently retrieves tool repositories, not complete offline model packages with verified requirements. Those results appear under compatibility review, never as established hardware-fit matches. The UI reports when no fit can be established; it does not substitute a text-model memory rule.
 
-The new Library keeps saved source facts separate from private local receipts. Browsing and filtering do not contact the internet, rehash large models, install software or start engines. A receipt means an acquisition was recorded; current integrity and successful offline execution need their own checks. See [catalog design and storage](docs/catalog.md). This work is not yet included in the linked preview.2 download.
+The new Library keeps saved source facts separate from private local receipts. Browsing and filtering do not contact the internet, rehash large models, install software or start engines. A receipt means an acquisition was recorded; current integrity and successful offline execution need their own checks. See [catalog design and storage](docs/catalog.md).
 
 ## Preview limits
 

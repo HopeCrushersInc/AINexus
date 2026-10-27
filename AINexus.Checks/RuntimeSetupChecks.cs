@@ -86,6 +86,7 @@ internal static class RuntimeSetupChecks
     public static void RunNative(MainWindow window, Action<bool, string> check)
     {
         var destination = Path.Combine(AppContext.BaseDirectory, "fixtures", Guid.NewGuid().ToString("N"));
+        ((CheckBox)window.FindName("DiscoveryShowUnassessedCheck")).IsChecked = true; // Explicitly inspect a runtime requiring further review.
         window.RenderDiscoveryReport(Report(Machine(), Asset("llama-bin-win-cpu-x64.zip")));
         check(((DataGrid)window.FindName("DiscoveryResultsGrid")).SelectedIndex == -1,
             "Runtime search results require an explicit user selection before setup review");

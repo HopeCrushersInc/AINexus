@@ -168,7 +168,7 @@ public partial class MainWindow
             _guidedInstalledOnly = false;
             _guidedReceipt = null;
             GuidedModelApprovalCheck.IsChecked = false;
-            GuidedStatusText.Text = "Reading this exact model's current source metadata and your hardware...";
+            GuidedStatusText.Text = "Reviewing the selected source evidence and reading current hardware...";
             OfflineModelVerifier.CheckNoReparsePath(folder);
             if (!Directory.Exists(folder)) throw new DirectoryNotFoundException("Choose an existing model folder first.");
             var machine = GuidedHardwareOverride is { } scan ? await scan(token) : await HardwareCapabilityScanner.ScanAsync(token);
@@ -180,7 +180,7 @@ public partial class MainWindow
             var plan = ModelAcquisitionPlanner.Create(report, item.Id, folder);
             token.ThrowIfCancellationRequested();
             _guidedModelPlan = plan;
-            var fit = report.Recommendations.Single();
+            var fit = report.Recommendations.Single(result => result.Item.Id == item.Id);
             GuidedModelDetailsText.Text = $"Download: {ByteSizeDisplay.Format(plan.Artifact.SizeBytes!.Value)}\nHardware estimate: {fit.ExecutionPath}\n"
                 + string.Join(" ", fit.Reasons) + "\n\n" + DescribeAcquisitionPlan(plan);
             GuidedStatusText.Text = $"Download: {ByteSizeDisplay.Format(plan.Artifact.SizeBytes.Value)} · License: {plan.DeclaredLicense}. Read the source terms, approve below, then download. Hardware fit remains an estimate until an actual run.";
@@ -225,9 +225,6 @@ public partial class MainWindow
             RefreshLlamaRuntimeControls();
             try
             {
-            GuidedStatusText.Text = "Verifying the GPU power cap before loading...";
-            var power = await new GpuPowerPolicy().EnsureAsync(token);
-            if (!power.Verified) throw new InvalidOperationException("The 250 W GPU policy could not be verified: " + power.Message);
             GuidedStatusText.Text = "Verifying installed model bytes, then loading the model. Large models can take several minutes; Cancel stops this load.";
             var audit = await OfflineModelVerifier.AuditReceiptAsync(receipt, token);
             if (!audit.Integrity.Matches) throw new InvalidDataException("The acquired model no longer matches its receipt. Run the download review again.");

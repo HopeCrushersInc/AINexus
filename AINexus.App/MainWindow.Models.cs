@@ -107,6 +107,7 @@ public partial class MainWindow
                 (snapshot.Truncated ? " - scan limit reached; results are partial" : "");
             LibraryNoticeText.Text = snapshot.Warnings.Count > 0 ? string.Join(Environment.NewLine, snapshot.Warnings)
                 : "File metadata only; extensions do not validate contents. Stop tracking changes this list without deleting files. Sharded files are listed individually.";
+            await RefreshCatalogLibraryAsync();
         }
         catch (OperationCanceledException) when (_lifetime.IsCancellationRequested) { }
         catch (Exception ex) { LibraryStatusText.Text = $"Library scan failed: {ex.Message}"; }

@@ -63,6 +63,17 @@ internal static class OnlineDiscoveryChecks
         }
         check(VerifiedOnlineDiscoveryProvider.Workflows.Count == Enum.GetValues<DiscoveryInterest>().Length, "Workflow catalog explicitly accounts for every requested interest");
 
+        using (var http = new HttpClient(new FixtureHandler((request, _) =>
+        {
+            if (request.RequestUri!.AbsolutePath.Contains("/tree/"))
+                return Task.FromResult(Json(Tree[..^1] + ", {\"type\":\"file\",\"path\":\"third.gguf\",\"size\":4096}]"));
+            return Task.FromResult(ReplyFor(request.RequestUri));
+        })))
+        {
+            var catalog = await new VerifiedOnlineDiscoveryProvider(http).SearchAsync(new(DiscoveryInterest.Coding, "Fixture/Model", 8));
+            check(catalog.Items.Count(item => item.Artifact is not null) == 3 && catalog.Items.Any(item => item.Artifact?.FileName == "third.gguf"),
+                "An exact repository search exposes further file variants within the requested budget instead of restricting user choice to two files");
+        }
         await CheckPartialResultsAsync(check);
         await CheckMalformedMetadataAsync(check);
         await CheckLimitsAndCancellationAsync(check);

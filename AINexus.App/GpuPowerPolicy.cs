@@ -8,80 +8,146 @@ namespace AINexus.App;
 
 public sealed record GpuPowerEvidence(bool Supported, bool Verified, int? LimitWatts,
     string Message, DateTimeOffset CheckedAt);
+public sealed record GpuPowerRequest(string Uuid, int Watts);
+public sealed record GpuPowerAdapter(string Uuid, string Name, decimal? ConfiguredWatts,
+    decimal? EnforcedWatts, decimal? MinimumWatts, decimal? MaximumWatts);
+public sealed record GpuPowerSnapshot(IReadOnlyList<GpuPowerAdapter> Adapters, string Message, DateTimeOffset CheckedAt);
 
-/// <summary>Explicit NVIDIA power-cap enforcement. Queries and, when necessary, requests 250 W
-/// by the observed GPU UUID. No elevation, account, service or persistent-startup changes occur.</summary>
+/// <summary>Optional NVIDIA power controls. Inspection and verification are read-only;
+/// only ApplyAsync changes explicitly requested UUIDs. There is no default wattage,
+/// launch gate, automatic restoration, elevation or persistent-startup mutation.</summary>
 public sealed class GpuPowerPolicy
 {
-    public const int RequiredWatts = 250;
     private const string Query = "--query-gpu=index,uuid,name,power.limit,enforced.power.limit,power.min_limit,power.max_limit";
     private readonly Func<IReadOnlyList<string>, CancellationToken, Task<string>> _run;
 
     public GpuPowerPolicy(Func<IReadOnlyList<string>, CancellationToken, Task<string>>? runner = null)
         => _run = runner ?? RunNvidiaSmiAsync;
 
-    public async Task<GpuPowerEvidence> EnsureAsync(CancellationToken token = default)
+    public async Task<GpuPowerSnapshot> InspectAsync(CancellationToken token = default)
     {
         token.ThrowIfCancellationRequested();
-        IReadOnlyList<Adapter> before;
-        try { before = Parse(await _run([Query, "--format=csv,noheader,nounits"], token).ConfigureAwait(false)); }
+        try
+        {
+            var adapters = await ReadAsync(token).ConfigureAwait(false);
+            return new(adapters, adapters.Count == 0
+                ? "No NVIDIA adapter power information was returned. Existing settings were not changed."
+                : "Current NVIDIA power readings. Unavailable values remain unknown. No setting was changed.", DateTimeOffset.UtcNow);
+        }
         catch (OperationCanceledException) when (token.IsCancellationRequested) { throw; }
         catch (Exception ex) when (ex is not OutOfMemoryException)
-        { return Evidence(false, false, "NVIDIA power limits could not be read or validated. GPU launch is not approved by this check. " + Failure(ex)); }
-        if (before.Count == 0)
-            return Evidence(false, false, "No NVIDIA adapter power evidence was returned. No power setting was changed.");
-        if (before.Any(adapter => adapter.Minimum > RequiredWatts || adapter.Maximum < RequiredWatts))
-            return Evidence(false, false, "At least one NVIDIA adapter does not support the requested 250 W setting. No power setting was changed.");
-        if (before.All(IsCapped))
-            return Evidence(true, true, $"Verified 250 W configured and enforced on all {before.Count} NVIDIA adapter(s). No setting change was needed.");
+        { return new([], "NVIDIA power information is unavailable. Existing settings were not changed. " + Failure(ex), DateTimeOffset.UtcNow); }
+    }
+
+    public Task<GpuPowerEvidence> VerifyAsync(IReadOnlyList<GpuPowerRequest> requests, CancellationToken token = default)
+        => EvaluateAsync(requests, apply: false, token);
+
+    public Task<GpuPowerEvidence> ApplyAsync(IReadOnlyList<GpuPowerRequest> requests, CancellationToken token = default)
+        => EvaluateAsync(requests, apply: true, token);
+
+    private async Task<GpuPowerEvidence> EvaluateAsync(IReadOnlyList<GpuPowerRequest> requests, bool apply, CancellationToken token)
+    {
+        token.ThrowIfCancellationRequested();
+        var selected = ValidateRequests(requests);
+        if (selected.Length == 0)
+            return Evidence(false, false, selected, "No GPU power limits were requested. Existing hardware settings were left unchanged; no driver command was run.");
+        IReadOnlyList<GpuPowerAdapter> before;
+        try { before = await ReadAsync(token).ConfigureAwait(false); }
+        catch (OperationCanceledException) when (token.IsCancellationRequested) { throw; }
+        catch (Exception ex) when (ex is not OutOfMemoryException)
+        { return Evidence(false, false, selected, "Selected GPU power information could not be read. No setting was changed. " + Failure(ex)); }
+        foreach (var request in selected)
+        {
+            var adapter = Find(before, request.Uuid);
+            if (adapter is null)
+                return Evidence(false, false, selected, "A requested GPU UUID is not present in the current driver readings. No setting was changed.");
+            if (!HasControlReadings(adapter) || request.Watts < adapter.MinimumWatts || request.Watts > adapter.MaximumWatts)
+                return Evidence(false, false, selected, "A selected adapter has unavailable/inconsistent power readings or does not support the requested watts. No setting was changed.");
+        }
+        if (selected.All(request => Satisfies(Find(before, request.Uuid)!, request)))
+            return Evidence(true, true, selected, "Verified the requested limits on the selected GPU UUIDs. No setting change was needed.");
+        if (!apply)
+            return Evidence(true, false, selected, "The selected GPUs do not currently satisfy the requested limits. Verification is read-only; no setting was changed.");
 
         try
         {
-            foreach (var adapter in before.Where(adapter => !IsCapped(adapter)))
+            foreach (var request in selected)
             {
                 token.ThrowIfCancellationRequested();
-                await _run(["--id=" + adapter.Uuid, "--power-limit=250"], token).ConfigureAwait(false);
+                if (Satisfies(Find(before, request.Uuid)!, request)) continue;
+                await _run(["--id=" + request.Uuid, "--power-limit=" + request.Watts.ToString(CultureInfo.InvariantCulture)], token).ConfigureAwait(false);
             }
-            var after = Parse(await _run([Query, "--format=csv,noheader,nounits"], token).ConfigureAwait(false));
-            if (after.Count != before.Count || after.Any(adapter => !before.Any(original => original.Uuid == adapter.Uuid))
-                || after.Any(adapter => adapter.Minimum > RequiredWatts || adapter.Maximum < RequiredWatts || !IsCapped(adapter)))
-                return Evidence(true, false, "The NVIDIA adapter identities or verified power limits changed after the request. The 250 W cap is not established for every adapter; do not start GPU work.");
-            return Evidence(true, true, $"Verified 250 W configured and enforced on all {after.Count} NVIDIA adapter(s) after the explicit request. Recheck after reboot or driver reset.");
+            token.ThrowIfCancellationRequested();
+            var after = await ReadAsync(token).ConfigureAwait(false);
+            if (!selected.All(request => Find(after, request.Uuid) is { } adapter && HasControlReadings(adapter)
+                && request.Watts >= adapter.MinimumWatts && request.Watts <= adapter.MaximumWatts && Satisfies(adapter, request)))
+                return Evidence(true, false, selected, "A selected GPU disappeared or its requested power limit could not be confirmed. Some selected settings may already have changed; inspect the current readings.");
+            return Evidence(true, true, selected, "Applied and verified the requested limits on selected GPU UUIDs. Unselected adapters were not changed. Reinspect after a reboot or driver reset.");
         }
         catch (OperationCanceledException) when (token.IsCancellationRequested) { throw; }
         catch (Exception ex) when (ex is not OutOfMemoryException)
         {
-            return Evidence(true, false, "The 250 W setting could not be applied and verified on every NVIDIA adapter. Some settings may already have changed; GPU work must wait. "
-                + Failure(ex) + " If administrator permission is required, Windows can remain a local account; this check never elevates or changes accounts.");
+            return Evidence(true, false, selected, "A requested GPU setting could not be applied and verified. Some selected settings may already have changed; inspect the current readings. "
+                + Failure(ex) + " Administrator permission may be required; this operation never elevates or changes accounts.");
         }
     }
 
-    private static bool IsCapped(Adapter adapter) => adapter.Configured == RequiredWatts && adapter.Enforced == RequiredWatts;
-    private static GpuPowerEvidence Evidence(bool supported, bool verified, string message)
-        => new(supported, verified, verified ? RequiredWatts : null, message, DateTimeOffset.UtcNow);
+    private async Task<IReadOnlyList<GpuPowerAdapter>> ReadAsync(CancellationToken token)
+    {
+        var output = await _run([Query, "--format=csv,noheader,nounits"], token).ConfigureAwait(false);
+        token.ThrowIfCancellationRequested();
+        return Parse(output);
+    }
 
-    private sealed record Adapter(string Uuid, decimal Configured, decimal Enforced, decimal Minimum, decimal Maximum);
+    private static GpuPowerRequest[] ValidateRequests(IReadOnlyList<GpuPowerRequest> requests)
+    {
+        ArgumentNullException.ThrowIfNull(requests);
+        if (requests.Count > 32) throw new ArgumentException("Choose at most 32 GPU UUIDs.", nameof(requests));
+        var identities = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        return requests.Select(request =>
+        {
+            if (request is null || request.Watts <= 0 || !TryUuid(request.Uuid, out var uuid) || !identities.Add(uuid))
+                throw new ArgumentException("GPU requests need unique observed UUIDs and a positive whole-number wattage.", nameof(requests));
+            return request with { Uuid = uuid };
+        }).ToArray();
+    }
 
-    private static IReadOnlyList<Adapter> Parse(string output)
+    private static GpuPowerAdapter? Find(IReadOnlyList<GpuPowerAdapter> adapters, string uuid)
+        => adapters.FirstOrDefault(adapter => adapter.Uuid.Equals(uuid, StringComparison.OrdinalIgnoreCase));
+    private static bool HasControlReadings(GpuPowerAdapter adapter) => adapter.MinimumWatts is >= 0
+        && adapter.MaximumWatts is > 0 && adapter.MinimumWatts <= adapter.MaximumWatts
+        && adapter.ConfiguredWatts is > 0 && adapter.EnforcedWatts is > 0;
+    private static bool Satisfies(GpuPowerAdapter adapter, GpuPowerRequest request)
+        => adapter.ConfiguredWatts == request.Watts && adapter.EnforcedWatts is > 0 && adapter.EnforcedWatts <= request.Watts;
+    private static GpuPowerEvidence Evidence(bool supported, bool verified, IReadOnlyList<GpuPowerRequest> requests, string message)
+        => new(supported, verified, verified && requests.Select(request => request.Watts).Distinct().Count() == 1 ? requests[0].Watts : null,
+            message, DateTimeOffset.UtcNow);
+    private static bool TryUuid(string? value, out string uuid)
+    {
+        uuid = "";
+        if (value is null || !value.StartsWith("GPU-", StringComparison.OrdinalIgnoreCase)
+            || !Guid.TryParseExact(value[4..], "D", out var id)) return false;
+        uuid = "GPU-" + id.ToString("D");
+        return true;
+    }
+
+    private static IReadOnlyList<GpuPowerAdapter> Parse(string output)
     {
         ArgumentNullException.ThrowIfNull(output);
         if (output.Length > 65536) throw new InvalidDataException("Power-query output exceeds its bound.");
         var rows = output.Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries);
         if (rows.Length > 32) throw new InvalidDataException("Power-query adapter count exceeds its bound.");
-        var result = new List<Adapter>();
+        var result = new List<GpuPowerAdapter>();
         var identities = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         foreach (var row in rows)
         {
             var fields = row.Split(',').Select(field => field.Trim()).ToArray();
             if (fields.Length != 7 || !int.TryParse(fields[0], NumberStyles.None, CultureInfo.InvariantCulture, out _)
-                || !fields[1].StartsWith("GPU-", StringComparison.Ordinal) || !Guid.TryParseExact(fields[1][4..], "D", out var id)
-                || string.IsNullOrWhiteSpace(fields[2]) || !identities.Add(id.ToString("D")))
+                || !TryUuid(fields[1], out var uuid) || string.IsNullOrWhiteSpace(fields[2]) || !identities.Add(uuid))
                 throw new InvalidDataException("Power-query adapter identity is missing, duplicated or malformed.");
             var power = fields.Skip(3).Select(value => decimal.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out var watts)
-                ? watts : throw new InvalidDataException("Power-query limits are unavailable or malformed.")).ToArray();
-            if (power[0] <= 0 || power[1] <= 0 || power[2] < 0 || power[3] <= 0 || power[2] > power[3])
-                throw new InvalidDataException("Power-query limits are invalid.");
-            result.Add(new("GPU-" + id.ToString("D"), power[0], power[1], power[2], power[3]));
+                ? (decimal?)watts : null).ToArray();
+            result.Add(new(uuid, fields[2], power[0], power[1], power[2], power[3]));
         }
         return result.AsReadOnly();
     }

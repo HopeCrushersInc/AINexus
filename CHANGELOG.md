@@ -2,6 +2,25 @@
 
 User-visible changes are recorded here. Dates identify publication updates, not a promise that every feature was first implemented on that date.
 
+## 0.2.0-preview.5 — 2026-10-27 — User-selected setup and persistent catalog
+
+This release collects the local preview.3–preview.5 increments; preview.3 and preview.4 were not separate GitHub releases. Validation: 839 default regression/native checks and seven additional live checks through the generic selected-model workflow. The live run reused existing weights and runtime, completed two actual chat turns and stopped its owned server. Four-card identity/power controls are covered by fixtures; actual four-GPU model execution remains unverified. See [current status](docs/project-status.md) for implemented behavior and remaining gaps.
+
+- Removed the fixed 250 W all-GPU requirement and its unconditional model-launch gate. The development workstation's owner-selected setting is no longer a product default.
+- Added optional per-GPU power inspection and explicit, range-checked changes under Performance. No GPU or wattage is selected automatically; unselected adapters are untouched and launch does not depend on power-control support.
+- Fixed generic model setup failing when search returned multiple candidates: the review now uses only the explicitly selected result. Exact repository searches expose further file variants within the result budget, instead of always stopping after two files.
+- Verified the generic source-selected model path on the development PC: actual hardware/source metadata, explicit selection and approval, existing-artifact hash/reuse, selected runtime configuration, local generation, two chat turns and owned-server cleanup. Existing weights were reused; this run does not claim a fresh network transfer or actual multi-GPU execution.
+
+- Added a persistent SQLite catalog connected to successful source searches. A pinned model artifact has one canonical identity with multiple task categories; retrieval dates, sources, sizes, hashes and licenses survive restarts. Stale updates cannot replace newer facts, and conflicting pinned identities roll back the import.
+- Added a Library view with offline text filtering, a local-receipt filter, source details and explicit source refresh in Discover. No entry is preselected; browsing starts no model or installation.
+- Linked private acquisition receipts from explicitly tracked folders without automatically hashing model weights. Missing files, size mismatches, receipt/source conflicts and unverified current integrity remain distinct. Private receipt-derived rows are not inserted into public metadata tables.
+- Added portable catalog location support, corruption/unknown-schema preservation and dependency notices. The initial catalog has a 10,000-entry limit; it is not yet a community feed, complete media requirements database or batch installer.
+
+- Confirming workload choices now starts a source search for every checked category, without requiring another category selection or search click. The initial hardware scan and selected drive are reused for local assessment; hardware details are not sent to search providers.
+- Default results show only estimated hardware-fit candidates. Unknown, insufficient-resource and unsupported-platform results remain available through an explicit review toggle with separate counts and category labels. No model is selected, downloaded, installed or started by discovery.
+- Category source failures retain other category results, and cancellation stops remaining searches. Rescanning or changing storage clears obsolete fit evidence.
+- Image/video results still lack dedicated model/runtime compatibility recipes and are explicitly shown as unassessed. This change does not claim complete offline image/video discovery.
+
 ## 0.2.0-preview.2 — Workload-first correction
 
 - Restored every workload category directly after the hardware scan, visible and unchecked. Removed preset model promotion from startup and primary navigation.

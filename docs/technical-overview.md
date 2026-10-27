@@ -1,6 +1,6 @@
 # Current workflow requirement
 
-Open Nexus → scan hardware → user chooses workload(s) → explicit live online search → user chooses a result → separate review/approval for supported acquisition → separate verification/launch. All categories are visible and unchecked. No model/provider is promoted or preselected. Older featured-card instructions below describe preview.1 and are superseded by this requirement.
+Open Nexus → scan hardware → user chooses and confirms workload(s) → live source searches for those categories → user chooses a result → separate review/approval for supported acquisition → separate verification/launch. All categories are visible and unchecked. No model/provider is promoted or preselected. Historical model-specific tests below are validation examples, not startup recommendations.
 
 # Technical overview and validation
 
@@ -8,7 +8,7 @@ Open Nexus → scan hardware → user chooses workload(s) → explicit live onli
 
 A native C# .NET 8 WPF dashboard for local AI tooling on Windows.
 
-**Development preview · Updated 2026-10-26.** See the [changelog](../CHANGELOG.md) for published changes, validation results and known limitations. The workflow is hardware scan → compatible-model discovery → explicit installation/configuration approval → verification → local offline launch. Compatibility estimates remain unverified until an actual runtime test succeeds.
+**Development preview · Updated 2026-10-27.** See the [changelog](../CHANGELOG.md) for published changes, validation results and known limitations. The workflow is hardware scan → compatible-model discovery → explicit installation/configuration approval → verification → local offline launch. Compatibility estimates remain unverified until an actual runtime test succeeds.
 
 ## Project guide and communication
 
@@ -23,22 +23,22 @@ Get the portable **Windows x64 preview** from [GitHub Releases](https://github.c
 
 ## Install a model and talk to it
 
-1. Open **Store**, choose a model card, and pick a model folder.
-2. Choose **Check download size and fit**, read the source/license, approve the exact download, and download it.
+1. Open Nexus, let the hardware scan finish, choose workload categories and confirm to search their sources. No category or model is preselected.
+2. Select an actual result, review its exact artifact size, source/license, current hardware estimate and destination, then explicitly approve its download. An exact repository query exposes more file variants within the result limit.
 3. Use an existing llama.cpp engine or review/download/install the portable CPU engine on the same page.
-4. Choose **Open chat**. Nexus checks model integrity, verifies the 250 W NVIDIA policy, loads the model, and tests a real response before enabling chat.
+4. Choose **Open chat**. Nexus checks model integrity, loads the model, and tests a real response before enabling chat. GPU power control is a separate optional action.
 
-Previously acquired models can be opened from their cards without another download; saved receipts are validated and bytes are checked again before loading. Chat keeps actual multi-turn history in session memory. Closing the portal stops its owned server. Cold model loading has a five-minute bound and can be cancelled.
+Previously acquired models can be reused by selecting their exact source artifact and existing model folder; bytes are checked against the reviewed identity before reuse and loading. Chat keeps actual multi-turn history in session memory. Closing the portal stops its owned server. Cold model loading has a five-minute bound and can be cancelled.
 
 **Verified on the development PC:** Qwen 2.5 32B Q4_K_M (19,851,336,576 bytes) and official Qwen 2.5 Coder 7B Q4_K_M (4,683,073,536 bytes), each installed or integrity-verified through the guided UI and tested with two real chat turns. This is evidence for that PC/runtime/model combination, not a universal performance or hardware claim.
 
-The catalog also offers Qwen 7B and optional publisher-described NSFW/less-filtered Stheno and Lexi entries. The NSFW option starts unchecked and is never saved. Each entry has its own source/license; catalog inclusion does not claim local testing or any guaranteed behavior. See [model sources](featured-models.md).
+Earlier model-card fixtures and publisher-described adult-oriented examples remain documented as historical validation/source records in [model sources](featured-models.md). They are not the current startup catalog or recommendations; live discovery is driven by the user's selected categories and query.
 
-The 250 W gate queries actual NVIDIA limits and only reports success after readback. Changing a cap may need administrator rights; the app does not silently elevate or change Windows accounts. UPS VA rating and PSU capacity do not establish current system draw. Fan control, thermal shutdown actions, automatic text/image switching, a broader active catalog and iCUE work remain separate unfinished increments.
+There is no fixed GPU wattage or power-control launch gate. In Performance, the user can inspect reported NVIDIA power limits, select a specific card by UUID, enter a supported limit and explicitly approve applying it. Reading does not write; applying touches only that card and verifies the driver readback. No card, wattage or approval is restored automatically. Unsupported or denied control does not block ordinary model launch. The development PC's owner-requested 250 W setting is workstation-specific, not a product default. Changing a limit may need administrator rights; the app does not silently elevate or change Windows accounts. UPS VA rating and PSU capacity do not establish current system draw. Fan control, thermal shutdown actions, automatic text/image switching and iCUE work remain unfinished.
 
 ## Current capabilities
 
-- Hardware-aware online discovery: explicit metadata searches on Hugging Face and supporting upstream llama.cpp release metadata. Results include declared licensing, source links, immutable model revisions, artifact sizes and SHA-256 when reported. Initial supported interests are local assistants, coding, and agents; other workflow adapters are explicitly marked unavailable.
+- Hardware-aware online discovery: explicit metadata searches on Hugging Face and supporting upstream llama.cpp release metadata. Results include declared licensing, source links, immutable model revisions, artifact sizes and SHA-256 when reported. GGUF requirements planning supports local assistants, coding and agents. Other categories search GitHub tool metadata; dedicated model/runtime requirement and installation recipes remain unavailable.
 - Explainable GGUF resource assessments compare estimates with actual free RAM, individual NVIDIA VRAM readings/driver evidence, and the selected storage volume. CPU fallback is assessed separately. A resource candidate is an unverified estimate, never an installation approval or a performance guarantee.
 - Acquisition planning creates a review document with a pinned source URL, revision, byte size, SHA-256, destination and declared license reference. Planning does not download or install anything. Existing files can be checked for byte-count/hash identity without overwriting them; artifact integrity is distinct from runtime verification.
 - Approved acquisition downloads public GGUF model data after explicit exact-plan/license/destination approval. Transfers follow permitted HTTPS CDN redirects, enforce source byte count and SHA-256, and publish atomically without overwriting existing files. Matching files are verified for reuse without artifact HTTP. Cancellation removes only the operation's own partial file; closing waits for cleanup. No runtime installer or Windows setup is part of a model-data acquisition.
@@ -58,7 +58,7 @@ The 250 W gate queries actual NVIDIA limits and only reports success after readb
 - Portable llama.cpp runtime controls select an existing executable/GGUF, start a hidden loopback server, wait for health, and stop only portal-owned processes. Closing the portal stops a portal-owned server; external servers remain untouched. No runtime starts automatically.
 - Local agent tasks send actual requests to a llama.cpp or Ollama model selected from its server's inventory. One serial queue captures each task's backend, endpoint, and model. Tasks support cancellation, truthful failure states, and configurable CPU/RAM/optional NVIDIA VRAM admission checks. This is a local generation task queue, without tool execution or inter-agent dependency workflows. llama.cpp currently uses a 128-token output policy; truncation is reported explicitly.
 
-Discovery does not launch discovered applications, install software, or contact remote services. A missing result means no evidence was found in the locations checked; arbitrary portable/custom installations may be missed. Discovery does not establish runtime health. Python Windows Store execution aliases are excluded.
+Local software inventory does not launch discovered applications, install software or contact remote services. Online metadata searches separately contact their displayed public sources. A missing result means no evidence was found in the locations checked; arbitrary portable/custom installations may be missed. Discovery does not establish runtime health. Python Windows Store execution aliases are excluded.
 
 Package review explicitly contacts the WinGet community source. Installation/update requires reviewing the package and accepting agreements in the installer tab. Operations target one exact catalog package, use user scope and silent mode, and preserve WinGet security checks; dependencies are not installed automatically. Active installers cannot be cancelled by closing the portal. Completed operation results are saved under `%LOCALAPPDATA%/AINexus/Logs`. No applications are installed automatically at portal startup. Actual installation has not been exercised as part of automated checks.
 
@@ -191,7 +191,7 @@ Installation writes portable files and an extraction receipt, and runs no payloa
 
 Model-size columns use appropriate byte units. Empty model placeholders are excluded from the local list with an explanation, while their files are preserved. Missing model-size metadata is shown as unknown.
 
-The native WPF shell starts with hardware scanning and workload selection, then opens Home with persistent sidebar navigation for Discover, Library, selected image/assistant workloads, Downloads & setup, and Performance. Every launch and rebuilt workload chooser starts with all options unchecked. Workload choices are session-only and are never saved or restored; legacy saved selections are ignored. Existing hardware, package, runtime, embedded-app and offline-verification pages remain under Advanced tools. Search results use shorter labels; exact file hashes/source details and runtime-package controls are separated from browsing. Sidebar navigation, PNG preview, checkpoint gating and source-plan behavior have regression coverage.
+The native WPF shell starts with hardware scanning and workload selection, then opens Discover and searches the confirmed categories, with persistent sidebar navigation for Discover, Library, selected image/assistant workloads, Downloads & setup, and Performance. Every launch and rebuilt workload chooser starts with all options unchecked. Workload choices are session-only and are never saved or restored; legacy saved selections are ignored. Existing hardware, package, runtime, embedded-app and offline-verification pages remain under Advanced tools. Search results use shorter labels; exact file hashes/source details and runtime-package controls are separated from browsing. Sidebar navigation, PNG preview, checkpoint gating and source-plan behavior have regression coverage.
 
 Image studio connects only to an explicitly chosen literal-loopback ComfyUI endpoint. It discovers actual standard nodes and installed checkpoints, requires explicit model selection, checks current CPU/RAM admission and an idle image-engine queue, then submits a standard 512×512 checkpoint workflow. It waits for that exact job's successful history and decodes the returned PNG before showing a result. Cancellation addresses only that job ID; an unavailable cancellation endpoint never falls back to a global interrupt. Model fit/architecture support are established by actual execution, not inferred from filenames. Broader image architectures, image editing, audio/video and online image-model discovery remain incomplete.
 

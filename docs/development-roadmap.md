@@ -1,6 +1,6 @@
 # Project roadmap and projection
 
-Updated 2026-10-26. This replaces the early baseline audit with the current implementation state and proposed delivery order. It is a direction and dependency plan, not a release-date commitment. See the [feature overview](feature-overview.md) for the user experience and platform matrix.
+Updated 2026-10-27. This replaces the early baseline audit with the current implementation state and proposed delivery order. It is a direction and dependency plan, not a release-date commitment. See the [feature overview](feature-overview.md) for the user experience and platform matrix.
 
 ## Current checkpoint
 
@@ -8,9 +8,11 @@ Updated 2026-10-26. This replaces the early baseline audit with the current impl
 
 Read-only per-model library integrity checking against an explicit acquisition receipt is now available; a separate read-only recovery review now proposes a preserved-source replacement path and fresh-review steps. Neither feature is automated repair or update management.
 
-**Not yet implemented:** general model repair/update/rollback, live artifact editing, automatic switching, dockable/popout workspaces, durable multi-step workflows, service mode, training and non-Windows portal releases. GPU/multiple-archive runtime installation and dependency/source-build recipes remain incomplete. Latest publication validation passed 639 local regression/native checks for preview.2 plus GitHub Windows CI; this does not establish all-model or cross-platform support.
+**Not yet implemented:** general model repair/update/rollback, live artifact editing, automatic switching, dockable/popout workspaces, durable multi-step workflows, service mode, training and non-Windows portal releases. GPU/multiple-archive runtime installation and dependency/source-build recipes remain incomplete. Preview.5 validation includes 839 default local regression/native checks and seven additional live selected-model checks. Publication CI is reported on the release; these checks do not establish all-model, four-GPU execution or cross-platform support.
 
 ## Projected phases
+
+Immediate scope: reliable, user-directed scan → find → select → review/approve → download/install/configure → verify → local use, with correct inventory and per-device choices for 1–4 local GPUs. Larger fleets and distributed scheduling are deferred. Detecting four devices is not proof that an arbitrary model/runtime supports splitting a model across them; VRAM is never silently pooled by the planner.
 
 | Phase | Deliverables | Exit gate | Dependencies |
 | --- | --- | --- | --- |

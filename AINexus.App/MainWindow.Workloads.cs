@@ -21,7 +21,7 @@ public partial class MainWindow
 
     private async Task RunWorkloadScanAsync()
     {
-        if (_workloadScanBusy || _lifetime.IsCancellationRequested) return;
+        if (_workloadScanBusy || _discoveryBusy || _lifetime.IsCancellationRequested) return;
         _workloadScanBusy = true;
         _workloadMachine = null;
         RefreshGuidedControls();
@@ -66,9 +66,10 @@ public partial class MainWindow
         WorkloadOptionsPanel.Visibility = Visibility.Visible;
         RefreshWorkloadContinue();
         RefreshGuidedControls();
+        RenderCatalogLibraryRows();
     }
 
-    private void RefreshWorkloadContinue() => WorkloadContinueButton.IsEnabled = _workloadMachine is not null
+    private void RefreshWorkloadContinue() => WorkloadContinueButton.IsEnabled = !_discoveryBusy && _workloadMachine is not null
         && WorkloadChoices.ItemsSource is IEnumerable<WorkloadChoice> choices && choices.Any(choice => choice.Selected);
 
     internal void ApplyWorkloadSelection(IEnumerable<DiscoveryInterest> interests)
@@ -88,7 +89,7 @@ public partial class MainWindow
             "DiscoveryTab",
             true)).ToArray();
         StoreNavigation.Visibility = Visibility.Visible;
-        StoreSetupNoticeText.Text = "Workspace built from your choices. No software was downloaded, installed or started. Choose compatible tools and review each download before proceeding.";
+        StoreSetupNoticeText.Text = "Searching your selected workloads against the hardware scan. Choose a result and review each download before proceeding.";
         DiscoveryTab.IsSelected = true;
     }
 
@@ -97,14 +98,20 @@ public partial class MainWindow
         if (_workloadMachine is null || WorkloadChoices.ItemsSource is not IEnumerable<WorkloadChoice> choices) return;
         try
         {
-            var selected = WorkspaceProfile.Create(_workloadMachine, choices.Where(c => c.Selected).Select(c => c.Interest));
             await _preferencesReady.Task.WaitAsync(_lifetime.Token);
-            ApplyWorkloadSelection(selected.Interests);
+            await ConfirmWorkloadSelectionAsync();
             await ScanSoftwareAsync();
             if (_settings.ModelRoots.Count > 0) await ScanLibraryAsync();
         }
         catch (OperationCanceledException) when (_lifetime.IsCancellationRequested) { }
         catch (Exception ex) { WorkloadScanStatusText.Text = "Workspace selection could not be applied: " + ex.Message; }
+    }
+
+    internal async Task ConfirmWorkloadSelectionAsync()
+    {
+        if (_discoveryBusy || _workloadMachine is null || WorkloadChoices.ItemsSource is not IEnumerable<WorkloadChoice> choices) return;
+        ApplyWorkloadSelection(choices.Where(c => c.Selected).Select(c => c.Interest));
+        await FindSelectedWorkloadsAsync();
     }
 
     private async void WorkloadRescanButton_Click(object sender, RoutedEventArgs e) => await RunWorkloadScanAsync();

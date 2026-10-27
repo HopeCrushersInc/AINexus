@@ -209,7 +209,7 @@ internal static class GuidedInstallChecks
         Console.WriteLine("Guided preview: " + path);
     }
 
-    private static void Pump(Func<Task> action, TimeSpan timeout, Action cancel)
+    internal static void Pump(Func<Task> action, TimeSpan timeout, Action cancel)
     {
         var dispatcher = Dispatcher.CurrentDispatcher;
         var previous = SynchronizationContext.Current;

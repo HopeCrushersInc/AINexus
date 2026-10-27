@@ -2,7 +2,7 @@
 param(
     [ValidateLength(1, 128)]
     [ValidatePattern('^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(?:-(?:(?:0|[1-9][0-9]*|[0-9]*[A-Za-z-][0-9A-Za-z-]*)(?:\.(?:0|[1-9][0-9]*|[0-9]*[A-Za-z-][0-9A-Za-z-]*))*))?$')]
-    [string]$Version = '0.2.0-preview.2',
+    [string]$Version = '0.2.0-preview.5',
     [string]$OutputRoot,
     [string]$SourceCommit
 )
@@ -69,7 +69,8 @@ if ($packageFolders.Count -eq 0) { throw 'The restore assets identify no NuGet p
 $noticeComponents = @(
     [pscustomobject]@{ LibraryName = 'runtimepack.Microsoft.NETCore.App.Runtime.win-x64'; RequireNotice = $true },
     [pscustomobject]@{ LibraryName = 'runtimepack.Microsoft.WindowsDesktop.App.Runtime.win-x64'; RequireNotice = $false },
-    [pscustomobject]@{ LibraryName = 'Microsoft.Web.WebView2'; RequireNotice = $true }
+    [pscustomobject]@{ LibraryName = 'Microsoft.Web.WebView2'; RequireNotice = $true },
+    [pscustomobject]@{ LibraryName = 'System.Memory'; RequireNotice = $true }
 )
 $noticeDirectory = Join-Path $publishDirectory 'ThirdPartyNotices'
 if (Test-Path -LiteralPath $noticeDirectory) { throw 'The package notice directory already exists; it will not be overwritten.' }
@@ -119,6 +120,43 @@ foreach ($component in $noticeComponents) {
     }
     $noticeIndex.Add('')
 }
+# SQLite packages declare SPDX license expressions in their nuspecs but do not
+# ship license text. Bind the vendored upstream texts to the actual dependency
+# versions and retain each package's unchanged copyright/license declaration.
+$sqliteSourceRoot = Join-Path $repositoryRoot 'docs\third-party\sqlite'
+$sqliteSources = Get-Content -LiteralPath (Join-Path $sqliteSourceRoot 'sources.json') -Raw | ConvertFrom-Json
+foreach ($source in $sqliteSources) {
+    $licensePath = Join-Path $sqliteSourceRoot $source.File
+    if ((Get-FileHash -LiteralPath $licensePath -Algorithm SHA256).Hash -ne $source.Sha256) { throw 'Vendored SQLite notice hash mismatch.' }
+}
+$sqliteLibraries = @($dependencies.libraries.PSObject.Properties | Where-Object { $_.Name -match '^(Microsoft\.Data\.Sqlite(?:\.Core)?|SQLitePCLRaw\.[^/]+)/' })
+if ($sqliteLibraries.Count -lt 2) { throw 'The published catalog has no complete SQLite dependency graph.' }
+foreach ($library in $sqliteLibraries) {
+    $parts = $library.Name.Split('/')
+    $packageName = $parts[0].ToLowerInvariant()
+    $packageVersion = $parts[1]
+    $isMicrosoft = $packageName.StartsWith('microsoft.data.sqlite', [StringComparison]::Ordinal)
+    $expectedVersion = if ($isMicrosoft) { '10.0.14' } else { '2.1.13' }
+    $expectedLicense = if ($isMicrosoft) { 'MIT' } else { 'Apache-2.0' }
+    if ($packageVersion -ne $expectedVersion) { throw 'SQLite package version changed; review and update notice bindings before packaging.' }
+    $nuspecCandidates = @($packageFolders | ForEach-Object { Join-Path (Join-Path (Join-Path $_ $packageName) $packageVersion) ($packageName + '.nuspec') } | Where-Object { Test-Path -LiteralPath $_ -PathType Leaf })
+    if ($nuspecCandidates.Count -eq 0) { throw "Missing SQLite package declaration for $($library.Name)." }
+    [xml]$declaration = Get-Content -LiteralPath $nuspecCandidates[0] -Raw
+    if ($declaration.package.metadata.license.InnerText -ne $expectedLicense) { throw 'SQLite package license changed; notice review required.' }
+    $targetDirectory = Join-Path (Join-Path $noticeDirectory $packageName) $packageVersion
+    [IO.Directory]::CreateDirectory($targetDirectory) | Out-Null
+    [IO.File]::Copy($nuspecCandidates[0], (Join-Path $targetDirectory ($packageName + '.nuspec')), $false)
+    $licenseName = if ($isMicrosoft) { 'Microsoft-MIT.txt' } else { 'Apache-2.0.txt' }
+    [IO.File]::Copy((Join-Path $sqliteSourceRoot $licenseName), (Join-Path $targetDirectory 'LICENSE.txt'), $false)
+    if (!$isMicrosoft) {
+        [IO.File]::Copy((Join-Path $sqliteSourceRoot 'SQLitePCLRaw-NOTICE.txt'), (Join-Path $targetDirectory 'NOTICE.txt'), $false)
+    }
+    if ($packageName -eq 'sqlitepclraw.lib.e_sqlite3') {
+        [IO.File]::Copy((Join-Path $sqliteSourceRoot 'SQLite-copyright.html'), (Join-Path $targetDirectory 'SQLite-copyright.html'), $false)
+    }
+    $noticeIndex.Add("Published SQLite dependency: $($library.Name); $expectedLicense; copyright retained in unchanged nuspec.")
+}
+[IO.File]::Copy((Join-Path $sqliteSourceRoot 'sources.json'), (Join-Path $noticeDirectory 'sqlite-notice-sources.json'), $false)
 [IO.File]::WriteAllText((Join-Path $noticeDirectory 'README.txt'), ($noticeIndex -join "`n"), [Text.UTF8Encoding]::new($false))
 
 $readme = @"

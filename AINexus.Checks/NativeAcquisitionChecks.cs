@@ -77,6 +77,9 @@ internal static class NativeAcquisitionChecks
     {
         var window = new MainWindow(service);
         window.RenderDiscoveryReport(AcquisitionPlanChecks.FixtureReport(destination, bytes));
+        if (Find<DataGrid>(window, "DiscoveryResultsGrid").SelectedIndex != -1)
+            throw new InvalidOperationException("Native acquisition fixture unexpectedly selected a model without user action.");
+        Find<DataGrid>(window, "DiscoveryResultsGrid").SelectedIndex = 0;
         Find<TextBox>(window, "DiscoveryDestinationText").Text = destination;
         Find<Button>(window, "DiscoveryPlanButton").RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
         if (!Find<CheckBox>(window, "AcquisitionApprovalCheck").IsEnabled)

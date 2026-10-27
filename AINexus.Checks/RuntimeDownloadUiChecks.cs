@@ -113,6 +113,8 @@ internal static class RuntimeDownloadUiChecks
         window.CompleteWorkloadScan(machine);
         window.ApplyWorkloadSelection([DiscoveryInterest.LocalAssistants]);
         window.RenderDiscoveryReport(report);
+        if (Find<DataGrid>(window, "DiscoveryResultsGrid").SelectedIndex != -1)
+            throw new InvalidOperationException("Runtime download fixture unexpectedly selected its source without user action.");
         Find<DataGrid>(window, "DiscoveryResultsGrid").SelectedIndex = 0;
         Find<TextBox>(window, "RuntimeDestinationText").Text = installFolder;
         Find<ComboBox>(window, "RuntimeArchiveSelector").SelectedIndex = 0;

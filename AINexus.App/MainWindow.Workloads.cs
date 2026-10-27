@@ -81,15 +81,15 @@ public partial class MainWindow
         CreateWorkspaceHeading.Visibility = profile.HasImages || profile.HasAssistant ? Visibility.Visible : Visibility.Collapsed;
         var workflows = VerifiedOnlineDiscoveryProvider.Workflows.Where(w => profile.Interests.Contains(w.Interest)).ToArray();
         DiscoveryInterestSelector.ItemsSource = workflows;
-        DiscoveryInterestSelector.SelectedIndex = 0;
+        DiscoveryInterestSelector.SelectedIndex = workflows.Length == 1 ? 0 : -1;
         WorkspaceWorkloadCards.ItemsSource = workflows.Select(workflow => new WorkloadWorkspaceCard(workflow.Interest, workflow.Name,
             new WorkloadChoice(workflow).Description,
-            workflow.Interest == DiscoveryInterest.Images ? "Configure an existing image engine" : VerifiedOnlineDiscoveryProvider.Supports(workflow.Interest) ? "Find compatible options" : "Adapter not available yet",
-            workflow.Interest == DiscoveryInterest.Images ? "ImageStudioTab" : "DiscoveryTab",
-            workflow.Interest == DiscoveryInterest.Images || VerifiedOnlineDiscoveryProvider.Supports(workflow.Interest))).ToArray();
+            "Search online choices",
+            "DiscoveryTab",
+            true)).ToArray();
         StoreNavigation.Visibility = Visibility.Visible;
         StoreSetupNoticeText.Text = "Workspace built from your choices. No software was downloaded, installed or started. Choose compatible tools and review each download before proceeding.";
-        StoreHomeTab.IsSelected = true;
+        DiscoveryTab.IsSelected = true;
     }
 
     private async void WorkloadContinueButton_Click(object sender, RoutedEventArgs e)

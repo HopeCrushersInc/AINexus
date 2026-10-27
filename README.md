@@ -1,56 +1,49 @@
 # AI Nexus Portal
 
-**Find a model. Install it. Chat on your own machine.**
+**Your hardware. Your workflow. Your choice.**
 
-A Windows workspace for local AI models—with explicit download approvals, integrity checks, portable engine setup, and real local chat.
+AI Nexus scans the computer, shows workload categories, and searches live internet sources after the user asks. It does not choose a model, promote a provider, or install software automatically.
 
-[![Windows build](https://github.com/HopeCrushersInc/AINexus/actions/workflows/build.yml/badge.svg?branch=main)](https://github.com/HopeCrushersInc/AINexus/actions/workflows/build.yml)
+### [Download for Windows x64](https://github.com/HopeCrushersInc/AINexus/releases/download/v0.2.0-preview.2/AINexus-0.2.0-preview.2-win-x64.zip)
 
-### [Download for Windows x64 →](https://github.com/HopeCrushersInc/AINexus/releases/download/v0.2.0-preview.1/AINexus-0.2.0-preview.1-win-x64.zip)
+**0.2.0-preview.2 · Development preview**
 
-**0.2.0-preview.1 · Development preview · .NET included**
+[Release notes & checksums](https://github.com/HopeCrushersInc/AINexus/releases/tag/v0.2.0-preview.2) · [Changelog](CHANGELOG.md) · [Discussions](https://github.com/HopeCrushersInc/AINexus/discussions)
 
-[Release notes & checksums](https://github.com/HopeCrushersInc/AINexus/releases/tag/v0.2.0-preview.1) · [Changelog](CHANGELOG.md) · [Discussions](https://github.com/HopeCrushersInc/AINexus/discussions)
+![Workload-first startup with unchecked categories](docs/assets/workload-choices.png)
 
-![AI Nexus running an actual two-turn local conversation with Qwen 2.5 32B](docs/assets/qwen32-chat.png)
+*Startup regression-check capture using fixture hardware. Categories are visible and unchecked; no model is selected.*
 
-*Actual Qwen 32B test session. The conversation is generated locally, not a mockup.*
+## The workflow
 
-## Get started
+1. **Open Nexus.** It scans local hardware; no software is installed or started.
+2. **Choose your tasks.** Coding, art/images, music/audio, video, speech, 3D, CAD, 3D printing, game development, reverse engineering, streaming, assistants and agents are visible. Nothing is checked or remembered.
+3. **Search online.** The user selects a category and query. Nexus retrieves source metadata; search results are not preselected or labeled “best.”
+4. **Choose a result.** Inspect the actual source, license and available evidence. Unknown information stays unknown.
+5. **Approve a specific action.** Supported download/install recipes require review and explicit approval. Configuration and launch remain separate actions.
 
-1. **Extract the entire ZIP** and run `AINexus.App.exe`.
-2. **Choose a model card** and a folder for its files.
-3. **Review and approve the download**, then select an existing llama.cpp engine or install the portable CPU engine offered in setup.
-4. **Open chat.** Nexus verifies the model, loads it, and tests a real response first. Previously acquired models can reopen without another download.
+## What is available
 
-Models and external AI engines are separate downloads. Embedded browser features need the free WebView2 Runtime. Windows can stay on a local account; no Microsoft sign-in or paid service is required.
-
-## Working today
-
-| Feature | What is implemented |
+| Area | Current behavior |
 | --- | --- |
-| Guided setup | Exact-source model lookup, approved download/reuse, receipts and engine setup |
-| Local chat | Multi-turn history, cancellation, new conversation and owned-server cleanup |
-| Model library | Local inventory, receipt integrity checks and read-only recovery reviews |
-| Model choices | Qwen 7B, official Qwen Coder 7B, Qwen 32B, and optional NSFW cards |
+| Text/coding model discovery | Live public GGUF metadata with pinned source identities and resource estimates |
+| Other workload discovery | Live public tool-repository metadata; install adapters vary and are explicitly identified |
+| Supported model acquisition | Exact-plan approval, size/SHA-256 verification, receipts and no overwrite of different files |
+| Runtime and local use | Explicit engine setup, local chat, image-engine configuration and owned-process controls |
 
-**Verified on the development PC:** Qwen 32B and Qwen Coder 7B each completed real installation/reuse checks and two local chat turns. **735 regression/native checks passed**, alongside GitHub Windows validation. These are functional checks, not model-quality or performance benchmarks.
+**Discovery is not installation. A search result is not a recommendation or proof of compatibility.** Automated installation is currently limited to implemented recipes; finding an art or music tool does not mean its installer is supported.
 
-NSFW models remain hidden until explicitly enabled; that choice is never saved. [Sources, licenses and verification details](docs/featured-models.md).
+## Preview limits
 
-## Preview boundaries
+Windows x64 only. .NET is bundled; models and external engines are separate. Embedded web interfaces need WebView2. The current guided launch power gate requires a verifiable250W NVIDIA policy. Other platforms, broader image installation, automatic server switching, thermal/fan controls and iCUE investigation remain unfinished.
 
-The guided launcher's current power gate requires a verifiable **250 W NVIDIA limit**. Other hardware is not validated. Power changes may require administrator rights. This is an unsigned Windows x64 preview; Linux, macOS and ARM releases are planned.
-
-Second-image-model setup, automatic text/image switching, the active catalog UI, fan/thermal controls and iCUE research are **unfinished**. See the [roadmap](docs/development-roadmap.md) for scope and delivery gates.
+Windows stays on its local account. No purchase or Microsoft sign-in is required. Existing model chat tests are recorded as validation examples, not promoted or preferred choices.
 
 ## Build and validate
-
-Windows and the .NET 8 SDK are required to build from source:
 
 ```powershell
 dotnet build AINexus.App/AINexus.App.csproj -c Release
 dotnet run --project AINexus.Checks/AINexus.Checks.csproj -c Release
 ```
 
-[Installation guide](docs/releases.md) · [Technical details & live checks](docs/technical-overview.md) · [Feature overview](docs/feature-overview.md) · [Community guide](docs/community.md) · [Report a bug](https://github.com/HopeCrushersInc/AINexus/issues)
+[Installation guide](docs/releases.md) · [Technical details](docs/technical-overview.md) · [Roadmap](docs/development-roadmap.md) · [Community](docs/community.md) · [Report a bug](https://github.com/HopeCrushersInc/AINexus/issues)

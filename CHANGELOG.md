@@ -2,6 +2,15 @@
 
 User-visible changes are recorded here. Dates identify publication updates, not a promise that every feature was first implemented on that date.
 
+## 0.2.0-preview.2 — Workload-first correction
+
+- Restored every workload category directly after the hardware scan, visible and unchecked. Removed preset model promotion from startup and primary navigation.
+- Confirmed choices open live discovery. No category is silently chosen when multiple were selected; no search result is automatically selected.
+- Added live read-only tool-source metadata search for image, music, video, speech, 3D, CAD, printing, game, reverse-engineering and streaming workflows. Missing installation adapters stay explicit.
+- A user-selected online GGUF can enter the supported review/download/chat flow without a preset-model restriction or changing the chosen workload.
+- Preserved separate explicit transfer, runtime and installation approvals. Nothing installs or launches from startup, category selection or search.
+- Updated repository presentation to describe user choice rather than recommend particular models. 0.2.0-preview.1 retains a regression notice.
+
 ## Repository presentation update
 
 - Replaced the long landing page with a download-first guide, actual Qwen32B chat screenshot, short setup instructions, working-feature table and explicit preview limits.

@@ -18,16 +18,16 @@ public sealed partial class VerifiedOnlineDiscoveryProvider(HttpClient httpClien
     {
         new DiscoveryWorkflow(DiscoveryInterest.LocalAssistants, "Local assistants", "Find local text models and their runtime requirements."),
         new DiscoveryWorkflow(DiscoveryInterest.Coding, "Coding and software development", "Search GGUF model metadata; coding ability requires separate evaluation."),
-        new DiscoveryWorkflow(DiscoveryInterest.Images, "Image generation and editing", "Use Image studio with an installed ComfyUI engine. Online image-model discovery is not available yet."),
-        new DiscoveryWorkflow(DiscoveryInterest.MusicAudio, "Music and audio production", "Online adapter not implemented yet."),
-        new DiscoveryWorkflow(DiscoveryInterest.Video, "Video generation", "Online adapter not implemented yet."),
-        new DiscoveryWorkflow(DiscoveryInterest.Speech, "Speech recognition and synthesis", "Online adapter not implemented yet."),
-        new DiscoveryWorkflow(DiscoveryInterest.ThreeD, "3D modeling", "Online adapter not implemented yet."),
-        new DiscoveryWorkflow(DiscoveryInterest.Cad, "CAD", "Online adapter not implemented yet."),
-        new DiscoveryWorkflow(DiscoveryInterest.ThreeDPrinting, "3D printing", "Online adapter not implemented yet."),
-        new DiscoveryWorkflow(DiscoveryInterest.GameDevelopment, "Game development", "Online adapter not implemented yet."),
-        new DiscoveryWorkflow(DiscoveryInterest.ReverseEngineering, "Reverse engineering", "Online adapter not implemented yet."),
-        new DiscoveryWorkflow(DiscoveryInterest.Streaming, "Streaming and OBS", "Online adapter not implemented yet."),
+        new DiscoveryWorkflow(DiscoveryInterest.Images, "Image generation and editing", "Search online image-tool sources. An existing image engine can be configured separately."),
+        new DiscoveryWorkflow(DiscoveryInterest.MusicAudio, "Music and audio production", "Search online tool sources; automated installation support is not yet implemented for this workflow."),
+        new DiscoveryWorkflow(DiscoveryInterest.Video, "Video generation", "Search online tool sources; automated installation support is not yet implemented for this workflow."),
+        new DiscoveryWorkflow(DiscoveryInterest.Speech, "Speech recognition and synthesis", "Search online tool sources; automated installation support is not yet implemented for this workflow."),
+        new DiscoveryWorkflow(DiscoveryInterest.ThreeD, "3D modeling", "Search online tool sources; automated installation support is not yet implemented for this workflow."),
+        new DiscoveryWorkflow(DiscoveryInterest.Cad, "CAD", "Search online tool sources; automated installation support is not yet implemented for this workflow."),
+        new DiscoveryWorkflow(DiscoveryInterest.ThreeDPrinting, "3D printing", "Search online tool sources; automated installation support is not yet implemented for this workflow."),
+        new DiscoveryWorkflow(DiscoveryInterest.GameDevelopment, "Game development", "Search online tool sources; automated installation support is not yet implemented for this workflow."),
+        new DiscoveryWorkflow(DiscoveryInterest.ReverseEngineering, "Reverse engineering", "Search online tool sources; automated installation support is not yet implemented for this workflow."),
+        new DiscoveryWorkflow(DiscoveryInterest.Streaming, "Streaming and OBS", "Search online tool sources; automated installation support is not yet implemented for this workflow."),
         new DiscoveryWorkflow(DiscoveryInterest.Agents, "AI agents and automation", "Search GGUF model metadata; tool-use ability is not inferred from a model name.")
     });
 
@@ -50,12 +50,19 @@ public sealed partial class VerifiedOnlineDiscoveryProvider(HttpClient httpClien
         if (request.RuntimeReleaseTag is not null && !RuntimeTag().IsMatch(request.RuntimeReleaseTag))
             throw new ArgumentException("Choose an explicit release tag using letters, digits, dots, underscores or hyphens (maximum 128 characters).", nameof(request));
         cancellationToken.ThrowIfCancellationRequested();
-        if (!Supports(request.Interest)) return Snapshot([], ["This workflow's online discovery adapter is not implemented. No recommendations were fabricated."]);
         if (_http.DefaultRequestHeaders.Authorization is not null)
             throw new InvalidOperationException("Use a dedicated unauthenticated client for public discovery.");
 
         using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         deadline.CancelAfter(TimeSpan.FromSeconds(60));
+        if (!Supports(request.Interest) && request.RuntimeReleaseTag is null)
+        {
+            try { return await SearchWorkflowToolsAsync(request, deadline.Token); }
+            catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+            { return Snapshot([], ["The online tool metadata search timed out. No tool was selected or installed."]); }
+            catch (Exception ex) when (IsSourceFailure(ex))
+            { return Snapshot([], ["Online tool source unavailable: " + FailureMessage(ex)]); }
+        }
         var items = new List<DiscoveredItem>();
         var notes = new List<string>();
         if (request.RuntimeReleaseTag is { } requestedTag)
@@ -74,7 +81,7 @@ public sealed partial class VerifiedOnlineDiscoveryProvider(HttpClient httpClien
             // Budget: one search + at most four metadata/tree pairs + two supporting
             // runtime metadata requests = at most eleven requests. No pagination is followed.
             var count = Math.Min(4, request.Limit);
-            var search = "https://huggingface.co/api/models?filter=gguf&full=true&sort=downloads&direction=-1&limit=" + count +
+            var search = "https://huggingface.co/api/models?filter=gguf&full=true&limit=" + count +
                 "&search=" + Uri.EscapeDataString(request.Query.Trim());
             using var results = await GetJsonAsync(new Uri(search), deadline.Token);
             if (results.RootElement.ValueKind != JsonValueKind.Array) throw new InvalidDataException("The model search response was not a list.");
@@ -156,8 +163,7 @@ public sealed partial class VerifiedOnlineDiscoveryProvider(HttpClient httpClien
         if (shardFound) notes.Add($"Split GGUF shards in {repository} were skipped; a single shard is not a complete model.");
         if (tree.RootElement.GetArrayLength() >= 1000) notes.Add($"Only the first 1000 tree entries were checked for {repository}; results may be partial.");
         var readAt = DateTimeOffset.UtcNow;
-        return files.OrderByDescending(file => file.Path.Contains("q4_k_m", StringComparison.OrdinalIgnoreCase))
-            .ThenBy(file => file.Bytes ?? long.MaxValue).ThenBy(file => file.Path, StringComparer.Ordinal)
+        return files.OrderBy(file => file.Path, StringComparer.OrdinalIgnoreCase)
             .Take(limit).Select(file => new DiscoveredItem(
                 $"huggingface:{repository}@{revision}:{file.Path}", repository + " / " + file.Path,
                 repository.Split('/')[0], interest, "Model", license,
@@ -195,7 +201,8 @@ public sealed partial class VerifiedOnlineDiscoveryProvider(HttpClient httpClien
     {
         if (uri.Scheme != "https" || uri.UserInfo.Length != 0 || uri.Port != 443 ||
             !(uri.Host == "huggingface.co" && uri.AbsolutePath.StartsWith("/api/models", StringComparison.Ordinal)
-              || uri.Host == "api.github.com" && uri.AbsolutePath.StartsWith("/repos/ggml-org/llama.cpp", StringComparison.Ordinal)))
+              || uri.Host == "api.github.com" && (uri.AbsolutePath.StartsWith("/repos/ggml-org/llama.cpp", StringComparison.Ordinal)
+                  || uri.AbsolutePath == "/search/repositories")))
             throw new InvalidOperationException("The metadata request is outside the configured public source scope.");
         using var deadline = CancellationTokenSource.CreateLinkedTokenSource(token);
         deadline.CancelAfter(TimeSpan.FromSeconds(15));

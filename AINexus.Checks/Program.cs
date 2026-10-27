@@ -20,6 +20,7 @@ internal static class Program
             CheckPackagePlans();
             CheckProcessExecution().GetAwaiter().GetResult();
             ModelChecks.RunAsync(Check).GetAwaiter().GetResult();
+            WorkflowToolDiscoveryChecks.RunAsync(Check).GetAwaiter().GetResult();
             ModelMaintenanceChecks.RunAsync(Check).GetAwaiter().GetResult();
             ModelRecoveryChecks.RunAsync(Check).GetAwaiter().GetResult();
             FeaturedModelCatalogChecks.RunAsync(Check).GetAwaiter().GetResult();
@@ -171,6 +172,7 @@ internal static class Program
         ModelMaintenanceUiChecks.RunNative(window, Check);
         ModelRecoveryUiChecks.RunNative(window, Check);
         GuidedInstallChecks.RunNative(window, Check);
+        UserChoiceFlowChecks.RunNative(Check);
         var featuredLive = Array.IndexOf(args, "--featured-install-live");
         if (featuredLive >= 0)
         {
@@ -207,6 +209,9 @@ internal static class Program
         Check(window.FindName("DiscoveryResultsGrid") is DataGrid, "Hardware-aware discovery XAML loads");
         var fixtureReport = DiscoveryPipeline.Evaluate(DiscoveryPipelineChecks.FixtureCatalog() with { IsCached = true }, DiscoveryPipelineChecks.FixtureMachine(), "C:\\");
         window.RenderDiscoveryReport(fixtureReport);
+        Check(((DataGrid)window.FindName("DiscoveryResultsGrid")).SelectedIndex == -1,
+            "Discovery results remain unselected until an explicit user choice");
+        ((DataGrid)window.FindName("DiscoveryResultsGrid")).SelectedIndex = 0;
         Check(((TextBlock)window.FindName("DiscoveryStatusText")).Text.Contains("SAVED metadata; not refreshed online"),
             "Discovery UI identifies saved metadata without claiming a new online verification");
         Check(((TextBox)window.FindName("DiscoveryDetailsText")).Text.Contains("No installation, compilation or runtime verification was performed"),
@@ -214,6 +219,9 @@ internal static class Program
         var acquisitionDestination = Path.Combine(AppContext.BaseDirectory, "fixture-plan-ui", Guid.NewGuid().ToString("N"));
         var acquisitionReport = AcquisitionPlanChecks.FixtureReport(acquisitionDestination);
         window.RenderDiscoveryReport(acquisitionReport);
+        Check(((DataGrid)window.FindName("DiscoveryResultsGrid")).SelectedIndex == -1,
+            "Fresh acquisition search cannot silently choose its first model result");
+        ((DataGrid)window.FindName("DiscoveryResultsGrid")).SelectedIndex = 0;
         var destinationControl = (TextBox)window.FindName("DiscoveryDestinationText");
         destinationControl.Text = acquisitionDestination;
         ((Button)window.FindName("DiscoveryPlanButton")).RaiseEvent(new RoutedEventArgs(Button.ClickEvent));

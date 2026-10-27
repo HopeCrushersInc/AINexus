@@ -8,7 +8,7 @@ public partial class MainWindow
     private void StoreNavigate_Click(object sender, RoutedEventArgs e)
     {
         if (!_workspaceConfigured) { WorkloadSetupTab.IsSelected = true; return; }
-        if (sender is FrameworkElement { Tag: string target } && FindName(target) is TabItem page)
+        if (sender is FrameworkElement { Tag: string target } && FindName(target == "CatalogTab" ? "DiscoveryTab" : target) is TabItem page)
             page.IsSelected = true;
     }
 
@@ -16,6 +16,7 @@ public partial class MainWindow
     {
         if (!ReferenceEquals(e.Source, WorkspaceTabs) || StorePageTitleText is null) return;
         if (WorkspaceTabs.SelectedItem is not TabItem page) return;
+        if (page == CatalogTab) { if (_workspaceConfigured) DiscoveryTab.IsSelected = true; else WorkloadSetupTab.IsSelected = true; return; }
         if (WorkloadSetupTab is not null)
         {
             if (!_workspaceConfigured && page != WorkloadSetupTab) { WorkloadSetupTab.IsSelected = true; return; }

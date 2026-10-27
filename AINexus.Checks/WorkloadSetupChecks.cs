@@ -66,6 +66,10 @@ internal static class WorkloadSetupChecks
         check(noScanRejected && setup.IsSelected, "Native workspace building cannot bypass the hardware scan");
         window.CompleteWorkloadScan(DiscoveryPipelineChecks.FixtureMachine());
         var choices = ((IEnumerable<WorkloadChoice>)((ItemsControl)window.FindName("WorkloadChoices")).ItemsSource).ToArray();
+        check(window.FindName("WorkloadOptionsPanel") is StackPanel { Visibility: Visibility.Visible }
+            && new[] { DiscoveryInterest.Coding, DiscoveryInterest.Images, DiscoveryInterest.MusicAudio }
+                .All(interest => choices.Any(choice => choice.Interest == interest && !choice.Selected)),
+            "Coding, art and music remain visible in the expanded workload chooser after the hardware scan");
         check(choices.Length == Enum.GetValues<DiscoveryInterest>().Length && choices.All(c => !c.Selected) && !proceed.IsEnabled,
             "The post-scan chooser lists all interests with no first-use workload selected automatically");
         choices.Single(c => c.Interest == DiscoveryInterest.Images).Selected = true;
@@ -76,10 +80,10 @@ internal static class WorkloadSetupChecks
             && !proceed.IsEnabled,
             "Rebuilding the chooser clears every previous choice and requires a fresh selection");
         window.ApplyWorkloadSelection([DiscoveryInterest.Images]);
-        check(((TabItem)window.FindName("StoreHomeTab")).IsSelected && navigation.Visibility == Visibility.Visible
+        check(((TabItem)window.FindName("DiscoveryTab")).IsSelected && navigation.Visibility == Visibility.Visible
             && ((RadioButton)window.FindName("ImageWorkspaceNav")).Visibility == Visibility.Visible
             && ((RadioButton)window.FindName("AssistantWorkspaceNav")).Visibility == Visibility.Collapsed,
-            "Confirmed image-only choice builds image navigation without adding an assistant");
+            "Confirmed image-only choice opens scoped online discovery without adding an assistant");
         var cards = (IEnumerable<WorkloadWorkspaceCard>)((ItemsControl)window.FindName("WorkspaceWorkloadCards")).ItemsSource;
         check(cards.Single().Interest == DiscoveryInterest.Images && !((Button)window.FindName("ImageGenerateButton")).IsEnabled,
             "A selected image workspace still requires actual engine/model configuration before generation");
@@ -93,10 +97,15 @@ internal static class WorkloadSetupChecks
             "Compatible-options discovery is scoped to the user's confirmed interests");
         window.ApplyWorkloadSelection([DiscoveryInterest.Cad]);
         cards = (IEnumerable<WorkloadWorkspaceCard>)((ItemsControl)window.FindName("WorkspaceWorkloadCards")).ItemsSource;
-        check(!cards.Single().Available && ((RadioButton)window.FindName("ImageWorkspaceNav")).Visibility == Visibility.Collapsed
+        check(cards.Single().Available && cards.Single().TargetPage == "DiscoveryTab"
+            && ((TabItem)window.FindName("DiscoveryTab")).IsSelected
+            && ((RadioButton)window.FindName("ImageWorkspaceNav")).Visibility == Visibility.Collapsed
             && ((RadioButton)window.FindName("AssistantWorkspaceNav")).Visibility == Visibility.Collapsed,
-            "Unsupported interests show an honest unavailable adapter without fake launch actions");
+            "A category without an installation adapter still opens online metadata discovery without fake launch actions");
         // Existing feature regression checks explicitly opt into these workspaces.
         window.ApplyWorkloadSelection([DiscoveryInterest.LocalAssistants, DiscoveryInterest.Images]);
+        check(((ComboBox)window.FindName("DiscoveryInterestSelector")).SelectedIndex == -1
+            && ((TabItem)window.FindName("DiscoveryTab")).IsSelected,
+            "Multiple chosen workloads leave the discovery selector unselected until the user chooses a category");
     }
 }

@@ -25,7 +25,7 @@ public partial class MainWindow
         InitializeRuntimeDownload();
         _discoveryPipeline = new(new VerifiedOnlineDiscoveryProvider(_discoveryHttp), DiscoveryCacheStore.ForCurrentUser());
         DiscoveryInterestSelector.ItemsSource = VerifiedOnlineDiscoveryProvider.Workflows;
-        DiscoveryInterestSelector.SelectedIndex = 0;
+        DiscoveryInterestSelector.SelectedIndex = -1;
         Closed += (_, _) => _discoveryHttp.Dispose();
         RefreshDiscoveryControls();
     }
@@ -54,7 +54,7 @@ public partial class MainWindow
         RefreshRuntimeDownloadControls();
         DiscoveryScanButton.IsEnabled = !_discoveryBusy;
         DiscoveryInterestSelector.IsEnabled = DiscoveryQueryText.IsEnabled = DiscoveryVolumeSelector.IsEnabled = !_discoveryBusy;
-        var supported = DiscoveryInterestSelector.SelectedItem is DiscoveryWorkflow workflow && VerifiedOnlineDiscoveryProvider.Supports(workflow.Interest);
+        var supported = DiscoveryInterestSelector.SelectedItem is DiscoveryWorkflow workflow && Enum.IsDefined(workflow.Interest);
         DiscoverySearchButton.IsEnabled = !_discoveryBusy && supported;
         DiscoverySavedButton.IsEnabled = !_discoveryBusy && DiscoveryInterestSelector.SelectedItem is DiscoveryWorkflow;
         DiscoveryCancelButton.IsEnabled = _discoveryBusy;
@@ -269,8 +269,8 @@ public partial class MainWindow
         InvalidateAcquisitionReview();
         var rows = report.Recommendations.Select(recommendation => new DiscoveryRow(recommendation, report)).ToArray();
         DiscoveryResultsGrid.ItemsSource = rows;
-        if (rows.Length > 0) DiscoveryResultsGrid.SelectedIndex = 0;
-        else DiscoveryDetailsText.Text = string.Join(Environment.NewLine, report.Catalog.Notes);
+        DiscoveryResultsGrid.SelectedIndex = -1;
+        DiscoveryDetailsText.Text = "Select a result yourself. No installation, compilation or runtime verification was performed." + Environment.NewLine + string.Join(Environment.NewLine, report.Catalog.Notes);
         var retrieval = report.Catalog.RetrievedAt == DateTimeOffset.MinValue ? "no saved timestamp" : report.Catalog.RetrievedAt.ToLocalTime().ToString("g");
         DiscoveryStatusText.Text = $"{rows.Length} results | {(report.Catalog.IsCached ? "SAVED metadata; not refreshed online" : "Online metadata")} retrieved {retrieval} | " +
             $"Target {report.TargetVolume} | Resource estimates only; no candidate has been installed or verified by this search.";

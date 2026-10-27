@@ -2,6 +2,14 @@
 
 Current product direction: [feature overview](docs/feature-overview.md) and [roadmap](docs/development-roadmap.md). Earlier entries below are historical checkpoints; their pending items and local-only publication notes describe that increment, not today's complete repository state. Approved updates now publish through protected pull requests; see [changelog](CHANGELOG.md).
 
+## 2026-10-26 — Proven guided install and chat
+
+Prioritized a deliverable guided model installation and actual multi-turn chat. Default checks pass 735; real Qwen32B and official Coder7B runs each added five checks, including actual two-turn generation and owned-server cleanup. Evidence logs are local (`qwen32-guided-live.log`, `coder7-guided-live.log`); user transcripts are not saved by the live harness. Rendered storefront and guided pages were inspected.
+
+Independent subagents implemented/reviewed exact metadata, chat history, runtime setup and startup cancellation. Their quota later became unavailable; no credits or upgrades were purchased. Local Qwen32B completed a separate real design review under the 250 W cap and stopped afterward. Partial catalog/image/switching infrastructure is preserved on local checkpoint branch `checkpoint/workload-catalog-infrastructure` at `4ecc600`; the separate recovery-source WIP is on `development/recovery-source-refresh` at `74a8f29`. Neither checkpoint is claimed complete or included indiscriminately in this release.
+
+Open work: two image-model end-to-end installs, automatic owned-server switching, persistent active metadata catalog, configurable power/thermal/fan capabilities and iCUE Scenes feasibility/Ghidra analysis. iCUE inputs were only hashed/signature-checked so far; no proprietary application was installed, modified or recompiled. The 1000 VA UPS/1500 W PSU details remain user-reported, with no inferred whole-PC power guarantee.
+
 ## 2026-10-26 — Recovery review increment
 
 Added a read-only recovery review after actual missing/changed model evidence. The planner rereads the validated historical receipt, binds the original path, checks current bytes, validates a separate unoccupied destination and current disk headroom, and presents the remaining acquisition/verification steps. It cannot execute a download or replace files. A repaired original invalidates review. Missing-file UI access is limited to an existing library row before rescan.

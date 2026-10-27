@@ -15,6 +15,21 @@ A native C# .NET 8 WPF dashboard for local AI tooling on Windows.
 
 Get the portable **Windows x64 preview** from [GitHub Releases](https://github.com/HopeCrushersInc/AINexus/releases). Download the ZIP asset, extract the whole folder, and run `AINexus.App.exe`. The package includes .NET; models and external AI engines are separate. Embedded interfaces need the free WebView2 Runtime. Windows stays on its local account; no Microsoft sign-in is required. See [release and installation guide](docs/releases.md) for package contents, checksums and limitations.
 
+## Install a model and talk to it
+
+1. Open **Store**, choose a model card, and pick a model folder.
+2. Choose **Check download size and fit**, read the source/license, approve the exact download, and download it.
+3. Use an existing llama.cpp engine or review/download/install the portable CPU engine on the same page.
+4. Choose **Open chat**. Nexus checks model integrity, verifies the 250 W NVIDIA policy, loads the model, and tests a real response before enabling chat.
+
+Previously acquired models can be opened from their cards without another download; saved receipts are validated and bytes are checked again before loading. Chat keeps actual multi-turn history in session memory. Closing the portal stops its owned server. Cold model loading has a five-minute bound and can be cancelled.
+
+**Verified on the development PC:** Qwen 2.5 32B Q4_K_M (19,851,336,576 bytes) and official Qwen 2.5 Coder 7B Q4_K_M (4,683,073,536 bytes), each installed or integrity-verified through the guided UI and tested with two real chat turns. This is evidence for that PC/runtime/model combination, not a universal performance or hardware claim.
+
+The catalog also offers Qwen 7B and optional publisher-described NSFW/less-filtered Stheno and Lexi entries. The NSFW option starts unchecked and is never saved. Each entry has its own source/license; catalog inclusion does not claim local testing or any guaranteed behavior. See [model sources](docs/featured-models.md).
+
+The 250 W gate queries actual NVIDIA limits and only reports success after readback. Changing a cap may need administrator rights; the app does not silently elevate or change Windows accounts. UPS VA rating and PSU capacity do not establish current system draw. Fan control, thermal shutdown actions, automatic text/image switching, a broader active catalog and iCUE work remain separate unfinished increments.
+
 ## Current capabilities
 
 - Hardware-aware online discovery: explicit metadata searches on Hugging Face and supporting upstream llama.cpp release metadata. Results include declared licensing, source links, immutable model revisions, artifact sizes and SHA-256 when reported. Initial supported interests are local assistants, coding, and agents; other workflow adapters are explicitly marked unavailable.

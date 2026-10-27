@@ -1,3 +1,7 @@
+# Current workflow requirement
+
+Open Nexus → scan hardware → user chooses workload(s) → explicit live online search → user chooses a result → separate review/approval for supported acquisition → separate verification/launch. All categories are visible and unchecked. No model/provider is promoted or preselected. Older featured-card instructions below describe preview.1 and are superseded by this requirement.
+
 # Technical overview and validation
 
 [Back to the project homepage](../README.md). Detailed implementation boundaries and opt-in validation commands follow.

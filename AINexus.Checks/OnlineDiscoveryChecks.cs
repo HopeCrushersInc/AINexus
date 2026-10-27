@@ -44,10 +44,22 @@ internal static class OnlineDiscoveryChecks
             check(requests.Any(uri => uri.AbsolutePath.Contains("/tree/" + Revision)), "Artifact metadata is read at the reported immutable revision");
         }
 
-        using (var http = new HttpClient(new FixtureHandler((_, _) => throw new InvalidOperationException("Unsupported workflow made a request"))))
+        var cadRequests = 0;
+        using (var http = new HttpClient(new FixtureHandler((request, _) =>
+        {
+            cadRequests++;
+            check(request.Method == HttpMethod.Get && request.RequestUri is { Host: "api.github.com", AbsolutePath: "/search/repositories" }
+                && request.Headers.Authorization is null,
+                "CAD discovery requests actual public repository metadata without authentication or an installer");
+            return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent("{\"total_count\":0,\"incomplete_results\":false,\"items\":[]}", Encoding.UTF8, "application/json")
+            });
+        })))
         {
             var snapshot = await new VerifiedOnlineDiscoveryProvider(http).SearchAsync(new(DiscoveryInterest.Cad, "fixture"));
-            check(snapshot.Items.Count == 0 && snapshot.Notes.Any(note => note.Contains("not implemented")), "Unsupported workflow adapters do not fabricate search results or contact services");
+            check(cadRequests == 1 && snapshot.Items.Count == 0 && !snapshot.IsCached,
+                "A category without an installation adapter can search live metadata without fabricating artifacts or installation results");
         }
         check(VerifiedOnlineDiscoveryProvider.Workflows.Count == Enum.GetValues<DiscoveryInterest>().Length, "Workflow catalog explicitly accounts for every requested interest");
 

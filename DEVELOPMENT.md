@@ -2,6 +2,10 @@
 
 Current product direction: [feature overview](docs/feature-overview.md) and [roadmap](docs/development-roadmap.md). Earlier entries below are historical checkpoints; their pending items and local-only publication notes describe that increment, not today's complete repository state. Approved updates now publish through protected pull requests; see [changelog](CHANGELOG.md).
 
+## Workload-first correction
+
+The featured-model startup in preview.1 contradicted the intended user-choice flow. Corrected it: hardware scan → all categories visible/unchecked → explicit user choices → live metadata search → no default result → explicit review and approval. Preset diagnostics remain hidden and cannot change user workload choices. Unsupported executable adapters remain distinct from live source discovery. Generic user-selected model review is tested with a non-preset fixture and preserves Coding rather than forcing Assistants.
+
 ## 2026-10-26 — Proven guided install and chat
 
 Prioritized a deliverable guided model installation and actual multi-turn chat. Default checks pass 735; real Qwen32B and official Coder7B runs each added five checks, including actual two-turn generation and owned-server cleanup. Evidence logs are local (`qwen32-guided-live.log`, `coder7-guided-live.log`); user transcripts are not saved by the live harness. Rendered storefront and guided pages were inspected.

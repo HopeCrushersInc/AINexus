@@ -106,8 +106,8 @@ internal static class ImageWorkflowChecks
     }
     public static void RunNative(MainWindow window, Action<bool, string> check)
     {
-        check(((TabItem)window.FindName("StoreHomeTab")).IsSelected && window.FindName("DownloadsTab") is TabItem,
-            "Native store shell starts at Home and keeps setup in its own page");
+        check(((TabItem)window.FindName("DiscoveryTab")).IsSelected && window.FindName("DownloadsTab") is TabItem,
+            "Confirmed workloads enter online discovery and keep installation setup in its own page");
         var navigation = (StackPanel)window.FindName("StoreNavigation");
         var images = navigation.Children.OfType<RadioButton>().Single(b => b.Tag as string == "ImageStudioTab");
         images.RaiseEvent(new RoutedEventArgs(System.Windows.Controls.Primitives.ButtonBase.ClickEvent));

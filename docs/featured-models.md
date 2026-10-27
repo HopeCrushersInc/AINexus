@@ -1,3 +1,7 @@
+# Historical validation examples — not recommendations
+
+The application does not use these examples as its startup or discovery catalog. Users choose workloads and live online results themselves. The entries below record earlier source/functional tests, not preferred models or promoted providers.
+
 # Featured model sources and verification
 
 Catalog entries are source preferences, not compatibility guarantees. Exact public metadata is refreshed and pinned before download approval. Sizes and hashes come from the source, never from model-name guesses.

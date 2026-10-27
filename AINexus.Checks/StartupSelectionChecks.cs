@@ -22,10 +22,16 @@ internal static class StartupSelectionChecks
                 "A separate native startup window opens setup without an approved workload");
 
             window.CompleteWorkloadScan(DiscoveryPipelineChecks.FixtureMachine());
-            ((Expander)window.FindName("WorkloadOptionsPanel")).IsExpanded = true;
             Layout(window);
             var choices = ((IEnumerable<WorkloadChoice>)choicesControl.ItemsSource).ToArray();
             var boxes = Descendants<CheckBox>(choicesControl).ToArray();
+            check(window.FindName("WorkloadOptionsPanel") is StackPanel { Visibility: Visibility.Visible }
+                && !Descendants<ItemsControl>((DependencyObject)setup.Content).Any(control => control.Name == "FeaturedCards"),
+                "Startup presents expanded workload choices without a featured-model promotion or hidden chooser");
+            check(new[] { DiscoveryInterest.Coding, DiscoveryInterest.Images, DiscoveryInterest.MusicAudio }
+                .All(interest => boxes.Any(box => box.DataContext is WorkloadChoice choice
+                    && choice.Interest == interest && box.Visibility == Visibility.Visible && box.IsChecked == false)),
+                "The realized startup page exposes coding, art and music choices unchecked");
             check(boxes.Length == choices.Length && boxes.Length > 0
                 && boxes.All(box => box.IsChecked == false && box.DataContext is WorkloadChoice { Selected: false })
                 && choices.All(choice => !choice.Selected) && !proceed.IsEnabled,

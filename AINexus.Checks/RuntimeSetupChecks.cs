@@ -87,6 +87,9 @@ internal static class RuntimeSetupChecks
     {
         var destination = Path.Combine(AppContext.BaseDirectory, "fixtures", Guid.NewGuid().ToString("N"));
         window.RenderDiscoveryReport(Report(Machine(), Asset("llama-bin-win-cpu-x64.zip")));
+        check(((DataGrid)window.FindName("DiscoveryResultsGrid")).SelectedIndex == -1,
+            "Runtime search results require an explicit user selection before setup review");
+        ((DataGrid)window.FindName("DiscoveryResultsGrid")).SelectedIndex = 0;
         ((TextBox)window.FindName("RuntimeDestinationText")).Text = destination;
         var button = (Button)window.FindName("RuntimeSetupReviewButton");
         check(button.IsEnabled && !((Button)window.FindName("AcquisitionDownloadButton")).IsEnabled,

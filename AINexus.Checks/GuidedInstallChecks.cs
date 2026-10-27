@@ -59,6 +59,7 @@ internal static class GuidedInstallChecks
                 check(((IEnumerable<FeaturedModel>)cards.ItemsSource).Any(model => model.Nsfw) && lookupCalls == 0,
                     "Explicit adult catalog opt-in reveals warned cards without downloading or selecting one");
                 nsfw.IsChecked = false;
+                window.ApplyWorkloadSelection([DiscoveryInterest.LocalAssistants]);
                 window.SelectGuidedModel(featured);
                 ((TextBox)window.FindName("GuidedModelFolderText")).Text = folder;
                 ((TextBox)window.FindName("GuidedRuntimePathText")).Text = Path.Combine(root, "llama-server.exe");
@@ -119,6 +120,7 @@ internal static class GuidedInstallChecks
             {
                 var machine = await HardwareCapabilityScanner.ScanAsync();
                 window.CompleteWorkloadScan(machine);
+                window.ApplyWorkloadSelection([DiscoveryInterest.LocalAssistants]);
                 if (featured.Nsfw) ((CheckBox)window.FindName("FeaturedNsfwCheck")).IsChecked = true;
                 window.SelectGuidedModel(featured);
                 ((TextBox)window.FindName("GuidedModelFolderText")).Text = Path.GetFullPath(existingFolder);

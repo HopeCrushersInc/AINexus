@@ -38,6 +38,8 @@ internal static class RuntimeInstallationUiChecks
                 var inspected = await RuntimeArchiveInspector.InspectAsync(filePlan, root);
                 var plan = await RuntimeInstallationPlanner.CreateAsync(inspected, root);
                 window.RenderDiscoveryReport(report);
+                check(Find<DataGrid>(window, "DiscoveryResultsGrid").SelectedIndex == -1,
+                    "Native installation review begins with no automatically selected runtime result");
                 Find<DataGrid>(window, "DiscoveryResultsGrid").SelectedIndex = 0;
                 Find<TextBox>(window, "RuntimeDestinationText").Text = destination;
                 Find<ComboBox>(window, "RuntimeArchiveSelector").SelectedIndex = 0;

@@ -9,6 +9,8 @@ namespace AINexus.App;
 public partial class MainWindow
 {
     private FeaturedModel? _guidedModel;
+    private DiscoveredItem? _guidedUserSelection;
+    private OnlineDiscoverySnapshot? _guidedUserSnapshot;
     private ModelAcquisitionPlan? _guidedModelPlan;
     private bool _guidedInstalledOnly;
     private string? _guidedReceipt;
@@ -100,9 +102,11 @@ public partial class MainWindow
 
     internal void SelectGuidedModel(FeaturedModel model)
     {
-        if (_guidedBusy || _workloadMachine is null) return;
+        if (_guidedBusy || _workloadMachine is null || !_workspaceConfigured) return;
         if (model.Nsfw && FeaturedNsfwCheck.IsChecked != true) return;
         _guidedModel = model;
+        _guidedUserSelection = null;
+        _guidedUserSnapshot = null;
         _guidedModelPlan = null;
         _guidedInstalledOnly = false;
         _guidedReceipt = null;
@@ -116,7 +120,6 @@ public partial class MainWindow
         GuidedProgress.Value = 0;
         GuidedModelStep.IsExpanded = true;
         GuidedEngineStep.IsExpanded = string.IsNullOrWhiteSpace(GuidedRuntimePathText.Text);
-        ApplyWorkloadSelection([DiscoveryInterest.LocalAssistants]);
         GuidedSetupTab.IsSelected = true;
         GuidedStatusText.Text = "Choose where to keep this model, then check its exact download size and your hardware. No download has started.";
         RefreshGuidedControls();
@@ -155,7 +158,9 @@ public partial class MainWindow
 
     internal async Task ReviewGuidedModelAsync()
     {
-        if (_guidedModel is not { } model) return;
+        var model = _guidedModel;
+        var chosen = _guidedUserSelection;
+        if (model is null && chosen is null) return;
         var folder = GuidedModelFolderText.Text.Trim();
         await RunGuidedOperationAsync(async token =>
         {
@@ -167,10 +172,11 @@ public partial class MainWindow
             OfflineModelVerifier.CheckNoReparsePath(folder);
             if (!Directory.Exists(folder)) throw new DirectoryNotFoundException("Choose an existing model folder first.");
             var machine = GuidedHardwareOverride is { } scan ? await scan(token) : await HardwareCapabilityScanner.ScanAsync(token);
-            var snapshot = GuidedLookupOverride is { } lookup ? await lookup(model, token)
-                : await new VerifiedOnlineDiscoveryProvider(_discoveryHttp).LookupFeaturedModelAsync(model, token);
+            var snapshot = chosen is not null ? _guidedUserSnapshot ?? throw new InvalidOperationException("Search online and select a result first.")
+                : GuidedLookupOverride is { } lookup ? await lookup(model!, token)
+                : await new VerifiedOnlineDiscoveryProvider(_discoveryHttp).LookupFeaturedModelAsync(model!, token);
             var report = DiscoveryPipeline.Evaluate(snapshot, machine, Path.GetPathRoot(folder)!);
-            var item = snapshot.Items.Single();
+            var item = chosen ?? snapshot.Items.Single();
             var plan = ModelAcquisitionPlanner.Create(report, item.Id, folder);
             token.ThrowIfCancellationRequested();
             _guidedModelPlan = plan;
@@ -250,7 +256,7 @@ public partial class MainWindow
             if (GuidedPersistPreferences) await PersistLlamaCppPreferencesAsync();
             token.ThrowIfCancellationRequested();
             _guidedLoadingModel = false;
-            ChatModelText.Text = _guidedModel?.Name ?? ids[0];
+            ChatModelText.Text = _guidedUserSelection?.Name ?? _guidedModel?.Name ?? ids[0];
             ChatTranscriptText.Text = "";
             ChatStatusText.Text = "Local generation verified. Your conversation stays in session memory; no online chat provider is used.";
             ChatTab.IsSelected = true;
@@ -299,7 +305,7 @@ public partial class MainWindow
     private void RefreshGuidedControls()
     {
         if (GuidedReviewButton is null) return;
-        GuidedReviewButton.IsEnabled = !_guidedBusy && _guidedModel is not null;
+        GuidedReviewButton.IsEnabled = !_guidedBusy && (_guidedModel is not null || _guidedUserSelection is not null);
         GuidedDownloadButton.IsEnabled = !_guidedBusy && !_guidedInstalledOnly && _guidedModelPlan is not null && GuidedModelApprovalCheck.IsChecked == true;
         GuidedStartChatButton.IsEnabled = !_guidedBusy && _guidedReceipt is not null && !string.IsNullOrWhiteSpace(GuidedRuntimePathText.Text);
         GuidedCancelButton.IsEnabled = _guidedBusy;

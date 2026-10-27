@@ -59,6 +59,9 @@ internal static class RuntimeFilePlanChecks
         var cpu = Asset("llama-bin-win-cpu-x64.zip");
         var destination = Path.Combine(AppContext.BaseDirectory, "fixtures", Guid.NewGuid().ToString("N"));
         window.RenderDiscoveryReport(RuntimeSetupChecks.Report(RuntimeSetupChecks.Machine(), cpu));
+        check(((DataGrid)window.FindName("DiscoveryResultsGrid")).SelectedIndex == -1,
+            "Exact runtime file review cannot inherit an automatically selected search result");
+        ((DataGrid)window.FindName("DiscoveryResultsGrid")).SelectedIndex = 0;
         var selector = (ComboBox)window.FindName("RuntimeArchiveSelector");
         var button = (Button)window.FindName("RuntimeFileReviewButton");
         ((TextBox)window.FindName("RuntimeDestinationText")).Text = destination;

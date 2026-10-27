@@ -19,7 +19,8 @@ internal static class UserChoiceFlowChecks
             {
                 var report = AcquisitionPlanChecks.FixtureReport(root, "GGUF user choice fixture"u8.ToArray());
                 var item = report.Catalog.Items.Single() with { Interest = DiscoveryInterest.Coding };
-                report = DiscoveryPipeline.Evaluate(report.Catalog with { Items = [item] }, report.Machine, report.TargetVolume);
+                var other = item with { Id = "other-result", Name = "Another search result", Artifact = item.Artifact! with { FileName = "other.gguf" } };
+                report = DiscoveryPipeline.Evaluate(report.Catalog with { Items = [item, other] }, report.Machine, report.TargetVolume);
                 window.CompleteWorkloadScan(report.Machine);
                 window.ApplyWorkloadSelection([DiscoveryInterest.Coding]);
                 window.RenderDiscoveryReport(report);

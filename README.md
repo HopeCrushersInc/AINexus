@@ -40,7 +40,7 @@ The new Library keeps saved source facts separate from private local receipts. B
 
 ## Preview limits
 
-Windows x64 only. .NET is bundled; models and external engines are separate. Embedded web interfaces need WebView2. The current guided launch power gate requires a verifiable250W NVIDIA policy. Other platforms, broader image installation, automatic server switching, thermal/fan controls and iCUE investigation remain unfinished.
+Windows x64 only. .NET is bundled; models and external engines are separate. Embedded web interfaces need WebView2. Nexus leaves GPU power settings unchanged unless the user explicitly applies a supported per-card limit in Performance. There is no universal wattage or NVIDIA power-control requirement for model launch. Other platforms, broader image installation, automatic server switching, thermal/fan controls and iCUE investigation remain unfinished.
 
 Windows stays on its local account. No purchase or Microsoft sign-in is required. Existing model chat tests are recorded as validation examples, not promoted or preferred choices.
 

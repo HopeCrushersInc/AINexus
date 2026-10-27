@@ -12,6 +12,8 @@ Read-only per-model library integrity checking against an explicit acquisition r
 
 ## Projected phases
 
+Immediate scope: reliable, user-directed scan → find → select → review/approve → download/install/configure → verify → local use, with correct inventory and per-device choices for 1–4 local GPUs. Larger fleets and distributed scheduling are deferred. Detecting four devices is not proof that an arbitrary model/runtime supports splitting a model across them; VRAM is never silently pooled by the planner.
+
 | Phase | Deliverables | Exit gate | Dependencies |
 | --- | --- | --- | --- |
 | 1. Reliable setup and lifecycle | Broader runtime/dependency recipes; inventory health, repair/relocation plans; side-by-side model/runtime updates and rollback | Exact plans and approvals; corrupt/missing artifacts actionable; interrupted operations recover; candidate failure preserves known-good state; actual offline launch reverified after changes | Current acquisition/receipts, architecture/backend evidence and storage checks |

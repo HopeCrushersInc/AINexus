@@ -4,6 +4,11 @@ User-visible changes are recorded here. Dates identify publication updates, not 
 
 ## Unreleased — Persistent catalog and selected-workload searches
 
+- Removed the fixed 250 W all-GPU requirement and its unconditional model-launch gate. The development workstation's owner-selected setting is no longer a product default.
+- Added optional per-GPU power inspection and explicit, range-checked changes under Performance. No GPU or wattage is selected automatically; unselected adapters are untouched and launch does not depend on power-control support.
+- Fixed generic model setup failing when search returned multiple candidates: the review now uses only the explicitly selected result. Exact repository searches expose further file variants within the result budget, instead of always stopping after two files.
+- Verified the generic source-selected model path on the development PC: actual hardware/source metadata, explicit selection and approval, existing-artifact hash/reuse, selected runtime configuration, local generation, two chat turns and owned-server cleanup. Existing weights were reused; this run does not claim a fresh network transfer or actual multi-GPU execution.
+
 - Added a persistent SQLite catalog connected to successful source searches. A pinned model artifact has one canonical identity with multiple task categories; retrieval dates, sources, sizes, hashes and licenses survive restarts. Stale updates cannot replace newer facts, and conflicting pinned identities roll back the import.
 - Added a Library view with offline text filtering, a local-receipt filter, source details and explicit source refresh in Discover. No entry is preselected; browsing starts no model or installation.
 - Linked private acquisition receipts from explicitly tracked folders without automatically hashing model weights. Missing files, size mismatches, receipt/source conflicts and unverified current integrity remain distinct. Private receipt-derived rows are not inserted into public metadata tables.

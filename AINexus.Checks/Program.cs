@@ -180,11 +180,18 @@ internal static class Program
         Check(window.FindName("CpuText") is TextBlock, "Hardware XAML loads");
         WorkloadSetupChecks.RunNative(window, Check);
         WorkloadDiscoveryChecks.RunNative(window, Check);
+        GpuPowerUiChecks.RunNative(Check);
         CatalogDatabaseChecks.RunNative(window, Check);
         ModelMaintenanceUiChecks.RunNative(window, Check);
         ModelRecoveryUiChecks.RunNative(window, Check);
         GuidedInstallChecks.RunNative(window, Check);
         UserChoiceFlowChecks.RunNative(Check);
+        var selectedLive = Array.IndexOf(args, "--selected-model-live");
+        if (selectedLive >= 0)
+        {
+            if (selectedLive + 4 >= args.Length) throw new ArgumentException("--selected-model-live requires repository, exact filename, existing model folder and runtime path.");
+            SelectedModelLiveChecks.Run(args[selectedLive + 1], args[selectedLive + 2], args[selectedLive + 3], args[selectedLive + 4], Check);
+        }
         var featuredLive = Array.IndexOf(args, "--featured-install-live");
         if (featuredLive >= 0)
         {

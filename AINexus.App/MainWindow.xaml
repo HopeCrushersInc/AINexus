@@ -476,7 +476,8 @@
                         </StackPanel>
                     </Border>
                 </UniformGrid>
-                <Border Grid.Row="2" Style="{StaticResource PanelStyle}" Margin="0">
+                <Grid Grid.Row="2"><Grid.RowDefinitions><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+                <Border Style="{StaticResource PanelStyle}" Margin="0">
                     <DockPanel>
                         <TextBlock DockPanel.Dock="Top" Text="NVIDIA GPU UTILIZATION / VRAM" FontSize="16" Foreground="#66C0F4" Margin="0,0,0,16"/>
                         <ScrollViewer VerticalScrollBarVisibility="Auto">
@@ -494,6 +495,18 @@
                         </ScrollViewer>
                     </DockPanel>
                 </Border>
+                <Expander Grid.Row="1" Header="GPU power settings — optional, per graphics card" Foreground="#AABFD4" Margin="0,10,0,0">
+                    <StackPanel Margin="0,8,0,0">
+                        <TextBlock Text="Nexus leaves existing power settings unchanged. These controls support NVIDIA adapters that report writable limits; other hardware can still run supported workloads." TextWrapping="Wrap"/>
+                        <Button x:Name="GpuPowerReadButton" Content="Read current power limits" Click="GpuPowerReadButton_Click" HorizontalAlignment="Left" Margin="0,8,0,8"/>
+                        <ComboBox x:Name="GpuPowerAdapterSelector" DisplayMemberPath="Display" SelectionChanged="GpuPowerInput_Changed" Padding="6"/>
+                        <TextBlock x:Name="GpuPowerRangeText" Text="Choose a graphics card after reading its limits. No card or wattage is selected automatically." TextWrapping="Wrap" Margin="0,6,0,6"/>
+                        <DockPanel><TextBlock Text="Your chosen limit (watts)" VerticalAlignment="Center" Margin="0,0,12,0"/><TextBox x:Name="GpuPowerWattsText" Width="120" HorizontalAlignment="Left" MaxLength="5" TextChanged="GpuPowerInput_Changed" Padding="6"/></DockPanel>
+                        <CheckBox x:Name="GpuPowerApprovalCheck" Content="Apply this limit to this selected graphics card" IsChecked="False" Checked="GpuPowerApproval_Changed" Unchecked="GpuPowerApproval_Changed" Margin="0,8,0,8"/>
+                        <Button x:Name="GpuPowerApplyButton" Content="Apply chosen power limit" Click="GpuPowerApplyButton_Click" IsEnabled="False" HorizontalAlignment="Left"/>
+                        <TextBlock x:Name="GpuPowerStatusText" Text="No power setting has been requested. Model launch does not require a particular wattage or this utility." TextWrapping="Wrap" Margin="0,6,0,0"/>
+                    </StackPanel>
+                </Expander></Grid>
                 <TextBlock Grid.Row="3" x:Name="ResourceNoticeText" Text="Samples every 2 seconds. Monitoring does not impose resource limits. GPU metrics require the NVIDIA driver utility." TextWrapping="Wrap" Foreground="#8CA6BC" Margin="0,12,0,0"/>
             </Grid>
         </TabItem>

@@ -23,18 +23,18 @@ Get the portable **Windows x64 preview** from [GitHub Releases](https://github.c
 
 ## Install a model and talk to it
 
-1. Open **Store**, choose a model card, and pick a model folder.
-2. Choose **Check download size and fit**, read the source/license, approve the exact download, and download it.
+1. Open Nexus, let the hardware scan finish, choose workload categories and confirm to search their sources. No category or model is preselected.
+2. Select an actual result, review its exact artifact size, source/license, current hardware estimate and destination, then explicitly approve its download. An exact repository query exposes more file variants within the result limit.
 3. Use an existing llama.cpp engine or review/download/install the portable CPU engine on the same page.
-4. Choose **Open chat**. Nexus checks model integrity, verifies the 250 W NVIDIA policy, loads the model, and tests a real response before enabling chat.
+4. Choose **Open chat**. Nexus checks model integrity, loads the model, and tests a real response before enabling chat. GPU power control is a separate optional action.
 
-Previously acquired models can be opened from their cards without another download; saved receipts are validated and bytes are checked again before loading. Chat keeps actual multi-turn history in session memory. Closing the portal stops its owned server. Cold model loading has a five-minute bound and can be cancelled.
+Previously acquired models can be reused by selecting their exact source artifact and existing model folder; bytes are checked against the reviewed identity before reuse and loading. Chat keeps actual multi-turn history in session memory. Closing the portal stops its owned server. Cold model loading has a five-minute bound and can be cancelled.
 
 **Verified on the development PC:** Qwen 2.5 32B Q4_K_M (19,851,336,576 bytes) and official Qwen 2.5 Coder 7B Q4_K_M (4,683,073,536 bytes), each installed or integrity-verified through the guided UI and tested with two real chat turns. This is evidence for that PC/runtime/model combination, not a universal performance or hardware claim.
 
-The catalog also offers Qwen 7B and optional publisher-described NSFW/less-filtered Stheno and Lexi entries. The NSFW option starts unchecked and is never saved. Each entry has its own source/license; catalog inclusion does not claim local testing or any guaranteed behavior. See [model sources](featured-models.md).
+Earlier model-card fixtures and publisher-described adult-oriented examples remain documented as historical validation/source records in [model sources](featured-models.md). They are not the current startup catalog or recommendations; live discovery is driven by the user's selected categories and query.
 
-The 250 W gate queries actual NVIDIA limits and only reports success after readback. Changing a cap may need administrator rights; the app does not silently elevate or change Windows accounts. UPS VA rating and PSU capacity do not establish current system draw. Fan control, thermal shutdown actions, automatic text/image switching, a broader active catalog and iCUE work remain separate unfinished increments.
+There is no fixed GPU wattage or power-control launch gate. In Performance, the user can inspect reported NVIDIA power limits, select a specific card by UUID, enter a supported limit and explicitly approve applying it. Reading does not write; applying touches only that card and verifies the driver readback. No card, wattage or approval is restored automatically. Unsupported or denied control does not block ordinary model launch. The development PC's owner-requested 250 W setting is workstation-specific, not a product default. Changing a limit may need administrator rights; the app does not silently elevate or change Windows accounts. UPS VA rating and PSU capacity do not establish current system draw. Fan control, thermal shutdown actions, automatic text/image switching and iCUE work remain unfinished.
 
 ## Current capabilities
 

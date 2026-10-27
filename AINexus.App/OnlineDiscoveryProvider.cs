@@ -95,7 +95,11 @@ public sealed partial class VerifiedOnlineDiscoveryProvider(HttpClient httpClien
                 if (!IsRepositoryId(repository!)) { notes.Add("A source returned an invalid repository identifier; it was skipped."); continue; }
                 try
                 {
-                    var found = await ReadRepositoryAsync(repository!, request.Interest, Math.Min(2, modelSlots - items.Count), notes, deadline.Token);
+                    // An exact repository query asks to browse its file variants. Broad
+                    // searches retain a small per-repository share of the result budget.
+                    var fileSlots = string.Equals(request.Query.Trim(), repository, StringComparison.OrdinalIgnoreCase)
+                        ? modelSlots - items.Count : Math.Min(2, modelSlots - items.Count);
+                    var found = await ReadRepositoryAsync(repository!, request.Interest, fileSlots, notes, deadline.Token);
                     items.AddRange(found);
                 }
                 catch (Exception ex) when (IsSourceFailure(ex))

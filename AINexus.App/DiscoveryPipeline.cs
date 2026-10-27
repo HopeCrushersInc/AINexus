@@ -6,7 +6,7 @@ namespace AINexus.App;
 public sealed record DiscoveryReport(OnlineDiscoverySnapshot Catalog, MachineCapabilities Machine,
     string TargetVolume, IReadOnlyList<CompatibilityRecommendation> Recommendations);
 
-public sealed class DiscoveryPipeline(IOnlineDiscoveryProvider provider, DiscoveryCacheStore cache)
+public sealed class DiscoveryPipeline(IOnlineDiscoveryProvider provider, DiscoveryCacheStore cache, CatalogDatabase? catalog = null)
 {
     public async Task<DiscoveryReport> SearchWorkloadsOnlineAsync(IEnumerable<DiscoveryInterest> interests,
         MachineCapabilities machine, string targetVolume, string query = "", CancellationToken token = default)
@@ -30,7 +30,7 @@ public sealed class DiscoveryPipeline(IOnlineDiscoveryProvider provider, Discove
                 notes.AddRange(report.Catalog.Notes.Select(note => name + ": " + note));
                 if (report.Catalog.RetrievedAt > retrievedAt) retrievedAt = report.Catalog.RetrievedAt;
             }
-            catch (Exception ex) when (ex is IOException or System.Net.Http.HttpRequestException)
+            catch (Exception ex) when (ex is IOException or InvalidDataException or System.Net.Http.HttpRequestException)
             {
                 notes.Add(name + ": source unavailable. " + ex.Message);
             }
@@ -49,6 +49,15 @@ public sealed class DiscoveryPipeline(IOnlineDiscoveryProvider provider, Discove
             catch (Exception ex) when (ex is IOException or InvalidDataException or UnauthorizedAccessException or JsonException)
             {
                 snapshot = snapshot with { Notes = snapshot.Notes.Append("Search results could not be saved; they are available in this session only.").ToArray() };
+            }
+            if (catalog is not null)
+            {
+                try { await catalog.UpsertDiscoveryAsync(snapshot, token); }
+                catch (Exception ex) when (ex is IOException or InvalidDataException or UnauthorizedAccessException or InvalidOperationException
+                    or ArgumentException or System.Text.Json.JsonException or Microsoft.Data.Sqlite.SqliteException)
+                {
+                    snapshot = snapshot with { Notes = snapshot.Notes.Append("The persistent catalog could not be updated; existing catalog data was preserved. " + ex.Message).ToArray() };
+                }
             }
         }
         return Evaluate(snapshot, machine, targetVolume, policy);

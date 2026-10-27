@@ -2,7 +2,12 @@
 
 User-visible changes are recorded here. Dates identify publication updates, not a promise that every feature was first implemented on that date.
 
-## Unreleased — Selected-workload searches
+## Unreleased — Persistent catalog and selected-workload searches
+
+- Added a persistent SQLite catalog connected to successful source searches. A pinned model artifact has one canonical identity with multiple task categories; retrieval dates, sources, sizes, hashes and licenses survive restarts. Stale updates cannot replace newer facts, and conflicting pinned identities roll back the import.
+- Added a Library view with offline text filtering, a local-receipt filter, source details and explicit source refresh in Discover. No entry is preselected; browsing starts no model or installation.
+- Linked private acquisition receipts from explicitly tracked folders without automatically hashing model weights. Missing files, size mismatches, receipt/source conflicts and unverified current integrity remain distinct. Private receipt-derived rows are not inserted into public metadata tables.
+- Added portable catalog location support, corruption/unknown-schema preservation and dependency notices. The initial catalog has a 10,000-entry limit; it is not yet a community feed, complete media requirements database or batch installer.
 
 - Confirming workload choices now starts a source search for every checked category, without requiring another category selection or search click. The initial hardware scan and selected drive are reused for local assessment; hardware details are not sent to search providers.
 - Default results show only estimated hardware-fit candidates. Unknown, insufficient-resource and unsupported-platform results remain available through an explicit review toggle with separate counts and category labels. No model is selected, downloaded, installed or started by discovery.

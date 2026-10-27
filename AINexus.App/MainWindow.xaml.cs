@@ -24,6 +24,7 @@ public partial class MainWindow : Window
         InitializeAgents();
         InitializeLlamaCppLifecycle();
         InitializeDiscovery();
+        InitializeCatalogLibrary();
         InitializeOfflineVerification();
         InitializeImages();
         InitializeWorkloadSetup();

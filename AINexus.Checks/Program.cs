@@ -45,6 +45,8 @@ internal static class Program
             OnlineDiscoveryChecks.RunAsync(Check).GetAwaiter().GetResult();
             DiscoveryPipelineChecks.RunAsync(Check).GetAwaiter().GetResult();
             WorkloadDiscoveryChecks.RunAsync(Check).GetAwaiter().GetResult();
+            CatalogDatabaseChecks.RunAsync(Check).GetAwaiter().GetResult();
+            CatalogLibraryIndexChecks.RunAsync(Check).GetAwaiter().GetResult();
             AcquisitionPlanChecks.RunAsync(Check).GetAwaiter().GetResult();
             ModelAcquisitionServiceChecks.RunAsync(Check).GetAwaiter().GetResult();
             OfflineVerificationChecks.RunAsync(Check).GetAwaiter().GetResult();
@@ -55,6 +57,12 @@ internal static class Program
             if (args.Contains("--discovery-live")) OnlineDiscoveryChecks.RunLiveAsync(Check).GetAwaiter().GetResult();
             if (args.Contains("--discovery-live")) DiscoveryPipelineChecks.RunLiveAsync(Check).GetAwaiter().GetResult();
             if (args.Contains("--selected-workloads-live")) WorkloadDiscoveryChecks.RunLiveAsync(Check).GetAwaiter().GetResult();
+            var catalogLiveIndex = Array.IndexOf(args, "--catalog-live");
+            if (catalogLiveIndex >= 0)
+            {
+                if (catalogLiveIndex + 1 >= args.Length) throw new ArgumentException("--catalog-live requires an explicit catalog folder.");
+                CatalogDatabaseChecks.RunLiveAsync(args[catalogLiveIndex + 1], Check).GetAwaiter().GetResult();
+            }
             if (args.Contains("--live")) HardwareCapabilityChecks.RunLiveAsync(Check).GetAwaiter().GetResult();
             var acquisitionIndex = Array.IndexOf(args, "--acquisition-live");
             var downloadIndex = Array.IndexOf(args, "--acquisition-download-live");
@@ -172,6 +180,7 @@ internal static class Program
         Check(window.FindName("CpuText") is TextBlock, "Hardware XAML loads");
         WorkloadSetupChecks.RunNative(window, Check);
         WorkloadDiscoveryChecks.RunNative(window, Check);
+        CatalogDatabaseChecks.RunNative(window, Check);
         ModelMaintenanceUiChecks.RunNative(window, Check);
         ModelRecoveryUiChecks.RunNative(window, Check);
         GuidedInstallChecks.RunNative(window, Check);

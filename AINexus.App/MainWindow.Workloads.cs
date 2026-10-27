@@ -66,6 +66,7 @@ public partial class MainWindow
         WorkloadOptionsPanel.Visibility = Visibility.Visible;
         RefreshWorkloadContinue();
         RefreshGuidedControls();
+        RenderCatalogLibraryRows();
     }
 
     private void RefreshWorkloadContinue() => WorkloadContinueButton.IsEnabled = !_discoveryBusy && _workloadMachine is not null

@@ -28,12 +28,15 @@ AI Nexus scans the computer, shows workload categories, and searches live intern
 | --- | --- |
 | Text/coding model discovery | Live public GGUF metadata with pinned source identities and resource estimates |
 | Other workload discovery | Live public tool-repository metadata; install adapters vary and are explicitly identified |
+| Persistent catalog and Library (local development build) | SQLite source catalog, merged task categories, offline browsing and private acquisition-receipt links |
 | Supported model acquisition | Exact-plan approval, size/SHA-256 verification, receipts and no overwrite of different files |
 | Runtime and local use | Explicit engine setup, local chat, image-engine configuration and owned-process controls |
 
 **Discovery is not installation. A search result is not a recommendation or proof of compatibility.** Automated installation is currently limited to implemented recipes; finding an art or music tool does not mean its installer is supported.
 
 Image/video discovery currently retrieves tool repositories, not complete offline model packages with verified requirements. Those results appear under compatibility review, never as established hardware-fit matches. The UI reports when no fit can be established; it does not substitute a text-model memory rule.
+
+The new Library keeps saved source facts separate from private local receipts. Browsing and filtering do not contact the internet, rehash large models, install software or start engines. A receipt means an acquisition was recorded; current integrity and successful offline execution need their own checks. See [catalog design and storage](docs/catalog.md). This work is not yet included in the linked preview.2 download.
 
 ## Preview limits
 

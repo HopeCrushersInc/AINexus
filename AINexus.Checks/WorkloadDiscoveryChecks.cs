@@ -169,7 +169,7 @@ internal static class WorkloadDiscoveryChecks
         finally { selectionWindow.Close(); if (Directory.Exists(root)) Directory.Delete(root, recursive: true); }
     }
 
-    private static void Pump(Func<Task> action)
+    internal static void Pump(Func<Task> action)
     {
         var dispatcher = Dispatcher.CurrentDispatcher;
         var prior = SynchronizationContext.Current;

@@ -171,6 +171,7 @@ public partial class MainWindow
                 : await _discoveryPipeline.LoadSavedAsync(request, _discoveryMachine!, volume.Path, token: token);
             token.ThrowIfCancellationRequested();
             RenderDiscoveryReport(report);
+            await RefreshCatalogLibraryAsync();
         });
     }
 
@@ -196,6 +197,7 @@ public partial class MainWindow
             var report = await _discoveryPipeline.SearchWorkloadsOnlineAsync(profile.Interests, machine, target, query, token);
             token.ThrowIfCancellationRequested();
             RenderDiscoveryReport(report);
+            await RefreshCatalogLibraryAsync();
         });
     }
 

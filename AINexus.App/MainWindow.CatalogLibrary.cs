@@ -147,6 +147,9 @@ public partial class MainWindow
     private void CatalogLibraryGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         if (CatalogDetailsText is null) return;
+        CatalogInstallationSelector.ItemsSource = (CatalogLibraryGrid.SelectedItem as CatalogLibraryRow)?.Installations;
+        CatalogInstallationSelector.SelectedIndex = -1;
+        RefreshCatalogLocalControls();
         CatalogSearchSourceButton.IsEnabled = CatalogLibraryGrid.SelectedItem is CatalogLibraryRow row
             && row.Record.Interests.Any(i => _workspaceProfile?.Interests.Contains(i) == true) && !_discoveryBusy;
         if (CatalogLibraryGrid.SelectedItem is not CatalogLibraryRow selected)

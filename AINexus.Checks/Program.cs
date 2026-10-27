@@ -78,7 +78,13 @@ internal static class Program
             if (imageIndex >= 0)
             {
                 if (imageIndex + 3 >= args.Length) throw new ArgumentException("--image-live requires the approved portable root, checkpoint name and output folder.");
-                ImageWorkflowChecks.RunLiveAsync(args[imageIndex + 1], args[imageIndex + 2], args[imageIndex + 3], Check).GetAwaiter().GetResult();
+                var imageSize = Array.IndexOf(args, "--image-size");
+                var imageWidth = 512; var imageHeight = 512;
+                if (imageSize >= 0 && (imageSize + 2 >= args.Length || !int.TryParse(args[imageSize + 1], out imageWidth)
+                    || !int.TryParse(args[imageSize + 2], out imageHeight)))
+                    throw new ArgumentException("--image-size requires integer width and height.");
+                ImageWorkflowChecks.RunLiveAsync(args[imageIndex + 1], args[imageIndex + 2], args[imageIndex + 3], Check,
+                    imageWidth, imageHeight).GetAwaiter().GetResult();
             }
             var archiveIndex = Array.IndexOf(args, "--runtime-archive-live");
             if (archiveIndex >= 0)
@@ -190,6 +196,13 @@ internal static class Program
             AppearancePreview.Capture(args[appearancePreview + 1]);
         }
         CatalogDatabaseChecks.RunNative(window, Check);
+        CatalogLaunchChecks.RunNative(Check);
+        var libraryLive = Array.IndexOf(args, "--library-model-live");
+        if (libraryLive >= 0)
+        {
+            if (libraryLive + 2 >= args.Length) throw new ArgumentException("--library-model-live requires an exact existing acquisition receipt and approved runtime path.");
+            CatalogLaunchLiveChecks.Run(args[libraryLive + 1], args[libraryLive + 2], Check);
+        }
         ModelMaintenanceUiChecks.RunNative(window, Check);
         ModelRecoveryUiChecks.RunNative(window, Check);
         GuidedInstallChecks.RunNative(window, Check);
@@ -207,6 +220,7 @@ internal static class Program
             GuidedInstallChecks.RunLive(args[featuredLive + 1], args[featuredLive + 2], args[featuredLive + 3], Check);
         }
         ImageWorkflowChecks.RunNative(window, Check);
+        ImageDimensionsChecks.RunNative(Check);
         RuntimeSetupChecks.RunNative(window, Check);
         RuntimeFilePlanChecks.RunNative(window, Check);
         RuntimeInstallationUiChecks.Run(window, Check);

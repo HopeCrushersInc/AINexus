@@ -121,8 +121,11 @@ internal static class ImageWorkflowChecks
             "Store navigation preserves access to existing local runtime features");
     }
 
-    public static async Task RunLiveAsync(string root, string checkpoint, string outputDirectory, Action<bool, string> check)
+    public static async Task RunLiveAsync(string root, string checkpoint, string outputDirectory, Action<bool, string> check,
+        int width = 512, int height = 512)
     {
+        if (width is < 256 or > 1024 || height is < 256 or > 1024 || width % 64 != 0 || height % 64 != 0)
+            throw new ArgumentException("Image live dimensions must be256–1024, in multiples of64.");
         using var server = new ComfyServerController();
         using var deadline = new CancellationTokenSource(TimeSpan.FromMinutes(10));
         try
@@ -136,15 +139,21 @@ internal static class ImageWorkflowChecks
             var admission = new ResourcePolicy(MinimumAvailableRamGb: 2).Evaluate(await monitor.SampleAsync(deadline.Token));
             check(admission.Allowed, "Actual available resources admit one explicit image smoke test");
             var result = await client.GenerateAsync(Endpoint, checkpoint,
-                "A small red cabin beside a quiet mountain lake at sunrise, pine forest, landscape photography, soft natural light, detailed", "text, watermark, blurry", 512, 512, 20, 42753, deadline.Token);
+                "A small red cabin beside a quiet mountain lake at sunrise, pine forest, landscape photography, soft natural light, detailed", "text, watermark, blurry", width, height, 20, 42753, deadline.Token);
             ComfyImageClient.ValidatePng(result.Png);
+            using (var decodedStream = new MemoryStream(result.Png))
+            {
+                var decoded = BitmapDecoder.Create(decodedStream, BitmapCreateOptions.PreservePixelFormat, BitmapCacheOption.OnLoad);
+                check(decoded.Frames[0].PixelWidth == width && decoded.Frames[0].PixelHeight == height,
+                    "Actual local image pixels match the explicitly requested width and height");
+            }
             Directory.CreateDirectory(outputDirectory);
             var path = Path.Combine(outputDirectory, "AINexus-" + result.JobId + ".png");
             await using (var file = new FileStream(path, FileMode.CreateNew, FileAccess.Write, FileShare.None))
                 await file.WriteAsync(result.Png, deadline.Token);
             var evidence = new { result.JobId, result.Checkpoint, result.Prompt, result.Seed, result.CompletedAt, inventory.Version,
                 ImagePath = path, Sha256 = Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(result.Png)), Bytes = result.Png.Length,
-                Width = 512, Height = 512, Steps = 20, Endpoint = Endpoint.ToString(), NoCloudInferenceRequested = true,
+                Width = width, Height = height, Steps = 20, Endpoint = Endpoint.ToString(), NoCloudInferenceRequested = true,
                 Limitation = "Local runtime generation and PNG decoding verified; this is not a Windows network-isolation test or a benchmark." };
             await File.WriteAllTextAsync(Path.ChangeExtension(path, ".json"), JsonSerializer.Serialize(evidence, new JsonSerializerOptions { WriteIndented = true }), deadline.Token);
             check(result.Png.Length > 1024, "Actual local image job completes and returns a decoded PNG rather than a placeholder");

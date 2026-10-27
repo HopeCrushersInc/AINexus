@@ -59,7 +59,7 @@ public partial class MainWindow
         WorkloadHardwareText.Text = $"{machine.Hardware.CpuName}\n{ram} · {machine.OsArchitecture}\n" +
             string.Join("\n", machine.Hardware.Gpus.Select(gpu => gpu.Name + (gpu.VramGb is { } vram ? $" · {vram:N1} GiB VRAM" : " · VRAM unavailable"))) +
             "\n" + string.Join(" · ", machine.Volumes.Select(volume => $"{volume.Path} {volume.AvailableBytes / 1073741824d:N1} GiB free"));
-        WorkloadScanStatusText.Text = "Hardware scan finished. Choose what you want to do next. Missing hardware details remain unknown; this scan does not establish model compatibility.";
+        WorkloadScanStatusText.Text = "Hardware scan finished. Choose tasks below; model requirements are assessed separately.";
         var choices = VerifiedOnlineDiscoveryProvider.Workflows.Select(workflow => new WorkloadChoice(workflow)).ToArray();
         foreach (var choice in choices) choice.PropertyChanged += (_, _) => RefreshWorkloadContinue();
         WorkloadChoices.ItemsSource = choices;
@@ -89,7 +89,7 @@ public partial class MainWindow
             "DiscoveryTab",
             true)).ToArray();
         StoreNavigation.Visibility = Visibility.Visible;
-        StoreSetupNoticeText.Text = "Searching your selected workloads against the hardware scan. Choose a result and review each download before proceeding.";
+        StoreSetupNoticeText.Text = "Tasks selected. Choose a result in Discover, or open your library. Downloads still require your approval.";
         DiscoveryTab.IsSelected = true;
     }
 

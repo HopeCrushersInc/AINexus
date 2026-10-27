@@ -109,7 +109,7 @@
                 </StackPanel></Expander>
             </StackPanel></ScrollViewer>
         </DockPanel></Border>
-        <Grid Grid.Column="1"><Grid.RowDefinitions><RowDefinition Height="72"/><RowDefinition/></Grid.RowDefinitions>
+        <Grid Grid.Column="1"><Grid.RowDefinitions><RowDefinition Height="Auto" MinHeight="72"/><RowDefinition/></Grid.RowDefinitions>
                         <Border BorderBrush="{DynamicResource NexusBorderBrush}" BorderThickness="0,0,0,1" Padding="24,14"><DockPanel>
                 <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
                     <TextBlock x:Name="UiScaleText" Text="100%" FontSize="{DynamicResource NexusFontSize12}" VerticalAlignment="Center" Margin="0,0,12,0" ToolTip="Shift + mouse wheel changes text and button size"/>

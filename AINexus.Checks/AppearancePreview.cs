@@ -38,6 +38,10 @@ internal static class AppearancePreview
             host.FontSize = subject.FontSize;
             await Dispatcher.Yield(DispatcherPriority.ApplicationIdle); host.UpdateLayout();
             Save(host, Path.Combine(directory, "retro-150-percent.png"));
+            subject.HandleUiScaleWheel(true, 360);
+            host.FontSize = subject.FontSize;
+            await Dispatcher.Yield(DispatcherPriority.ApplicationIdle); host.UpdateLayout();
+            Save(host, Path.Combine(directory, "retro-175-percent.png"));
             subject.ResetUiScale();
             subject.ApplyAppearanceSelection(NexusAppearanceMode.Standard, false);
             typeof(MainWindow).GetField("_workspaceConfigured", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!.SetValue(subject, false);

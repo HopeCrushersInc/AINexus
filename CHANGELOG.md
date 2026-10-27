@@ -2,6 +2,11 @@
 
 User-visible changes are recorded here. Dates identify publication updates, not a promise that every feature was first implemented on that date.
 
+## Repository presentation update
+
+- Replaced the long landing page with a download-first guide, actual Qwen32B chat screenshot, short setup instructions, working-feature table and explicit preview limits.
+- Preserved detailed implementation and opt-in test documentation in docs/technical-overview.md.
+
 ## 0.2.0-preview.1 — 2026-10-26
 
 - Added prominent model cards and a guided download → engine setup → load → chat path. Advanced workspace choices are collapsed; no workload or adult-model option is preselected.

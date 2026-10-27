@@ -28,6 +28,7 @@ internal static class Program
             LargeModelStartupChecks.RunAsync(Check).GetAwaiter().GetResult();
             GuidedRuntimeSetupChecks.RunAsync(Check).GetAwaiter().GetResult();
             GpuPowerPolicyChecks.RunAsync(Check).GetAwaiter().GetResult();
+            AppearanceChecks.Run(Check);
             AgentChecks.RunAsync(Check).GetAwaiter().GetResult();
             LlamaCppChecks.RunAsync(Check).GetAwaiter().GetResult();
             LlamaServerChecks.RunAsync(Check).GetAwaiter().GetResult();
@@ -181,6 +182,13 @@ internal static class Program
         WorkloadSetupChecks.RunNative(window, Check);
         WorkloadDiscoveryChecks.RunNative(window, Check);
         GpuPowerUiChecks.RunNative(Check);
+        AppearanceChecks.RunNative(window, Check);
+        var appearancePreview = Array.IndexOf(args, "--appearance-preview");
+        if (appearancePreview >= 0)
+        {
+            if (appearancePreview + 1 >= args.Length) throw new ArgumentException("--appearance-preview requires an output folder.");
+            AppearancePreview.Capture(args[appearancePreview + 1]);
+        }
         CatalogDatabaseChecks.RunNative(window, Check);
         ModelMaintenanceUiChecks.RunNative(window, Check);
         ModelRecoveryUiChecks.RunNative(window, Check);

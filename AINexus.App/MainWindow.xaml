@@ -3,16 +3,17 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:local="clr-namespace:AINexus.App"
         Title="AI Nexus Portal" Height="900" Width="1440"
-        MinHeight="650" MinWidth="950" Background="#090D16" Foreground="#E6F7FF"
-        FontFamily="Segoe UI" FontSize="14" WindowStartupLocation="CenterScreen">
+        MinHeight="650" MinWidth="950" Background="{DynamicResource NexusBackgroundBrush}" Foreground="{DynamicResource NexusTextBrush}"
+        FontFamily="{DynamicResource NexusFontFamily}" FontSize="{DynamicResource NexusBaseFontSize}" WindowStartupLocation="CenterScreen"
+        ResizeMode="CanResize" WindowStyle="SingleBorderWindow" PreviewMouseWheel="Window_PreviewMouseWheel">
     <Window.Resources>
         <DataTemplate x:Key="FeaturedModelCard">
             <Border Background="#152538" BorderBrush="#31506B" BorderThickness="1" CornerRadius="12" Padding="22" Margin="0,0,12,12">
                 <StackPanel>
-                    <TextBlock Text="{Binding NsfwLabel}" Foreground="#F4B87A" FontWeight="SemiBold" TextWrapping="Wrap"/>
-                    <TextBlock Text="{Binding Name}" FontSize="24" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,6,0,8"/>
+                    <TextBlock Text="{Binding NsfwLabel}" Foreground="{DynamicResource NexusSecondaryBrush}" FontWeight="SemiBold" TextWrapping="Wrap"/>
+                    <TextBlock Text="{Binding Name}" FontSize="{DynamicResource NexusFontSize24}" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,6,0,8"/>
                     <TextBlock Text="{Binding Description}" Foreground="#B3C5D6" TextWrapping="Wrap" MinHeight="56"/>
-                    <TextBlock Text="{Binding LicenseNote}" Foreground="#8CA6BC" TextWrapping="Wrap" Margin="0,12,0,14"/>
+                    <TextBlock Text="{Binding LicenseNote}" Foreground="{DynamicResource NexusMutedBrush}" TextWrapping="Wrap" Margin="0,12,0,14"/>
                     <Button Content="Install and chat" Tag="{Binding}" Click="FeaturedModelInstall_Click" HorizontalAlignment="Left" Background="#246C94"/>
                 </StackPanel>
             </Border>
@@ -21,35 +22,35 @@
         <SolidColorBrush x:Key="BorderBrush" Color="#26394E"/>
         <SolidColorBrush x:Key="AccentBrush" Color="#66C0F4"/>
         <Style x:Key="PanelStyle" TargetType="Border">
-            <Setter Property="Background" Value="{StaticResource PanelBrush}"/>
-            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
+            <Setter Property="Background" Value="{DynamicResource NexusPanelBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource NexusBorderBrush}"/>
             <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="CornerRadius" Value="10"/>
+            <Setter Property="CornerRadius" Value="{DynamicResource NexusCornerRadius}"/>
             <Setter Property="Padding" Value="18"/>
             <Setter Property="Margin" Value="0,0,14,14"/>
         </Style>
         <Style x:Key="MetricLabelStyle" TargetType="TextBlock">
-            <Setter Property="Foreground" Value="#8CA6BC"/>
-            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Foreground" Value="{DynamicResource NexusMutedBrush}"/>
+            <Setter Property="FontSize" Value="{DynamicResource NexusFontSize12}"/>
             <Setter Property="Margin" Value="0,0,0,8"/>
         </Style>
         <Style x:Key="MetricValueStyle" TargetType="TextBlock">
-            <Setter Property="Foreground" Value="{StaticResource AccentBrush}"/>
-            <Setter Property="FontSize" Value="20"/>
+            <Setter Property="Foreground" Value="{DynamicResource NexusAccentBrush}"/>
+            <Setter Property="FontSize" Value="{DynamicResource NexusFontSize20}"/>
             <Setter Property="TextWrapping" Value="Wrap"/>
         </Style>
         <Style TargetType="TabItem">
-            <Setter Property="Foreground" Value="#8CA6BC"/>
-            <Setter Property="Background" Value="#182638"/>
+            <Setter Property="Foreground" Value="{DynamicResource NexusMutedBrush}"/>
+            <Setter Property="Background" Value="{DynamicResource NexusPanelBrush}"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="TabItem">
-                        <Border Background="{TemplateBinding Background}" BorderBrush="#315A6D" BorderThickness="1" Padding="{TemplateBinding Padding}" Margin="0,0,6,0">
+                        <Border Background="{TemplateBinding Background}" BorderBrush="{DynamicResource NexusBorderBrush}" BorderThickness="1" Padding="{TemplateBinding Padding}" Margin="0,0,6,0">
                             <ContentPresenter ContentSource="Header" RecognizesAccessKey="True"/>
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsSelected" Value="True">
-                                <Setter Property="Foreground" Value="#66C0F4"/>
+                                <Setter Property="Foreground" Value="{DynamicResource NexusAccentBrush}"/>
                                 <Setter Property="Background" Value="#153443"/>
                             </Trigger>
                             <Trigger Property="IsKeyboardFocused" Value="True">
@@ -62,38 +63,42 @@
         </Style>
 
         <Style TargetType="Button">
-            <Setter Property="Background" Value="#28445D"/><Setter Property="Foreground" Value="#F4F8FC"/>
-            <Setter Property="BorderThickness" Value="0"/><Setter Property="Padding" Value="16,10"/>
-            <Setter Property="Cursor" Value="Hand"/><Setter Property="MinHeight" Value="38"/>
+            <Setter Property="FontSize" Value="{DynamicResource NexusBaseFontSize}"/>
+            <Setter Property="Background" Value="{DynamicResource NexusButtonBrush}"/><Setter Property="Foreground" Value="{DynamicResource NexusTextBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/><Setter Property="BorderBrush" Value="{DynamicResource NexusBorderBrush}"/><Setter Property="Padding" Value="{DynamicResource NexusButtonPadding}"/>
+            <Setter Property="Cursor" Value="Hand"/><Setter Property="MinHeight" Value="{DynamicResource NexusButtonMinHeight}"/>
             <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Button">
-                <Border x:Name="ButtonSurface" Background="{TemplateBinding Background}" CornerRadius="5" Padding="{TemplateBinding Padding}"><ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
-                <ControlTemplate.Triggers><Trigger Property="IsMouseOver" Value="True"><Setter TargetName="ButtonSurface" Property="Background" Value="#3A6586"/></Trigger><Trigger Property="IsEnabled" Value="False"><Setter Property="Opacity" Value="0.42"/></Trigger><Trigger Property="IsKeyboardFocused" Value="True"><Setter TargetName="ButtonSurface" Property="BorderBrush" Value="#66C0F4"/><Setter TargetName="ButtonSurface" Property="BorderThickness" Value="2"/></Trigger></ControlTemplate.Triggers>
+                <Border x:Name="ButtonSurface" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="{DynamicResource NexusCornerRadius}" Padding="{TemplateBinding Padding}"><ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
+                <ControlTemplate.Triggers><Trigger Property="IsMouseOver" Value="True"><Setter TargetName="ButtonSurface" Property="Background" Value="{DynamicResource NexusHoverBrush}"/></Trigger><Trigger Property="IsEnabled" Value="False"><Setter Property="Opacity" Value="0.42"/></Trigger><Trigger Property="IsKeyboardFocused" Value="True"><Setter TargetName="ButtonSurface" Property="BorderBrush" Value="{DynamicResource NexusAccentBrush}"/><Setter TargetName="ButtonSurface" Property="BorderThickness" Value="2"/></Trigger></ControlTemplate.Triggers>
             </ControlTemplate></Setter.Value></Setter>
         </Style>
-        <Style TargetType="TextBox"><Setter Property="Background" Value="#101C2A"/><Setter Property="Foreground" Value="#E6EEF8"/><Setter Property="BorderBrush" Value="#3A5068"/><Setter Property="CaretBrush" Value="White"/><Setter Property="Padding" Value="10"/><Setter Property="VerticalContentAlignment" Value="Center"/></Style>
-        <Style TargetType="ComboBox"><Setter Property="Foreground" Value="#172536"/><Setter Property="Background" Value="#DCE7F2"/><Setter Property="MinHeight" Value="38"/><Setter Property="VerticalContentAlignment" Value="Center"/></Style>
-        <Style TargetType="DataGrid"><Setter Property="RowBackground" Value="#19283A"/><Setter Property="AlternatingRowBackground" Value="#1C2E41"/><Setter Property="Foreground" Value="#E6EEF8"/><Setter Property="GridLinesVisibility" Value="None"/><Setter Property="RowHeight" Value="48"/><Setter Property="BorderThickness" Value="0"/></Style>
-        <Style TargetType="DataGridColumnHeader"><Setter Property="Background" Value="#24374D"/><Setter Property="Foreground" Value="#B7C9DB"/><Setter Property="Padding" Value="12,10"/><Setter Property="BorderThickness" Value="0"/></Style>
-        <Style TargetType="DataGridCell"><Setter Property="BorderThickness" Value="0"/><Setter Property="Padding" Value="10,6"/><Setter Property="Foreground" Value="#E6EEF8"/></Style>
-        <Style x:Key="NavStyle" TargetType="RadioButton"><Setter Property="Foreground" Value="#AABFD4"/><Setter Property="Margin" Value="0,2"/><Setter Property="Cursor" Value="Hand"/><Setter Property="Template"><Setter.Value><ControlTemplate TargetType="RadioButton"><Border x:Name="NavSurface" Padding="18,13" CornerRadius="6" Background="Transparent"><ContentPresenter/></Border><ControlTemplate.Triggers><Trigger Property="IsChecked" Value="True"><Setter TargetName="NavSurface" Property="Background" Value="#24445D"/><Setter Property="Foreground" Value="White"/></Trigger><Trigger Property="IsMouseOver" Value="True"><Setter TargetName="NavSurface" Property="Background" Value="#20364B"/></Trigger></ControlTemplate.Triggers></ControlTemplate></Setter.Value></Setter></Style>
+        <Style TargetType="TextBox"><Setter Property="FontSize" Value="{DynamicResource NexusBaseFontSize}"/><Setter Property="Background" Value="#101C2A"/><Setter Property="Foreground" Value="{DynamicResource NexusTextBrush}"/><Setter Property="BorderBrush" Value="#3A5068"/><Setter Property="CaretBrush" Value="White"/><Setter Property="Padding" Value="10"/><Setter Property="VerticalContentAlignment" Value="Center"/></Style>
+        <Style TargetType="ComboBox"><Setter Property="FontSize" Value="{DynamicResource NexusBaseFontSize}"/><Setter Property="Foreground" Value="#172536"/><Setter Property="Background" Value="#DCE7F2"/><Setter Property="MinHeight" Value="38"/><Setter Property="VerticalContentAlignment" Value="Center"/></Style>
+        <Style TargetType="DataGrid"><Setter Property="FontSize" Value="{DynamicResource NexusBaseFontSize}"/><Setter Property="RowBackground" Value="#19283A"/><Setter Property="AlternatingRowBackground" Value="#1C2E41"/><Setter Property="Foreground" Value="{DynamicResource NexusTextBrush}"/><Setter Property="GridLinesVisibility" Value="None"/><Setter Property="RowHeight" Value="{DynamicResource NexusRowHeight}"/><Setter Property="BorderThickness" Value="0"/></Style>
+        <Style TargetType="DataGridColumnHeader"><Setter Property="Background" Value="{DynamicResource NexusButtonBrush}"/><Setter Property="Foreground" Value="{DynamicResource NexusMutedBrush}"/><Setter Property="Padding" Value="12,10"/><Setter Property="BorderThickness" Value="0"/></Style>
+        <Style TargetType="DataGridCell"><Setter Property="BorderThickness" Value="0"/><Setter Property="Padding" Value="10,6"/><Setter Property="Foreground" Value="{DynamicResource NexusTextBrush}"/></Style>
+        <Style x:Key="NavStyle" TargetType="RadioButton"><Setter Property="FontSize" Value="{DynamicResource NexusBaseFontSize}"/><Setter Property="Foreground" Value="{DynamicResource NexusMutedBrush}"/><Setter Property="Margin" Value="0,2"/><Setter Property="Cursor" Value="Hand"/><Setter Property="Template"><Setter.Value><ControlTemplate TargetType="RadioButton"><Border x:Name="NavSurface" Padding="{DynamicResource NexusNavPadding}" CornerRadius="{DynamicResource NexusCornerRadius}" Background="{DynamicResource NexusButtonBrush}" BorderBrush="{DynamicResource NexusBorderBrush}" BorderThickness="1"><ContentPresenter/></Border><ControlTemplate.Triggers><Trigger Property="IsChecked" Value="True"><Setter TargetName="NavSurface" Property="Background" Value="{DynamicResource NexusSelectedBrush}"/><Setter Property="Foreground" Value="White"/></Trigger><Trigger Property="IsMouseOver" Value="True"><Setter TargetName="NavSurface" Property="Background" Value="{DynamicResource NexusHoverBrush}"/></Trigger></ControlTemplate.Triggers></ControlTemplate></Setter.Value></Setter></Style>
+        <Style TargetType="Menu"><Setter Property="FontSize" Value="{DynamicResource NexusBaseFontSize}"/></Style>
+        <Style TargetType="MenuItem"><Setter Property="FontSize" Value="{DynamicResource NexusBaseFontSize}"/><Setter Property="Foreground" Value="{DynamicResource NexusTextBrush}"/><Setter Property="Background" Value="{DynamicResource NexusPanelBrush}"/><Setter Property="Padding" Value="8,5"/></Style>
     </Window.Resources>
-    <Grid>
-        <Grid.ColumnDefinitions><ColumnDefinition Width="212"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
-        <Border Background="#131F2D" Padding="16,24"><DockPanel LastChildFill="True">
-            <StackPanel DockPanel.Dock="Top" Margin="8,0,0,30"><TextBlock Text="AI NEXUS" FontSize="24" FontWeight="Bold" Foreground="#66C0F4"/><TextBlock Text="Your local AI workspace" Foreground="#829AB2" FontSize="12" Margin="0,5,0,0"/></StackPanel>
-            <TextBlock DockPanel.Dock="Bottom" Text="Local first. Yours to control." Foreground="#6F879E" FontSize="11" Margin="8,20,0,0"/>
+    <Grid x:Name="AppContentRoot">
+        <Grid.ColumnDefinitions><ColumnDefinition x:Name="SidebarColumn" Width="{DynamicResource NexusSidebarWidth}"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+        <local:NexusBackdrop x:Name="SpaceBackdrop" Grid.ColumnSpan="2"/>
+        <Border Background="{DynamicResource NexusPanelBrush}" Padding="16,24"><DockPanel LastChildFill="True">
+            <StackPanel DockPanel.Dock="Top" Margin="8,0,0,30"><TextBlock Text="AI NEXUS" FontSize="{DynamicResource NexusFontSize24}" FontWeight="Bold" Foreground="{DynamicResource NexusAccentBrush}"/><TextBlock Text="Your local AI workspace" Foreground="{DynamicResource NexusMutedBrush}" FontSize="{DynamicResource NexusFontSize12}" Margin="0,5,0,0"/></StackPanel>
+            <TextBlock DockPanel.Dock="Bottom" Text="Local first. Yours to control." Foreground="{DynamicResource NexusMutedBrush}" FontSize="{DynamicResource NexusFontSize11}" TextWrapping="Wrap" Margin="8,20,0,0"/>
             <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"><StackPanel x:Name="StoreNavigation" Visibility="Collapsed">
                 <RadioButton x:Name="HomeNav" Style="{StaticResource NavStyle}" GroupName="StoreNav" Content="Home" Tag="StoreHomeTab" IsChecked="True" Click="StoreNavigate_Click"/>
                 <RadioButton Style="{StaticResource NavStyle}" GroupName="StoreNav" Content="Chat" Tag="ChatTab" Click="StoreNavigate_Click"/>
                 <RadioButton Style="{StaticResource NavStyle}" GroupName="StoreNav" Content="Discover" Tag="DiscoveryTab" Click="StoreNavigate_Click"/>
                 <RadioButton Style="{StaticResource NavStyle}" GroupName="StoreNav" Content="Library" Tag="CatalogLibraryTab" Click="StoreNavigate_Click"/>
-                <TextBlock x:Name="CreateWorkspaceHeading" Text="CREATE" Foreground="#637E98" FontSize="11" Margin="18,25,0,7"/>
+                <TextBlock x:Name="CreateWorkspaceHeading" Text="CREATE" Foreground="{DynamicResource NexusMutedBrush}" FontSize="{DynamicResource NexusFontSize11}" Margin="18,25,0,7"/>
                 <RadioButton x:Name="ImageWorkspaceNav" Style="{StaticResource NavStyle}" GroupName="StoreNav" Content="Images" Visibility="Collapsed" Tag="ImageStudioTab" Click="StoreNavigate_Click"/>
                 <RadioButton x:Name="AssistantWorkspaceNav" Style="{StaticResource NavStyle}" GroupName="StoreNav" Content="Assistant" Visibility="Collapsed" Tag="AssistantTab" Click="StoreNavigate_Click"/>
-                <TextBlock Text="MANAGE" Foreground="#637E98" FontSize="11" Margin="18,25,0,7"/>
+                <TextBlock Text="MANAGE" Foreground="{DynamicResource NexusMutedBrush}" FontSize="{DynamicResource NexusFontSize11}" Margin="18,25,0,7"/>
                 <RadioButton Style="{StaticResource NavStyle}" GroupName="StoreNav" Content="Downloads &amp; setup" Tag="DownloadsTab" Click="StoreNavigate_Click"/>
                 <RadioButton Style="{StaticResource NavStyle}" GroupName="StoreNav" Content="Performance" Tag="ResourcesTab" Click="StoreNavigate_Click"/>
-                <Expander Header="Advanced tools" Foreground="#829AB2" Margin="16,24,0,0"><StackPanel>
+                <Expander Header="Advanced tools" Foreground="{DynamicResource NexusMutedBrush}" Margin="16,24,0,0"><StackPanel>
                     <Button Content="This computer" Tag="HardwareTab" Click="StoreNavigate_Click" Margin="0,8,0,4"/>
                     <Button Content="Installed tools" Tag="SoftwareTab" Click="StoreNavigate_Click" Margin="0,0,0,4"/>
                     <Button Content="Local model server" Tag="LlamaCppTab" Click="StoreNavigate_Click" Margin="0,0,0,4"/>
@@ -104,52 +109,70 @@
                 </StackPanel></Expander>
             </StackPanel></ScrollViewer>
         </DockPanel></Border>
-        <Grid Grid.Column="1"><Grid.RowDefinitions><RowDefinition Height="72"/><RowDefinition/></Grid.RowDefinitions>
-            <Border BorderBrush="#26394E" BorderThickness="0,0,0,1" Padding="28,18"><DockPanel><TextBlock DockPanel.Dock="Right" Text="ON YOUR COMPUTER" Foreground="#6F879E" FontSize="11" VerticalAlignment="Center"/><TextBlock x:Name="StorePageTitleText" Text="Home" FontSize="24" FontWeight="SemiBold"/></DockPanel></Border>
-            <TabControl x:Name="WorkspaceTabs" Grid.Row="1" Background="#101925" Foreground="#E6EEF8" BorderThickness="0" SelectionChanged="WorkspaceTabs_SelectionChanged">
+        <Grid Grid.Column="1"><Grid.RowDefinitions><RowDefinition Height="Auto" MinHeight="72"/><RowDefinition/></Grid.RowDefinitions>
+                        <Border BorderBrush="{DynamicResource NexusBorderBrush}" BorderThickness="0,0,0,1" Padding="24,14"><DockPanel>
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock x:Name="UiScaleText" Text="100%" FontSize="{DynamicResource NexusFontSize12}" VerticalAlignment="Center" Margin="0,0,12,0" ToolTip="Shift + mouse wheel changes text and button size"/>
+                    <Menu Background="Transparent" Foreground="{DynamicResource NexusTextBrush}">
+                        <MenuItem Header="_Appearance">
+                            <MenuItem x:Name="AppearanceStandardMenuItem" Header="_Standard" IsCheckable="True" Click="AppearanceStandard_Click"/>
+                            <MenuItem x:Name="AppearanceLcarsMenuItem" Header="_LCARS" IsCheckable="True" Click="AppearanceLcars_Click"/>
+                        </MenuItem>
+                        <MenuItem Header="_Size">
+                            <MenuItem Header="Larger text and buttons" Click="UiScaleLarger_Click"/>
+                            <MenuItem Header="Smaller text and buttons" Click="UiScaleSmaller_Click"/>
+                            <Separator/>
+                            <MenuItem Header="Reset to 100%" Click="UiScaleReset_Click"/>
+                        </MenuItem>
+                    </Menu>
+                </StackPanel>
+                <TextBlock x:Name="StorePageTitleText" Text="Home" FontSize="{DynamicResource NexusFontSize24}" FontWeight="SemiBold"/>
+            </DockPanel></Border>
+            <TabControl x:Name="WorkspaceTabs" Grid.Row="1" Background="Transparent" Foreground="{DynamicResource NexusTextBrush}" BorderThickness="0" SelectionChanged="WorkspaceTabs_SelectionChanged">
                 <TabControl.Template><ControlTemplate TargetType="TabControl"><Border Background="{TemplateBinding Background}"><Grid><TabPanel IsItemsHost="True" Height="0" ClipToBounds="True" VerticalAlignment="Top"/><ContentPresenter x:Name="PART_SelectedContentHost" ContentSource="SelectedContent" Margin="0"/></Grid></Border></ControlTemplate></TabControl.Template>
 
 
-        <TabItem x:Name="WorkloadSetupTab" Header="Set up your workspace"><ScrollViewer VerticalScrollBarVisibility="Auto"><StackPanel Margin="32">
-            <TextBlock Text="Let's build your AI workspace" FontSize="30" FontWeight="SemiBold"/>
-            <TextBlock Text="Scan this computer → Choose your workloads → Review compatible tools → Approve downloads" Foreground="#AABFD4" TextWrapping="Wrap" Margin="0,12,0,24"/>
+        <TabItem x:Name="WorkloadSetupTab" Header="Set up your workspace"><Grid><Grid.RowDefinitions><RowDefinition/><RowDefinition Height="Auto"/></Grid.RowDefinitions><ScrollViewer VerticalScrollBarVisibility="Auto"><StackPanel Margin="32">
+            <TextBlock Text="Choose your tasks" FontSize="{DynamicResource NexusFontSize30}" FontWeight="SemiBold"/>
+            <TextBlock Text="Scan this computer → Choose your workloads → Review compatible tools → Approve downloads" Foreground="{DynamicResource NexusMutedBrush}" TextWrapping="Wrap" Margin="0,12,0,24"/>
             <Border Style="{StaticResource PanelStyle}"><StackPanel>
-                <DockPanel><Button x:Name="WorkloadRescanButton" DockPanel.Dock="Right" Content="Rescan hardware" Click="WorkloadRescanButton_Click" IsEnabled="False" Margin="12,0,0,0"/><TextBlock Text="1. Your hardware" FontSize="22" FontWeight="SemiBold"/></DockPanel>
+                <DockPanel><Button x:Name="WorkloadRescanButton" DockPanel.Dock="Right" Content="Rescan hardware" Click="WorkloadRescanButton_Click" IsEnabled="False" Margin="12,0,0,0"/><TextBlock Text="1. Your hardware" FontSize="{DynamicResource NexusFontSize22}" FontWeight="SemiBold"/></DockPanel>
                 <ProgressBar x:Name="WorkloadScanProgress" IsIndeterminate="True" Height="4" Margin="0,16,0,12"/>
-                <TextBlock x:Name="WorkloadHardwareText" Text="Waiting for the local hardware scan..." Foreground="#E6EEF8" TextWrapping="Wrap" Margin="0,8,0,12"/>
-                <TextBlock x:Name="WorkloadScanStatusText" Text="The hardware scan runs first. No downloads, installs or engines will start." Foreground="#AABFD4" TextWrapping="Wrap"/>
+                <TextBlock x:Name="WorkloadHardwareText" Text="Waiting for the local hardware scan..." Foreground="{DynamicResource NexusTextBrush}" TextWrapping="Wrap" Margin="0,8,0,12"/>
+                <TextBlock x:Name="WorkloadScanStatusText" Text="The hardware scan runs first. No downloads, installs or engines will start." Foreground="{DynamicResource NexusMutedBrush}" TextWrapping="Wrap"/>
             </StackPanel></Border>
             <StackPanel x:Name="WorkloadOptionsPanel" Visibility="Collapsed" Margin="0,16,0,0">
-                <TextBlock Text="2. Choose what you want to do" FontSize="24" FontWeight="SemiBold" Margin="0,6,0,8"/>
-                <TextBlock Text="Choose one or more interests, then find online choices. Nexus searches every selected category and checks the results against this hardware scan. This does not approve any download." Foreground="#AABFD4" TextWrapping="Wrap" Margin="0,0,0,16"/>
-                <ItemsControl x:Name="WorkloadChoices"><ItemsControl.ItemsPanel><ItemsPanelTemplate><UniformGrid Columns="2"/></ItemsPanelTemplate></ItemsControl.ItemsPanel><ItemsControl.ItemTemplate><DataTemplate>
-                    <Border Style="{StaticResource PanelStyle}"><CheckBox IsChecked="{Binding Selected, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Foreground="#E6EEF8" VerticalContentAlignment="Top"><StackPanel Margin="6,0,0,0"><TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="17" TextWrapping="Wrap"/><TextBlock Text="{Binding Description}" Foreground="#AABFD4" TextWrapping="Wrap" Margin="0,8,0,0"/></StackPanel></CheckBox></Border>
+                <TextBlock Text="2. Choose what you want to do" FontSize="{DynamicResource NexusFontSize24}" FontWeight="SemiBold" Margin="0,6,0,8"/>
+                <TextBlock Text="Choose one or more interests, then find online choices. Nexus searches every selected category and checks the results against this hardware scan. This does not approve any download." Foreground="{DynamicResource NexusMutedBrush}" TextWrapping="Wrap" Margin="0,0,0,16"/>
+                                <ItemsControl x:Name="WorkloadChoices"><ItemsControl.ItemsPanel><ItemsPanelTemplate><UniformGrid Columns="2"/></ItemsPanelTemplate></ItemsControl.ItemsPanel><ItemsControl.ItemTemplate><DataTemplate>
+                    <CheckBox IsChecked="{Binding Selected, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Foreground="{DynamicResource NexusTextBrush}" VerticalContentAlignment="Center" Margin="0,5,20,5" Padding="8,4" ToolTip="{Binding Description}"><TextBlock Text="{Binding Name}" FontSize="{DynamicResource NexusFontSize17}" TextWrapping="Wrap"/></CheckBox>
                 </DataTemplate></ItemsControl.ItemTemplate></ItemsControl>
-                <Button x:Name="WorkloadContinueButton" Content="Find online choices" Click="WorkloadContinueButton_Click" Background="#286E9A" HorizontalAlignment="Left" IsEnabled="False" Margin="0,8,0,12"/>
-                <TextBlock Text="You will choose specific tools and models next. Nothing is installed or loaded until you explicitly ask." Foreground="#829AB2" TextWrapping="Wrap"/>
+                <TextBlock Text="You will choose specific tools and models next. Nothing is installed or loaded until you explicitly ask." Foreground="{DynamicResource NexusMutedBrush}" TextWrapping="Wrap"/>
             </StackPanel>
-</StackPanel></ScrollViewer></TabItem>
+</StackPanel></ScrollViewer>
+<Border Grid.Row="1" Padding="28,10" Background="{DynamicResource NexusPanelBrush}" Visibility="{Binding Visibility, ElementName=WorkloadOptionsPanel}"><DockPanel><Button x:Name="WorkloadContinueButton" DockPanel.Dock="Left" Content="Find online choices" Click="WorkloadContinueButton_Click" IsEnabled="False" Margin="0,0,18,0"/><TextBlock Text="Search your chosen tasks. Review and approve any download separately." VerticalAlignment="Center" TextWrapping="Wrap" Foreground="{DynamicResource NexusMutedBrush}"/></DockPanel></Border>
+</Grid></TabItem>
 <TabItem x:Name="CatalogTab" Header="Legacy diagnostics" Visibility="Collapsed"><ScrollViewer VerticalScrollBarVisibility="Auto"><StackPanel Margin="28">
-            <TextBlock Text="Install a local model" FontSize="30" FontWeight="SemiBold"/>
-            <TextBlock Text="Choose the model, review its exact download, then open chat. No subscriptions." Foreground="#AABFD4" TextWrapping="Wrap" Margin="0,8,0,18"/>
-            <CheckBox x:Name="FeaturedNsfwCheck" Content="Show adult-oriented / less-filtered models (NSFW)" IsChecked="False" Checked="FeaturedNsfw_Changed" Unchecked="FeaturedNsfw_Changed" Foreground="#F4B87A"/>
+            <TextBlock Text="Install a local model" FontSize="{DynamicResource NexusFontSize30}" FontWeight="SemiBold"/>
+            <TextBlock Text="Choose the model, review its exact download, then open chat. No subscriptions." Foreground="{DynamicResource NexusMutedBrush}" TextWrapping="Wrap" Margin="0,8,0,18"/>
+            <CheckBox x:Name="FeaturedNsfwCheck" Content="Show adult-oriented / less-filtered models (NSFW)" IsChecked="False" Checked="FeaturedNsfw_Changed" Unchecked="FeaturedNsfw_Changed" Foreground="{DynamicResource NexusSecondaryBrush}"/>
             <ItemsControl x:Name="FeaturedCards" Visibility="Collapsed" ItemTemplate="{StaticResource FeaturedModelCard}"><ItemsControl.ItemsPanel><ItemsPanelTemplate><UniformGrid Columns="2"/></ItemsPanelTemplate></ItemsControl.ItemsPanel></ItemsControl>
         </StackPanel></ScrollViewer></TabItem>
         <TabItem x:Name="GuidedSetupTab" Header="Install &amp; chat"><ScrollViewer VerticalScrollBarVisibility="Auto"><StackPanel Margin="28">
-            <TextBlock x:Name="GuidedModelTitleText" Text="Install and chat" FontSize="30" FontWeight="SemiBold"/>
+            <TextBlock x:Name="GuidedModelTitleText" Text="Install and chat" FontSize="{DynamicResource NexusFontSize30}" FontWeight="SemiBold"/>
             <TextBlock x:Name="GuidedStatusText" Text="Choose a model card to begin." Foreground="#91C7E5" TextWrapping="Wrap" Margin="0,8,0,18"/>
             <Button Content="Open chat" Click="GuidedStartChat_Click" IsEnabled="{Binding IsEnabled, ElementName=GuidedStartChatButton}" Background="#246C94" HorizontalAlignment="Left" Margin="0,0,0,16"/>
             <ProgressBar x:Name="GuidedProgress" Height="6" Minimum="0" Maximum="100" Margin="0,0,0,16"/>
             <Border Style="{StaticResource PanelStyle}"><Expander x:Name="GuidedModelStep" Header="1 · Model download" IsExpanded="True" Foreground="#C3D5E5"><StackPanel>
                 <DockPanel Margin="0,12,0,10"><Button Content="Choose folder" Click="GuidedChooseFolder_Click" DockPanel.Dock="Right" Margin="10,0,0,0"/><TextBox x:Name="GuidedModelFolderText" ToolTip="Existing folder for model data" TextChanged="GuidedInputsChanged"/></DockPanel>
                 <Button x:Name="GuidedReviewButton" Content="Check download size and fit" Click="GuidedReview_Click" HorizontalAlignment="Left"/>
-                <Expander Header="Source, license and file details" Foreground="#AABFD4" Margin="0,12,0,10"><TextBox x:Name="GuidedModelDetailsText" IsReadOnly="True" Height="145" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto"/></Expander>
+                <Expander Header="Source, license and file details" Foreground="{DynamicResource NexusMutedBrush}" Margin="0,12,0,10"><TextBox x:Name="GuidedModelDetailsText" IsReadOnly="True" Height="145" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto"/></Expander>
                 <Button Content="Read model card and license" Click="GuidedLicense_Click" HorizontalAlignment="Left" Margin="0,0,0,10"/>
                 <CheckBox x:Name="GuidedModelApprovalCheck" Foreground="#C3D5E5" Checked="GuidedApproval_Changed" Unchecked="GuidedApproval_Changed"><TextBlock Text="I accept the displayed source license terms and approve this exact model download and destination." TextWrapping="Wrap"/></CheckBox>
                 <Button x:Name="GuidedDownloadButton" Content="Download model" Click="GuidedDownload_Click" IsEnabled="False" HorizontalAlignment="Left" Margin="0,12,0,0"/>
             </StackPanel></Expander></Border>
             <Border Style="{StaticResource PanelStyle}"><Expander x:Name="GuidedEngineStep" Header="2 · Local engine" IsExpanded="True" Foreground="#C3D5E5"><StackPanel>
-                <TextBlock Text="Use an existing llama.cpp engine, or get the portable CPU engine below. CPU inference is slower; GPU acceleration depends on your selected engine." Foreground="#AABFD4" TextWrapping="Wrap" Margin="0,8,0,10"/>
+                <TextBlock Text="Use an existing llama.cpp engine, or get the portable CPU engine below. CPU inference is slower; GPU acceleration depends on your selected engine." Foreground="{DynamicResource NexusMutedBrush}" TextWrapping="Wrap" Margin="0,8,0,10"/>
                 <DockPanel><Button Content="Use existing engine" Click="GuidedRuntimeBrowse_Click" DockPanel.Dock="Right" Margin="10,0,0,0"/><TextBox x:Name="GuidedRuntimePathText" ToolTip="llama-server.exe path" TextChanged="GuidedRuntimePath_Changed"/></DockPanel>
                 <TextBlock x:Name="GuidedRuntimeStatusText" Foreground="#91C7E5" TextWrapping="Wrap" Margin="0,8,0,8"/>
                 <Button x:Name="GuidedRuntimeReviewButton" Content="Review portable CPU engine" Click="GuidedRuntimeReview_Click" HorizontalAlignment="Left"/>
@@ -162,37 +185,47 @@
             <WrapPanel Margin="0,10,0,12"><Button x:Name="GuidedStartChatButton" Content="3 · Load model and open chat" Click="GuidedStartChat_Click" IsEnabled="False" Background="#246C94"/><Button x:Name="GuidedCancelButton" Content="Cancel current step" Click="GuidedCancel_Click" IsEnabled="False" Margin="12,0,0,0"/></WrapPanel>
         </StackPanel></ScrollViewer></TabItem>
         <TabItem x:Name="ChatTab" Header="Chat"><Grid Margin="28"><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
-            <DockPanel Margin="0,0,0,14"><Button Content="New conversation" Click="ChatClear_Click" DockPanel.Dock="Right"/><Button x:Name="ChatStopButton" Content="Stop model" Click="ChatStop_Click" IsEnabled="False" DockPanel.Dock="Right" Margin="0,0,10,0"/><TextBlock x:Name="ChatModelText" Text="No model loaded" FontSize="24" FontWeight="SemiBold"/></DockPanel>
+            <DockPanel Margin="0,0,0,14"><Button Content="New conversation" Click="ChatClear_Click" DockPanel.Dock="Right"/><Button x:Name="ChatStopButton" Content="Stop model" Click="ChatStop_Click" IsEnabled="False" DockPanel.Dock="Right" Margin="0,0,10,0"/><TextBlock x:Name="ChatModelText" Text="No model loaded" FontSize="{DynamicResource NexusFontSize24}" FontWeight="SemiBold"/></DockPanel>
             <TextBox x:Name="ChatTranscriptText" Grid.Row="1" IsReadOnly="True" AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto"/>
             <DockPanel Grid.Row="2" Margin="0,14,0,10"><StackPanel DockPanel.Dock="Right" Margin="12,0,0,0"><Button x:Name="ChatSendButton" Content="Send" Click="ChatSend_Click" IsEnabled="False"/><Button x:Name="ChatCancelButton" Content="Cancel reply" Click="ChatCancel_Click" IsEnabled="False" Margin="0,8,0,0"/></StackPanel><TextBox x:Name="ChatPromptText" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="90" MaxHeight="180" VerticalScrollBarVisibility="Auto" MaxLength="16000" ToolTip="Write your message"/></DockPanel>
-            <TextBlock x:Name="ChatStatusText" Grid.Row="3" Text="Conversation stays in memory. Load a model from Install &amp; chat to begin." Foreground="#AABFD4" TextWrapping="Wrap"/>
+            <TextBlock x:Name="ChatStatusText" Grid.Row="3" Text="Conversation stays in memory. Load a model from Install &amp; chat to begin." Foreground="{DynamicResource NexusMutedBrush}" TextWrapping="Wrap"/>
         </Grid></TabItem>
-        <TabItem x:Name="StoreHomeTab" Header="Home"><ScrollViewer VerticalScrollBarVisibility="Auto"><StackPanel Margin="28">
-            <Border CornerRadius="12" Padding="30" Margin="0,0,0,24"><Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="1,1"><GradientStop Color="#254A66" Offset="0"/><GradientStop Color="#17283A" Offset="1"/></LinearGradientBrush></Border.Background><StackPanel><TextBlock Text="Your workspace, your choices." FontSize="34" FontWeight="SemiBold"/><TextBlock Text="Find compatible options for your selected workloads. You decide what gets downloaded and installed." Foreground="#BCD0E2" FontSize="16" TextWrapping="Wrap" Margin="0,12,0,24"/><StackPanel Orientation="Horizontal"><Button Content="Find compatible options" Tag="DiscoveryTab" Click="StoreNavigate_Click" Background="#286E9A"/><Button Content="Change workloads" Click="ChangeWorkloadsButton_Click" Margin="12,0,0,0"/></StackPanel></StackPanel></Border>
-            <TextBlock x:Name="StoreSetupNoticeText" Foreground="#AABFD4" TextWrapping="Wrap" Margin="0,0,0,20"/><TextBlock Text="Your selected workloads" FontSize="22" FontWeight="SemiBold" Margin="0,0,0,16"/>
-            <ItemsControl x:Name="WorkspaceWorkloadCards"><ItemsControl.ItemsPanel><ItemsPanelTemplate><UniformGrid Columns="2"/></ItemsPanelTemplate></ItemsControl.ItemsPanel><ItemsControl.ItemTemplate><DataTemplate>
-                <Border Style="{StaticResource PanelStyle}"><StackPanel><TextBlock Text="{Binding Name}" FontSize="22" FontWeight="SemiBold" TextWrapping="Wrap"/><TextBlock Text="{Binding Description}" Foreground="#AABFD4" TextWrapping="Wrap" Margin="0,12,0,20"/><Button Content="{Binding Action}" IsEnabled="{Binding Available}" Click="WorkloadCardAction_Click" HorizontalAlignment="Left"/></StackPanel></Border>
-            </DataTemplate></ItemsControl.ItemTemplate></ItemsControl>
-            <Border Style="{StaticResource PanelStyle}"><StackPanel><TextBlock Text="Your computer" FontSize="20" FontWeight="SemiBold"/><TextBlock Text="{Binding Text, ElementName=CpuText}" Foreground="#AABFD4" Margin="0,12,0,4" TextWrapping="Wrap"/><TextBlock Text="{Binding Text, ElementName=SoftwareStatusText}" Foreground="#829AB2" TextWrapping="Wrap"/><Button Content="View library" Tag="LibraryTab" Click="StoreNavigate_Click" HorizontalAlignment="Left" Margin="0,16,0,0"/></StackPanel></Border>
-        </StackPanel></ScrollViewer></TabItem>
+        <TabItem x:Name="StoreHomeTab" Header="Home"><ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto"><Grid Margin="28">
+            <Grid.ColumnDefinitions><ColumnDefinition Width="{DynamicResource NexusHomeActionsWidth}"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+            <StackPanel>
+                <TextBlock Text="AI NEXUS" FontSize="{DynamicResource NexusFontSize30}" FontWeight="Bold" Foreground="{DynamicResource NexusAccentBrush}" Margin="0,0,0,6"/>
+                <TextBlock Text="Choose a task. You're in control." TextWrapping="Wrap" Foreground="{DynamicResource NexusMutedBrush}" Margin="0,0,0,22"/>
+                <TextBlock x:Name="StoreSetupNoticeText" Foreground="{DynamicResource NexusMutedBrush}" TextWrapping="Wrap" FontSize="{DynamicResource NexusFontSize12}" Margin="0,0,0,18"/>
+                <Button Content="Find models &amp; tools" Tag="DiscoveryTab" Click="StoreNavigate_Click" Margin="0,0,0,8"/>
+                <Button Content="Your library" Tag="CatalogLibraryTab" Click="StoreNavigate_Click" Margin="0,0,0,8"/>
+                <Button Content="Downloads &amp; setup" Tag="DownloadsTab" Click="StoreNavigate_Click" Margin="0,0,0,8"/>
+                <Button Content="Chat" Tag="ChatTab" Click="StoreNavigate_Click" Margin="0,0,0,8"/>
+                <Button Content="Performance &amp; power" Tag="ResourcesTab" Click="StoreNavigate_Click" Margin="0,0,0,8"/>
+                <Button Content="Change tasks" Click="ChangeWorkloadsButton_Click" Margin="0,0,0,18"/>
+                <TextBlock Text="YOUR SELECTED TASKS" FontSize="{DynamicResource NexusFontSize12}" Foreground="{DynamicResource NexusSecondaryBrush}" Margin="0,8,0,8"/>
+                <ItemsControl x:Name="WorkspaceWorkloadCards"><ItemsControl.ItemTemplate><DataTemplate>
+                    <Button Content="{Binding Name}" IsEnabled="{Binding Available}" Click="WorkloadCardAction_Click" ToolTip="{Binding Description}" Margin="0,0,0,8"/>
+                </DataTemplate></ItemsControl.ItemTemplate></ItemsControl>
+            </StackPanel>
+        </Grid></ScrollViewer></TabItem>
         <TabItem x:Name="DownloadsTab" Header="Downloads &amp; setup"><ScrollViewer VerticalScrollBarVisibility="Auto"><StackPanel Margin="28">
-            <TextBlock Text="Review before installing" FontSize="28" FontWeight="SemiBold"/><TextBlock Text="Choose an item in Discover, then review its files, destination and requirements here." Foreground="#AABFD4" TextWrapping="Wrap" Margin="0,10,0,16"/>
-            <TextBlock Text="{Binding Text, ElementName=StoreSelectionTitleText}" FontSize="20" Margin="0,0,0,12"/>
-            <Expander x:Name="RuntimePackagesExpander" Header="Runtime packages (advanced)" Foreground="#AABFD4" Margin="0,0,0,16"><StackPanel Margin="0,10,0,0"><DockPanel Margin="0,0,0,8">
+            <TextBlock Text="Review before installing" FontSize="{DynamicResource NexusFontSize28}" FontWeight="SemiBold"/><TextBlock Text="Choose an item in Discover, then review its files, destination and requirements here." Foreground="{DynamicResource NexusMutedBrush}" TextWrapping="Wrap" Margin="0,10,0,16"/>
+            <TextBlock Text="{Binding Text, ElementName=StoreSelectionTitleText}" FontSize="{DynamicResource NexusFontSize20}" Margin="0,0,0,12"/>
+            <Expander x:Name="RuntimePackagesExpander" Header="Runtime packages (advanced)" Foreground="{DynamicResource NexusMutedBrush}" Margin="0,0,0,16"><StackPanel Margin="0,10,0,0"><DockPanel Margin="0,0,0,8">
                     <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
                         <Button x:Name="RuntimeReleaseLookupButton" Content="Look up release" Click="RuntimeReleaseLookupButton_Click" Padding="10,8" Margin="8,0,0,0"/>
                         <Button x:Name="RuntimeReleaseSavedButton" Content="Load saved release" Click="RuntimeReleaseSavedButton_Click" Padding="10,8" Margin="8,0,0,0"/>
                     </StackPanel>
-                    <TextBlock DockPanel.Dock="Left" Text="EXPLICIT RELEASE TAG" VerticalAlignment="Center" Foreground="#8CA6BC" Margin="0,0,8,0"/>
+                    <TextBlock DockPanel.Dock="Left" Text="EXPLICIT RELEASE TAG" VerticalAlignment="Center" Foreground="{DynamicResource NexusMutedBrush}" Margin="0,0,8,0"/>
                     <TextBox x:Name="RuntimeReleaseTagText" Padding="8" MaxLength="128" ToolTip="Enter an exact upstream llama.cpp release tag. No latest or nightly fallback is selected."/>
                 </DockPanel>
                 <DockPanel Margin="0,0,0,8">
-                    <TextBlock DockPanel.Dock="Left" Text="NEW RUNTIME FOLDER" VerticalAlignment="Center" Foreground="#8CA6BC" Margin="0,0,8,0"/>
+                    <TextBlock DockPanel.Dock="Left" Text="NEW RUNTIME FOLDER" VerticalAlignment="Center" Foreground="{DynamicResource NexusMutedBrush}" Margin="0,0,8,0"/>
                     <Button x:Name="RuntimeSetupReviewButton" DockPanel.Dock="Right" Content="Review runtime setup" Click="RuntimeSetupReviewButton_Click" IsEnabled="False" Padding="10,8" Margin="8,0,0,0"/>
                     <TextBox x:Name="RuntimeDestinationText" Padding="8" TextChanged="RuntimeDestinationText_TextChanged" ToolTip="New runtime folder on the assessed volume; existing folders cannot be used"/>
                 </DockPanel>
                 <DockPanel Margin="0,0,0,8">
-                    <TextBlock DockPanel.Dock="Left" Text="RUNTIME ARCHIVE" VerticalAlignment="Center" Foreground="#8CA6BC" Margin="0,0,8,0"/>
+                    <TextBlock DockPanel.Dock="Left" Text="RUNTIME ARCHIVE" VerticalAlignment="Center" Foreground="{DynamicResource NexusMutedBrush}" Margin="0,0,8,0"/>
                     <ComboBox x:Name="RuntimeArchiveSelector" DisplayMemberPath="Name" SelectionChanged="RuntimeArchiveSelector_SelectionChanged" IsEnabled="False" Padding="8" ToolTip="Explicitly select a published runtime archive; no archive is chosen automatically"/>
                 </DockPanel>
                 <WrapPanel Margin="0,0,0,8">
@@ -200,8 +233,8 @@
                     <Button x:Name="RuntimeInspectButton" Content="Inspect local zip files" Click="RuntimeInspectButton_Click" IsEnabled="False" Padding="10,8" Margin="0,0,8,6"/>
                     <Button x:Name="RuntimeInstallReviewButton" Content="Review local install" Click="RuntimeInstallReviewButton_Click" IsEnabled="False" Padding="10,8" Margin="0,0,8,6"/>
                 </WrapPanel>
-                <Expander x:Name="RuntimeDownloadExpander" Header="Runtime archive download" Foreground="#AABFD4" Margin="0,4,0,12"><StackPanel Margin="0,6,0,0">
-                    <TextBlock Text="Single CPU runtime ZIP; installation approval is separate." Foreground="#AABFD4" TextWrapping="Wrap"/>
+                <Expander x:Name="RuntimeDownloadExpander" Header="Runtime archive download" Foreground="{DynamicResource NexusMutedBrush}" Margin="0,4,0,12"><StackPanel Margin="0,6,0,0">
+                    <TextBlock Text="Single CPU runtime ZIP; installation approval is separate." Foreground="{DynamicResource NexusMutedBrush}" TextWrapping="Wrap"/>
                     <DockPanel Margin="0,6,0,6">
                         <Button x:Name="RuntimeDownloadBrowseButton" DockPanel.Dock="Right" Content="Choose download folder" Click="RuntimeDownloadBrowseButton_Click" Padding="10,8" Margin="8,0,0,0"/>
                         <TextBox x:Name="RuntimeDownloadDirectoryText" Padding="8" TextChanged="RuntimeDownloadDirectoryChanged" ToolTip="Existing local folder for the exact reviewed ZIP; separate from the new installation folder"/>
@@ -212,24 +245,24 @@
                         <Button x:Name="RuntimeDownloadCancelButton" Content="Cancel download" Click="RuntimeDownloadCancelButton_Click" IsEnabled="False" Padding="10,8" Margin="0,0,8,6"/>
                         <Button x:Name="RuntimeDownloadedInspectButton" Content="Inspect downloaded archive" Click="RuntimeDownloadedInspectButton_Click" IsEnabled="False" Padding="10,8" Margin="0,0,8,6"/>
                     </WrapPanel>
-                    <CheckBox x:Name="RuntimeDownloadApprovalCheck" Foreground="#E6EEF8" IsEnabled="False" Checked="RuntimeDownloadApprovalChanged" Unchecked="RuntimeDownloadApprovalChanged">
+                    <CheckBox x:Name="RuntimeDownloadApprovalCheck" Foreground="{DynamicResource NexusTextBrush}" IsEnabled="False" Checked="RuntimeDownloadApprovalChanged" Unchecked="RuntimeDownloadApprovalChanged">
                         <TextBlock Text="I approve this exact runtime ZIP and download folder, accept its declared runtime license, and understand bundled terms need separate review before installation." TextWrapping="Wrap"/>
                     </CheckBox>
                     <ProgressBar x:Name="RuntimeDownloadProgressBar" Minimum="0" Maximum="100" Height="5" Margin="0,8,0,0"/>
                 </StackPanel></Expander>
                 <StackPanel x:Name="RuntimeInstallApprovalPanel" Visibility="Collapsed" Margin="0,4,0,10">
-                    <TextBlock Text="Local CPU runtime archives only. Files are installed into a new portable folder; compatibility and execution still need verification." Foreground="#8CA6BC" TextWrapping="Wrap"/>
+                    <TextBlock Text="Local CPU runtime archives only. Files are installed into a new portable folder; compatibility and execution still need verification." Foreground="{DynamicResource NexusMutedBrush}" TextWrapping="Wrap"/>
                     <Button x:Name="RuntimeInstallTermsButton" Content="Read bundled license terms" Click="RuntimeInstallTermsButton_Click" IsEnabled="False" HorizontalAlignment="Left" Padding="10,6" Margin="0,6,0,0"/>
-                    <CheckBox x:Name="RuntimeInstallLicenseCheck" Foreground="#E6EEF8" Margin="0,6,0,0" Checked="RuntimeInstallationApprovalChanged" Unchecked="RuntimeInstallationApprovalChanged"><TextBlock Text="I accept the declared runtime license shown in this review." TextWrapping="Wrap"/></CheckBox>
-                    <CheckBox x:Name="RuntimeInstallBundledCheck" Foreground="#E6EEF8" Margin="0,6,0,0" Checked="RuntimeInstallationApprovalChanged" Unchecked="RuntimeInstallationApprovalChanged"><TextBlock Text="I have reviewed and accept the bundled dependency terms; the runtime license may not cover them." TextWrapping="Wrap"/></CheckBox>
-                    <CheckBox x:Name="RuntimeInstallWritesCheck" Foreground="#E6EEF8" Margin="0,6,0,0" Checked="RuntimeInstallationApprovalChanged" Unchecked="RuntimeInstallationApprovalChanged"><TextBlock Text="I approve extracting these exact reviewed files into the new folder shown." TextWrapping="Wrap"/></CheckBox>
+                    <CheckBox x:Name="RuntimeInstallLicenseCheck" Foreground="{DynamicResource NexusTextBrush}" Margin="0,6,0,0" Checked="RuntimeInstallationApprovalChanged" Unchecked="RuntimeInstallationApprovalChanged"><TextBlock Text="I accept the declared runtime license shown in this review." TextWrapping="Wrap"/></CheckBox>
+                    <CheckBox x:Name="RuntimeInstallBundledCheck" Foreground="{DynamicResource NexusTextBrush}" Margin="0,6,0,0" Checked="RuntimeInstallationApprovalChanged" Unchecked="RuntimeInstallationApprovalChanged"><TextBlock Text="I have reviewed and accept the bundled dependency terms; the runtime license may not cover them." TextWrapping="Wrap"/></CheckBox>
+                    <CheckBox x:Name="RuntimeInstallWritesCheck" Foreground="{DynamicResource NexusTextBrush}" Margin="0,6,0,0" Checked="RuntimeInstallationApprovalChanged" Unchecked="RuntimeInstallationApprovalChanged"><TextBlock Text="I approve extracting these exact reviewed files into the new folder shown." TextWrapping="Wrap"/></CheckBox>
                     <WrapPanel Margin="0,8,0,0">
                         <Button x:Name="RuntimeInstallButton" Content="Install reviewed files" Click="RuntimeInstallButton_Click" IsEnabled="False" Padding="12,8"/>
                         <Button x:Name="RuntimeUseInstalledButton" Content="Use installed runtime" Click="RuntimeUseInstalledButton_Click" IsEnabled="False" Padding="12,8" Margin="8,0,0,0"/>
                     </WrapPanel>
                 </StackPanel>
 </StackPanel></Expander>
-            <Expander x:Name="ModelDownloadExpander" Header="Model download" IsExpanded="True" Foreground="#E6EEF8"><StackPanel>                <StackPanel Margin="0,10,0,0">
+            <Expander x:Name="ModelDownloadExpander" Header="Model download" IsExpanded="True" Foreground="{DynamicResource NexusTextBrush}"><StackPanel>                <StackPanel Margin="0,10,0,0">
                                 <Grid>
                     <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
                     <TextBox x:Name="DiscoveryDestinationText" Padding="8" ToolTip="Model destination folder on the assessed volume" TextChanged="DiscoveryDestinationText_TextChanged"/>
@@ -241,7 +274,7 @@
                 <Grid Margin="0,10,0,0">
                     <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
                     <StackPanel>
-                        <CheckBox x:Name="AcquisitionApprovalCheck" IsEnabled="False" Foreground="#E6F7FF" Checked="AcquisitionApprovalChanged" Unchecked="AcquisitionApprovalChanged">
+                        <CheckBox x:Name="AcquisitionApprovalCheck" IsEnabled="False" Foreground="{DynamicResource NexusTextBrush}" Checked="AcquisitionApprovalChanged" Unchecked="AcquisitionApprovalChanged">
                             <TextBlock Text="I approve this exact model-data plan and destination, and accept its source license terms." TextWrapping="Wrap"/>
                         </CheckBox>
                         <ProgressBar x:Name="AcquisitionProgressBar" Minimum="0" Maximum="100" Height="5" Margin="0,6,0,0" Value="0"/>
@@ -251,7 +284,7 @@
                 </Grid>
 </StackPanel></Expander>
             <TextBox x:Name="DownloadsDetailsText" Text="{Binding Text, ElementName=DiscoveryDetailsText, Mode=OneWay}" Height="300" Margin="0,16,0,12" IsReadOnly="True" TextWrapping="Wrap" AcceptsReturn="True" VerticalScrollBarVisibility="Auto"/>
-            <TextBlock Text="{Binding Text, ElementName=DiscoveryStatusText}" Foreground="#AABFD4" TextWrapping="Wrap"/>
+            <TextBlock Text="{Binding Text, ElementName=DiscoveryStatusText}" Foreground="{DynamicResource NexusMutedBrush}" TextWrapping="Wrap"/>
         </StackPanel></ScrollViewer></TabItem>
 
         <TabItem x:Name="DiscoveryTab" Header="Discover AI" Padding="18,10">
@@ -261,8 +294,8 @@
                     <RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
                 <StackPanel Margin="0,0,0,14">
-                    <TextBlock Text="Discover AI" FontSize="24" FontWeight="Bold"/>
-                    <TextBlock Text="Find tools and models for your computer. Review the requirements before you install." Foreground="#8CA6BC" TextWrapping="Wrap" Margin="0,6,0,0"/>
+                    <TextBlock Text="Discover AI" FontSize="{DynamicResource NexusFontSize24}" FontWeight="Bold"/>
+                    <TextBlock Text="Find tools and models for your computer. Review the requirements before you install." Foreground="{DynamicResource NexusMutedBrush}" TextWrapping="Wrap" Margin="0,6,0,0"/>
                 </StackPanel>
                 <DockPanel Grid.Row="1" Margin="0,0,0,12">
                     <Button x:Name="DiscoveryScanButton" Content="Scan this pc" DockPanel.Dock="Right" Click="DiscoveryScanButton_Click" Padding="14,8" Margin="12,0,0,0"/>
@@ -271,15 +304,15 @@
                 <Grid Grid.Row="2" Margin="0,0,0,12">
                     <Grid.ColumnDefinitions><ColumnDefinition Width="1.3*"/><ColumnDefinition Width="1.6*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
                     <StackPanel Margin="0,0,12,0">
-                        <TextBlock Text="Optional category filter (blank searches all chosen tasks)" Foreground="#8CA6BC" Margin="0,0,0,4"/>
+                        <TextBlock Text="Optional category filter (blank searches all chosen tasks)" Foreground="{DynamicResource NexusMutedBrush}" Margin="0,0,0,4"/>
                         <ComboBox x:Name="DiscoveryInterestSelector" DisplayMemberPath="Name" SelectionChanged="DiscoveryInterestSelector_SelectionChanged" Padding="8"/>
                     </StackPanel>
                     <StackPanel Grid.Column="1" Margin="0,0,12,0">
-                        <TextBlock Text="Search models or publishers" Foreground="#8CA6BC" Margin="0,0,0,4"/>
+                        <TextBlock Text="Search models or publishers" Foreground="{DynamicResource NexusMutedBrush}" Margin="0,0,0,4"/>
                         <TextBox x:Name="DiscoveryQueryText" Padding="8" MaxLength="160" ToolTip="Optional model, tool or publisher terms. Leave blank to search the selected categories."/>
                     </StackPanel>
                     <StackPanel Grid.Column="2">
-                        <TextBlock Text="Install location" Foreground="#8CA6BC" Margin="0,0,0,4"/>
+                        <TextBlock Text="Install location" Foreground="{DynamicResource NexusMutedBrush}" Margin="0,0,0,4"/>
                         <ComboBox x:Name="DiscoveryVolumeSelector" DisplayMemberPath="Path" SelectionChanged="DiscoveryVolumeSelector_SelectionChanged" Padding="8"/>
                     </StackPanel>
                 </Grid>
@@ -290,12 +323,12 @@
                         <Button x:Name="DiscoverySavedButton" Content="Load saved search" Click="DiscoverySavedButton_Click" Padding="12,8" Margin="8,0,0,0"/>
                         <Button x:Name="DiscoveryCancelButton" Content="Cancel" Click="DiscoveryCancelButton_Click" Padding="12,8" Margin="8,0,0,0" IsEnabled="False"/>
                     </StackPanel>
-                    <TextBlock x:Name="DiscoveryScopeText" TextWrapping="Wrap" Foreground="#8CA6BC" VerticalAlignment="Center"/>
+                    <TextBlock x:Name="DiscoveryScopeText" TextWrapping="Wrap" Foreground="{DynamicResource NexusMutedBrush}" VerticalAlignment="Center"/>
                 </DockPanel>
-                    <TextBlock x:Name="DiscoveryFitSummaryText" TextWrapping="Wrap" Foreground="#AABFD4" Margin="0,8,0,4"/>
-                    <CheckBox x:Name="DiscoveryShowUnassessedCheck" Content="Show results needing review or more resources" IsChecked="False" Checked="DiscoveryShowUnassessedCheck_Changed" Unchecked="DiscoveryShowUnassessedCheck_Changed" Foreground="#AABFD4"/>
+                    <TextBlock x:Name="DiscoveryFitSummaryText" TextWrapping="Wrap" Foreground="{DynamicResource NexusMutedBrush}" Margin="0,8,0,4"/>
+                    <CheckBox x:Name="DiscoveryShowUnassessedCheck" Content="Show results needing review or more resources" IsChecked="False" Checked="DiscoveryShowUnassessedCheck_Changed" Unchecked="DiscoveryShowUnassessedCheck_Changed" Foreground="{DynamicResource NexusMutedBrush}"/>
                 </StackPanel>
-                <DataGrid Grid.Row="4" x:Name="DiscoveryResultsGrid" IsReadOnly="True" AutoGenerateColumns="False" CanUserAddRows="False" SelectionMode="Single" SelectionChanged="DiscoveryResultsGrid_SelectionChanged" Background="#182638" Foreground="#E6EEF8" HeadersVisibility="Column" EnableRowVirtualization="True" Margin="0,0,0,12">
+                <DataGrid Grid.Row="4" x:Name="DiscoveryResultsGrid" IsReadOnly="True" AutoGenerateColumns="False" CanUserAddRows="False" SelectionMode="Single" SelectionChanged="DiscoveryResultsGrid_SelectionChanged" Background="{DynamicResource NexusPanelBrush}" Foreground="{DynamicResource NexusTextBrush}" HeadersVisibility="Column" EnableRowVirtualization="True" Margin="0,0,0,12">
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="3*"/>
                         <DataGridTextColumn Header="Category" Binding="{Binding Workload}" Width="1.4*"/>
@@ -307,10 +340,10 @@
                     </DataGrid.Columns>
                 </DataGrid>
                 <StackPanel Grid.Row="5" Margin="0,8,0,0">
-                    <DockPanel><Button DockPanel.Dock="Right" Content="Review selected item" Click="DiscoveryReviewSelected_Click" Margin="16,0,0,0"/><StackPanel><TextBlock x:Name="StoreSelectionTitleText" Text="Choose a result" FontSize="20" FontWeight="SemiBold"/><TextBlock x:Name="StoreSelectionSummaryText" Text="Select an item to see what is known about compatibility." Foreground="#AABFD4" TextWrapping="Wrap" Margin="0,6,0,10"/></StackPanel></DockPanel>
-                    <Expander x:Name="DiscoveryDetailsExpander" Header="Compatibility and source details" Foreground="#AABFD4" Margin="0,8,0,0"><TextBox x:Name="DiscoveryDetailsText" IsReadOnly="True" AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" Background="#182638" Foreground="#E6F7FF" Padding="12" Height="220" Text="Select a result to review its source evidence, requirement estimate, assumptions, and unknowns. No software is installed by discovery."/></Expander>
+                    <DockPanel><Button DockPanel.Dock="Right" Content="Review selected item" Click="DiscoveryReviewSelected_Click" Margin="16,0,0,0"/><StackPanel><TextBlock x:Name="StoreSelectionTitleText" Text="Choose a result" FontSize="{DynamicResource NexusFontSize20}" FontWeight="SemiBold"/><TextBlock x:Name="StoreSelectionSummaryText" Text="Select an item to see what is known about compatibility." Foreground="{DynamicResource NexusMutedBrush}" TextWrapping="Wrap" Margin="0,6,0,10"/></StackPanel></DockPanel>
+                    <Expander x:Name="DiscoveryDetailsExpander" Header="Compatibility and source details" Foreground="{DynamicResource NexusMutedBrush}" Margin="0,8,0,0"><TextBox x:Name="DiscoveryDetailsText" IsReadOnly="True" AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" Background="{DynamicResource NexusPanelBrush}" Foreground="{DynamicResource NexusTextBrush}" Padding="12" Height="220" Text="Select a result to review its source evidence, requirement estimate, assumptions, and unknowns. No software is installed by discovery."/></Expander>
                 </StackPanel>
-                <TextBlock Grid.Row="6" x:Name="DiscoveryStatusText" Text="Online search reads public metadata only. Hardware evaluation stays on this PC. Installation, builds, and remote-server access require separate approval." Foreground="#8CA6BC" TextWrapping="Wrap" Margin="0,10,0,0"/>
+                <TextBlock Grid.Row="6" x:Name="DiscoveryStatusText" Text="Online search reads public metadata only. Hardware evaluation stays on this PC. Installation, builds, and remote-server access require separate approval." Foreground="{DynamicResource NexusMutedBrush}" TextWrapping="Wrap" Margin="0,10,0,0"/>
             </Grid>
         </TabItem>
         <TabItem x:Name="HardwareTab" Header="This computer" Padding="18,10">
@@ -323,13 +356,13 @@
         </Grid.RowDefinitions>
         <DockPanel Grid.Row="0" Margin="0,0,0,24">
             <StackPanel>
-                <TextBlock Text="AI NEXUS" FontSize="13" Foreground="#66C0F4" FontWeight="Bold"/>
-                <TextBlock Text="SYSTEM OVERVIEW" FontSize="28" FontWeight="Bold" Margin="0,5,0,0"/>
-                <TextBlock Text="Live machine profile - local AI readiness" Foreground="#8CA6BC" Margin="0,5,0,0"/>
+                <TextBlock Text="AI NEXUS" FontSize="{DynamicResource NexusFontSize13}" Foreground="{DynamicResource NexusAccentBrush}" FontWeight="Bold"/>
+                <TextBlock Text="SYSTEM OVERVIEW" FontSize="{DynamicResource NexusFontSize28}" FontWeight="Bold" Margin="0,5,0,0"/>
+                <TextBlock Text="Live machine profile - local AI readiness" Foreground="{DynamicResource NexusMutedBrush}" Margin="0,5,0,0"/>
             </StackPanel>
             <StackPanel DockPanel.Dock="Right" HorizontalAlignment="Right" VerticalAlignment="Center">
-                <TextBlock Text="PHASE 01 / HARDWARE DISCOVERY" Foreground="#66C0F4" HorizontalAlignment="Right"/>
-                <TextBlock x:Name="ScanStatusText" Text="INITIALIZING SCAN..." Foreground="#8CA6BC" Margin="0,8,0,0" HorizontalAlignment="Right"/>
+                <TextBlock Text="PHASE 01 / HARDWARE DISCOVERY" Foreground="{DynamicResource NexusAccentBrush}" HorizontalAlignment="Right"/>
+                <TextBlock x:Name="ScanStatusText" Text="INITIALIZING SCAN..." Foreground="{DynamicResource NexusMutedBrush}" Margin="0,8,0,0" HorizontalAlignment="Right"/>
             </StackPanel>
         </DockPanel>
         <Grid Grid.Row="1" Margin="0,0,0,4">
@@ -338,21 +371,21 @@
                 <StackPanel>
                     <TextBlock Text="PROCESSOR" Style="{StaticResource MetricLabelStyle}"/>
                     <TextBlock x:Name="CpuText" Text="Scanning..." Style="{StaticResource MetricValueStyle}"/>
-                    <TextBlock Text="Detected via Windows CIM" Foreground="#71889B" FontSize="11" Margin="0,10,0,0"/>
+                    <TextBlock Text="Detected via Windows CIM" Foreground="#71889B" FontSize="{DynamicResource NexusFontSize11}" Margin="0,10,0,0"/>
                 </StackPanel>
             </Border>
             <Border Grid.Column="1" Style="{StaticResource PanelStyle}">
                 <StackPanel>
                     <TextBlock Text="SYSTEM MEMORY" Style="{StaticResource MetricLabelStyle}"/>
                     <TextBlock x:Name="RamText" Text="Scanning..." Style="{StaticResource MetricValueStyle}"/>
-                    <TextBlock Text="Installed physical RAM" Foreground="#71889B" FontSize="11" Margin="0,10,0,0"/>
+                    <TextBlock Text="Installed physical RAM" Foreground="#71889B" FontSize="{DynamicResource NexusFontSize11}" Margin="0,10,0,0"/>
                 </StackPanel>
             </Border>
             <Border Grid.Column="2" Style="{StaticResource PanelStyle}" Margin="0,0,0,14">
                 <StackPanel>
                     <TextBlock Text="GRAPHICS ADAPTERS" Style="{StaticResource MetricLabelStyle}"/>
                     <TextBlock x:Name="GpuCountText" Text="Scanning..." Style="{StaticResource MetricValueStyle}"/>
-                    <TextBlock Text="VRAM reported when available" Foreground="#71889B" FontSize="11" Margin="0,10,0,0"/>
+                    <TextBlock Text="VRAM reported when available" Foreground="#71889B" FontSize="{DynamicResource NexusFontSize11}" Margin="0,10,0,0"/>
                 </StackPanel>
             </Border>
         </Grid>
@@ -360,15 +393,15 @@
             <Grid.ColumnDefinitions><ColumnDefinition Width="1.2*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
             <Border Grid.Column="0" Style="{StaticResource PanelStyle}">
                 <DockPanel>
-                    <TextBlock DockPanel.Dock="Top" Text="GPU INVENTORY" FontSize="15" FontWeight="Bold" Foreground="#66C0F4" Margin="0,0,0,16"/>
+                    <TextBlock DockPanel.Dock="Top" Text="GPU INVENTORY" FontSize="{DynamicResource NexusFontSize15}" FontWeight="Bold" Foreground="{DynamicResource NexusAccentBrush}" Margin="0,0,0,16"/>
                     <ScrollViewer VerticalScrollBarVisibility="Auto">
                         <ItemsControl x:Name="GpuList">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
-                                    <Border Background="#0B121E" BorderBrush="#26394E" BorderThickness="1" CornerRadius="6" Padding="12" Margin="0,0,0,10">
+                                    <Border Background="#0B121E" BorderBrush="{DynamicResource NexusBorderBrush}" BorderThickness="1" CornerRadius="6" Padding="12" Margin="0,0,0,10">
                                         <StackPanel>
-                                            <TextBlock Text="{Binding Name}" FontSize="14" TextWrapping="Wrap"/>
-                                            <TextBlock Text="{Binding VramDisplay}" Foreground="#8CA6BC" Margin="0,6,0,0" FontSize="12"/>
+                                            <TextBlock Text="{Binding Name}" FontSize="{DynamicResource NexusFontSize14}" TextWrapping="Wrap"/>
+                                            <TextBlock Text="{Binding VramDisplay}" Foreground="{DynamicResource NexusMutedBrush}" Margin="0,6,0,0" FontSize="{DynamicResource NexusFontSize12}"/>
                                         </StackPanel>
                                     </Border>
                                 </DataTemplate>
@@ -379,18 +412,18 @@
             </Border>
             <Border Grid.Column="1" Style="{StaticResource PanelStyle}" Margin="0,0,0,14">
                 <DockPanel>
-                    <TextBlock DockPanel.Dock="Top" Text="FIXED STORAGE" FontSize="15" FontWeight="Bold" Foreground="#66C0F4" Margin="0,0,0,16"/>
+                    <TextBlock DockPanel.Dock="Top" Text="FIXED STORAGE" FontSize="{DynamicResource NexusFontSize15}" FontWeight="Bold" Foreground="{DynamicResource NexusAccentBrush}" Margin="0,0,0,16"/>
                     <ScrollViewer VerticalScrollBarVisibility="Auto">
                         <ItemsControl x:Name="StorageList">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
                                     <StackPanel Margin="0,0,0,16">
                                         <DockPanel>
-                                            <TextBlock Text="{Binding Name}" FontSize="13"/>
-                                            <TextBlock Text="{Binding FreeDisplay}" Foreground="#66C0F4" DockPanel.Dock="Right" Margin="12,0,0,0"/>
+                                            <TextBlock Text="{Binding Name}" FontSize="{DynamicResource NexusFontSize13}"/>
+                                            <TextBlock Text="{Binding FreeDisplay}" Foreground="{DynamicResource NexusAccentBrush}" DockPanel.Dock="Right" Margin="12,0,0,0"/>
                                         </DockPanel>
-                                        <ProgressBar Height="6" Margin="0,8,0,0" Minimum="0" Maximum="100" Value="{Binding FreePercent, Mode=OneWay}" Background="#26394E" Foreground="#66C0F4" BorderThickness="0"/>
-                                        <TextBlock Text="{Binding CapacityDisplay}" Foreground="#71889B" FontSize="11" Margin="0,5,0,0"/>
+                                        <ProgressBar Height="6" Margin="0,8,0,0" Minimum="0" Maximum="100" Value="{Binding FreePercent, Mode=OneWay}" Background="{DynamicResource NexusBorderBrush}" Foreground="{DynamicResource NexusAccentBrush}" BorderThickness="0"/>
+                                        <TextBlock Text="{Binding CapacityDisplay}" Foreground="#71889B" FontSize="{DynamicResource NexusFontSize11}" Margin="0,5,0,0"/>
                                     </StackPanel>
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
@@ -402,7 +435,7 @@
         <Grid Grid.Row="3" Margin="0,8,0,0">
             <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
             <TextBlock x:Name="NoticeText" Text="Hardware discovery runs locally on this machine." Foreground="#71889B" TextWrapping="Wrap" VerticalAlignment="Center"/>
-            <Button x:Name="HardwareRescanButton" Grid.Column="1" Content="Rescan hardware" Click="RescanButton_Click" Padding="18,10" Margin="12,0,0,0" Background="#153443" Foreground="#66C0F4" BorderBrush="#315A6D" FontFamily="Segoe UI" FontSize="14" Cursor="Hand"/>
+            <Button x:Name="HardwareRescanButton" Grid.Column="1" Content="Rescan hardware" Click="RescanButton_Click" Padding="18,10" Margin="12,0,0,0" Background="#153443" Foreground="{DynamicResource NexusAccentBrush}" BorderBrush="{DynamicResource NexusBorderBrush}" FontFamily="Segoe UI" FontSize="{DynamicResource NexusFontSize14}" Cursor="Hand"/>
         </Grid>
     </Grid>
         </TabItem>
@@ -415,13 +448,13 @@
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
                 <DockPanel Margin="0,0,0,16" LastChildFill="True">
-                    <Button x:Name="SoftwareRescanButton" DockPanel.Dock="Right" Content="Rescan software" Click="SoftwareRescanButton_Click" Padding="18,10" Background="#153443" Foreground="#66C0F4" BorderBrush="#315A6D"/>
+                    <Button x:Name="SoftwareRescanButton" DockPanel.Dock="Right" Content="Rescan software" Click="SoftwareRescanButton_Click" Padding="18,10" Background="#153443" Foreground="{DynamicResource NexusAccentBrush}" BorderBrush="{DynamicResource NexusBorderBrush}"/>
                     <StackPanel>
-                        <TextBlock Text="AI SOFTWARE DISCOVERY" FontSize="24" FontWeight="Bold" Foreground="#E6F7FF"/>
-                        <TextBlock x:Name="SoftwareStatusText" Text="Waiting for discovery" Foreground="#8CA6BC" Margin="0,8,0,0"/>
+                        <TextBlock Text="AI SOFTWARE DISCOVERY" FontSize="{DynamicResource NexusFontSize24}" FontWeight="Bold" Foreground="{DynamicResource NexusTextBrush}"/>
+                        <TextBlock x:Name="SoftwareStatusText" Text="Waiting for discovery" Foreground="{DynamicResource NexusMutedBrush}" Margin="0,8,0,0"/>
                     </StackPanel>
                 </DockPanel>
-                <TextBlock Grid.Row="1" x:Name="SoftwareScopeText" Text="Checking registered installations and known executable locations." TextWrapping="Wrap" Foreground="#8CA6BC" Margin="0,0,0,16"/>
+                <TextBlock Grid.Row="1" x:Name="SoftwareScopeText" Text="Checking registered installations and known executable locations." TextWrapping="Wrap" Foreground="{DynamicResource NexusMutedBrush}" Margin="0,0,0,16"/>
                 <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                     <ItemsControl x:Name="SoftwareList">
                         <ItemsControl.ItemTemplate>
@@ -429,20 +462,20 @@
                                 <Border Style="{StaticResource PanelStyle}" Margin="0,0,0,12">
                                     <StackPanel>
                                         <DockPanel>
-                                            <TextBlock Text="{Binding Status}" DockPanel.Dock="Right" Foreground="#66C0F4" Margin="16,0,0,0"/>
-                                            <TextBlock Text="{Binding Name}" FontSize="18" FontWeight="Bold" Foreground="#E6F7FF"/>
+                                            <TextBlock Text="{Binding Status}" DockPanel.Dock="Right" Foreground="{DynamicResource NexusAccentBrush}" Margin="16,0,0,0"/>
+                                            <TextBlock Text="{Binding Name}" FontSize="{DynamicResource NexusFontSize18}" FontWeight="Bold" Foreground="{DynamicResource NexusTextBrush}"/>
                                         </DockPanel>
-                                        <TextBlock Text="{Binding Category}" Foreground="#8CA6BC" Margin="0,5,0,0"/>
-                                        <TextBlock Text="{Binding Version, StringFormat=Version: {0}}" Foreground="#8CA6BC" Margin="0,8,0,0"/>
-                                        <TextBlock Text="{Binding Location}" TextWrapping="Wrap" Foreground="#E6F7FF" Margin="0,5,0,0"/>
-                                        <TextBlock Text="{Binding Evidence}" TextWrapping="Wrap" Foreground="#8CA6BC" Margin="0,5,0,0"/>
+                                        <TextBlock Text="{Binding Category}" Foreground="{DynamicResource NexusMutedBrush}" Margin="0,5,0,0"/>
+                                        <TextBlock Text="{Binding Version, StringFormat=Version: {0}}" Foreground="{DynamicResource NexusMutedBrush}" Margin="0,8,0,0"/>
+                                        <TextBlock Text="{Binding Location}" TextWrapping="Wrap" Foreground="{DynamicResource NexusTextBrush}" Margin="0,5,0,0"/>
+                                        <TextBlock Text="{Binding Evidence}" TextWrapping="Wrap" Foreground="{DynamicResource NexusMutedBrush}" Margin="0,5,0,0"/>
                                     </StackPanel>
                                 </Border>
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
                 </ScrollViewer>
-                <TextBlock Grid.Row="3" x:Name="SoftwareNoticeText" Text="Discovery is read-only. Tools are not launched or installed." TextWrapping="Wrap" Foreground="#8CA6BC" Margin="0,12,0,0"/>
+                <TextBlock Grid.Row="3" x:Name="SoftwareNoticeText" Text="Discovery is read-only. Tools are not launched or installed." TextWrapping="Wrap" Foreground="{DynamicResource NexusMutedBrush}" Margin="0,12,0,0"/>
             </Grid>
         </TabItem>
         <TabItem x:Name="ResourcesTab" Header="Performance" Padding="18,10">
@@ -454,10 +487,10 @@
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
                 <DockPanel Margin="0,0,0,20">
-                    <CheckBox x:Name="MonitoringEnabled" DockPanel.Dock="Right" Content="Live monitoring" IsChecked="True" Foreground="#E6F7FF" VerticalAlignment="Center"/>
+                    <CheckBox x:Name="MonitoringEnabled" DockPanel.Dock="Right" Content="Live monitoring" IsChecked="True" Foreground="{DynamicResource NexusTextBrush}" VerticalAlignment="Center"/>
                     <StackPanel>
-                        <TextBlock Text="LIVE RESOURCE USAGE" FontSize="24" FontWeight="Bold"/>
-                        <TextBlock x:Name="ResourceStatusText" Text="Waiting for first sample" Foreground="#8CA6BC" Margin="0,8,0,0"/>
+                        <TextBlock Text="LIVE RESOURCE USAGE" FontSize="{DynamicResource NexusFontSize24}" FontWeight="Bold"/>
+                        <TextBlock x:Name="ResourceStatusText" Text="Waiting for first sample" Foreground="{DynamicResource NexusMutedBrush}" Margin="0,8,0,0"/>
                     </StackPanel>
                 </DockPanel>
                 <UniformGrid Grid.Row="1" Columns="2">
@@ -465,29 +498,29 @@
                         <StackPanel>
                             <TextBlock Text="CPU UTILIZATION" Style="{StaticResource MetricLabelStyle}"/>
                             <TextBlock x:Name="CpuUsageText" Text="Sampling..." Style="{StaticResource MetricValueStyle}"/>
-                            <TextBlock Text="Interval-based Windows processor time" Foreground="#8CA6BC" Margin="0,8,0,0"/>
+                            <TextBlock Text="Interval-based Windows processor time" Foreground="{DynamicResource NexusMutedBrush}" Margin="0,8,0,0"/>
                         </StackPanel>
                     </Border>
                     <Border Style="{StaticResource PanelStyle}" Margin="0,0,0,14">
                         <StackPanel>
                             <TextBlock Text="PHYSICAL MEMORY IN USE" Style="{StaticResource MetricLabelStyle}"/>
                             <TextBlock x:Name="MemoryUsageText" Text="Sampling..." Style="{StaticResource MetricValueStyle}"/>
-                            <TextBlock x:Name="MemoryAvailableText" Foreground="#8CA6BC" Margin="0,8,0,0"/>
+                            <TextBlock x:Name="MemoryAvailableText" Foreground="{DynamicResource NexusMutedBrush}" Margin="0,8,0,0"/>
                         </StackPanel>
                     </Border>
                 </UniformGrid>
                 <Grid Grid.Row="2"><Grid.RowDefinitions><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
                 <Border Style="{StaticResource PanelStyle}" Margin="0">
                     <DockPanel>
-                        <TextBlock DockPanel.Dock="Top" Text="NVIDIA GPU UTILIZATION / VRAM" FontSize="16" Foreground="#66C0F4" Margin="0,0,0,16"/>
+                        <TextBlock DockPanel.Dock="Top" Text="NVIDIA GPU UTILIZATION / VRAM" FontSize="{DynamicResource NexusFontSize16}" Foreground="{DynamicResource NexusAccentBrush}" Margin="0,0,0,16"/>
                         <ScrollViewer VerticalScrollBarVisibility="Auto">
                             <ItemsControl x:Name="GpuUsageList">
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate>
                                         <StackPanel Margin="0,0,0,16">
-                                            <TextBlock Text="{Binding Name}" FontSize="16"/>
-                                            <TextBlock Text="{Binding UsageDisplay}" Foreground="#8CA6BC" Margin="0,8,0,0"/>
-                                            <TextBlock Text="{Binding MemoryDisplay}" Foreground="#8CA6BC" Margin="0,8,0,0"/>
+                                            <TextBlock Text="{Binding Name}" FontSize="{DynamicResource NexusFontSize16}"/>
+                                            <TextBlock Text="{Binding UsageDisplay}" Foreground="{DynamicResource NexusMutedBrush}" Margin="0,8,0,0"/>
+                                            <TextBlock Text="{Binding MemoryDisplay}" Foreground="{DynamicResource NexusMutedBrush}" Margin="0,8,0,0"/>
                                         </StackPanel>
                                     </DataTemplate>
                                 </ItemsControl.ItemTemplate>
@@ -495,7 +528,7 @@
                         </ScrollViewer>
                     </DockPanel>
                 </Border>
-                <Expander Grid.Row="1" Header="GPU power settings — optional, per graphics card" Foreground="#AABFD4" Margin="0,10,0,0">
+                <Expander Grid.Row="1" Header="GPU power settings — optional, per graphics card" Foreground="{DynamicResource NexusMutedBrush}" Margin="0,10,0,0">
                     <StackPanel Margin="0,8,0,0">
                         <TextBlock Text="Nexus leaves existing power settings unchanged. These controls support NVIDIA adapters that report writable limits; other hardware can still run supported workloads." TextWrapping="Wrap"/>
                         <Button x:Name="GpuPowerReadButton" Content="Read current power limits" Click="GpuPowerReadButton_Click" HorizontalAlignment="Left" Margin="0,8,0,8"/>
@@ -507,7 +540,7 @@
                         <TextBlock x:Name="GpuPowerStatusText" Text="No power setting has been requested. Model launch does not require a particular wattage or this utility." TextWrapping="Wrap" Margin="0,6,0,0"/>
                     </StackPanel>
                 </Expander></Grid>
-                <TextBlock Grid.Row="3" x:Name="ResourceNoticeText" Text="Samples every 2 seconds. Monitoring does not impose resource limits. GPU metrics require the NVIDIA driver utility." TextWrapping="Wrap" Foreground="#8CA6BC" Margin="0,12,0,0"/>
+                <TextBlock Grid.Row="3" x:Name="ResourceNoticeText" Text="Samples every 2 seconds. Monitoring does not impose resource limits. GPU metrics require the NVIDIA driver utility." TextWrapping="Wrap" Foreground="{DynamicResource NexusMutedBrush}" Margin="0,12,0,0"/>
             </Grid>
         </TabItem>
         <TabItem x:Name="PackageTab" Header="Install / Update" Padding="18,10">
@@ -520,22 +553,22 @@
                     <RowDefinition Height="*"/>
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
-                <TextBlock Text="AI APPLICATION INSTALLER" FontSize="24" FontWeight="Bold" Margin="0,0,0,16"/>
+                <TextBlock Text="AI APPLICATION INSTALLER" FontSize="{DynamicResource NexusFontSize24}" FontWeight="Bold" Margin="0,0,0,16"/>
                 <Grid Grid.Row="1" Margin="0,0,0,12">
                     <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
                     <ComboBox x:Name="PackageSelector" DisplayMemberPath="Name" SelectionChanged="PackageSelector_SelectionChanged" Padding="10"/>
                     <Button x:Name="PackagePreviewButton" Grid.Column="1" Content="Review package" Click="PackagePreviewButton_Click" Padding="18,10" Margin="12,0,0,0"/>
                 </Grid>
-                <TextBlock Grid.Row="2" x:Name="PackagePlanText" Text="Choose a package and review its current WinGet metadata." TextWrapping="Wrap" Foreground="#8CA6BC" Margin="0,0,0,12"/>
+                <TextBlock Grid.Row="2" x:Name="PackagePlanText" Text="Choose a package and review its current WinGet metadata." TextWrapping="Wrap" Foreground="{DynamicResource NexusMutedBrush}" Margin="0,0,0,12"/>
                 <StackPanel Grid.Row="3" Margin="0,0,0,12">
-                    <CheckBox x:Name="PackageAgreementCheck" Content="I accept the displayed package license terms and WinGet source agreements for this operation." Foreground="#E6F7FF" IsEnabled="False" Checked="PackageAgreementChanged" Unchecked="PackageAgreementChanged"/>
+                    <CheckBox x:Name="PackageAgreementCheck" Content="I accept the displayed package license terms and WinGet source agreements for this operation." Foreground="{DynamicResource NexusTextBrush}" IsEnabled="False" Checked="PackageAgreementChanged" Unchecked="PackageAgreementChanged"/>
                     <StackPanel Orientation="Horizontal" Margin="0,12,0,0">
                         <Button x:Name="PackageInstallButton" Content="Install for current user" Click="PackageInstallButton_Click" IsEnabled="False" Padding="18,10"/>
                         <Button x:Name="PackageUpdateButton" Content="Update for current user" Click="PackageUpdateButton_Click" IsEnabled="False" Padding="18,10" Margin="12,0,0,0"/>
                     </StackPanel>
                 </StackPanel>
-                <TextBox Grid.Row="4" x:Name="PackageOutputText" IsReadOnly="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Background="#182638" Foreground="#E6F7FF" BorderBrush="#26394E" Padding="12" Text="Package review contacts the WinGet community source. No application is installed until you choose Install or Update."/>
-                <TextBlock Grid.Row="5" x:Name="PackageStatusText" Text="Ready. User-scoped, supported packages only. No bulk updates." Foreground="#8CA6BC" TextWrapping="Wrap" Margin="0,12,0,0"/>
+                <TextBox Grid.Row="4" x:Name="PackageOutputText" IsReadOnly="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Background="{DynamicResource NexusPanelBrush}" Foreground="{DynamicResource NexusTextBrush}" BorderBrush="{DynamicResource NexusBorderBrush}" Padding="12" Text="Package review contacts the WinGet community source. No application is installed until you choose Install or Update."/>
+                <TextBlock Grid.Row="5" x:Name="PackageStatusText" Text="Ready. User-scoped, supported packages only. No bulk updates." Foreground="{DynamicResource NexusMutedBrush}" TextWrapping="Wrap" Margin="0,12,0,0"/>
             </Grid>
         </TabItem>
         <TabItem x:Name="CatalogLibraryTab" Header="Library" Padding="18,10">
@@ -545,14 +578,14 @@
                     <DockPanel><WrapPanel DockPanel.Dock="Right">
                         <Button x:Name="CatalogRefreshButton" Content="Refresh local library" Click="CatalogRefreshButton_Click"/>
                         <Button Content="Model folders &amp; file checks" Tag="LibraryTab" Click="StoreNavigate_Click" Margin="8,0,0,0"/>
-                    </WrapPanel><TextBlock Text="Your library &amp; saved catalog" FontSize="24" FontWeight="Bold"/></DockPanel>
-                    <TextBlock Text="Discover adds source listings here. Your installed receipts stay private. Browsing does not contact the internet or start software." Foreground="#AABFD4" TextWrapping="Wrap" Margin="0,8,0,12"/>
+                    </WrapPanel><TextBlock Text="Your library &amp; saved catalog" FontSize="{DynamicResource NexusFontSize24}" FontWeight="Bold"/></DockPanel>
+                    <TextBlock Text="Discover adds source listings here. Your installed receipts stay private. Browsing does not contact the internet or start software." Foreground="{DynamicResource NexusMutedBrush}" TextWrapping="Wrap" Margin="0,8,0,12"/>
                 </StackPanel>
                 <DockPanel Grid.Row="1" Margin="0,0,0,12">
-                    <CheckBox x:Name="CatalogInstalledOnlyCheck" DockPanel.Dock="Right" Content="Only entries with local receipts" IsChecked="False" Checked="CatalogFilter_Changed" Unchecked="CatalogFilter_Changed" Foreground="#AABFD4" VerticalAlignment="Center" Margin="12,0,0,0"/>
+                    <CheckBox x:Name="CatalogInstalledOnlyCheck" DockPanel.Dock="Right" Content="Only entries with local receipts" IsChecked="False" Checked="CatalogFilter_Changed" Unchecked="CatalogFilter_Changed" Foreground="{DynamicResource NexusMutedBrush}" VerticalAlignment="Center" Margin="12,0,0,0"/>
                     <TextBox x:Name="CatalogFilterText" TextChanged="CatalogFilter_Changed" Padding="8" MaxLength="160" ToolTip="Filter saved names, publishers and categories locally"/>
                 </DockPanel>
-                <DataGrid Grid.Row="2" x:Name="CatalogLibraryGrid" SelectionMode="Single" SelectionChanged="CatalogLibraryGrid_SelectionChanged" IsReadOnly="True" AutoGenerateColumns="False" CanUserAddRows="False" HeadersVisibility="Column" Background="#182638" Foreground="#E6EEF8">
+                <DataGrid Grid.Row="2" x:Name="CatalogLibraryGrid" SelectionMode="Single" SelectionChanged="CatalogLibraryGrid_SelectionChanged" IsReadOnly="True" AutoGenerateColumns="False" CanUserAddRows="False" HeadersVisibility="Column" Background="{DynamicResource NexusPanelBrush}" Foreground="{DynamicResource NexusTextBrush}">
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="2*"/>
                         <DataGridTextColumn Header="Type" Binding="{Binding Kind}" Width="Auto"/>
@@ -565,14 +598,14 @@
                 </DataGrid>
                 <StackPanel Grid.Row="3" Margin="0,10,0,0">
                     <Button x:Name="CatalogSearchSourceButton" Content="Search source in Discover" Click="CatalogSearchSourceButton_Click" IsEnabled="False" HorizontalAlignment="Left"/>
-                    <Expander Header="Sources, artifact details &amp; private receipts" Foreground="#AABFD4" Margin="0,8,0,6">
-                        <TextBox x:Name="CatalogDetailsText" IsReadOnly="True" TextWrapping="Wrap" AcceptsReturn="True" VerticalScrollBarVisibility="Auto" Height="200" Background="#182638" Foreground="#E6EEF8" Text="Choose an entry to inspect its evidence."/>
+                    <Expander Header="Sources, artifact details &amp; private receipts" Foreground="{DynamicResource NexusMutedBrush}" Margin="0,8,0,6">
+                        <TextBox x:Name="CatalogDetailsText" IsReadOnly="True" TextWrapping="Wrap" AcceptsReturn="True" VerticalScrollBarVisibility="Auto" Height="200" Background="{DynamicResource NexusPanelBrush}" Foreground="{DynamicResource NexusTextBrush}" Text="Choose an entry to inspect its evidence."/>
                     </Expander>
-                    <TextBlock x:Name="CatalogLibraryStatusText" Text="The local catalog will open after preferences load." Foreground="#AABFD4" TextWrapping="Wrap"/>
+                    <TextBlock x:Name="CatalogLibraryStatusText" Text="The local catalog will open after preferences load." Foreground="{DynamicResource NexusMutedBrush}" TextWrapping="Wrap"/>
                 </StackPanel>
                 <DockPanel Grid.Row="4" Margin="0,10,0,0">
                     <Button x:Name="CatalogFolderButton" DockPanel.Dock="Right" Content="Open catalog folder…" Click="CatalogFolderButton_Click" Margin="12,0,0,0"/>
-                    <TextBlock x:Name="CatalogLocationText" TextWrapping="Wrap" Foreground="#829AB2" VerticalAlignment="Center"/>
+                    <TextBlock x:Name="CatalogLocationText" TextWrapping="Wrap" Foreground="{DynamicResource NexusMutedBrush}" VerticalAlignment="Center"/>
                 </DockPanel>
             </Grid>
         </TabItem>
@@ -581,7 +614,7 @@
                 <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
                 <DockPanel Margin="0,0,0,16">
                     <Button x:Name="LibraryRescanButton" DockPanel.Dock="Right" Content="Rescan folders" Click="LibraryRescanButton_Click" Padding="18,10"/>
-                    <TextBlock Text="LOCAL MODEL LIBRARY" FontSize="24" FontWeight="Bold"/>
+                    <TextBlock Text="LOCAL MODEL LIBRARY" FontSize="{DynamicResource NexusFontSize24}" FontWeight="Bold"/>
                 </DockPanel>
                 <Grid Grid.Row="1" Margin="0,0,0,12">
                     <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
@@ -589,8 +622,8 @@
                     <Button Grid.Column="1" x:Name="LibraryAddButton" Content="Add folder" Click="LibraryAddButton_Click" Padding="12,10" Margin="12,0,0,0"/>
                     <Button Grid.Column="2" x:Name="LibraryRemoveButton" Content="Stop tracking" Click="LibraryRemoveButton_Click" Padding="12,10" Margin="12,0,0,0"/>
                 </Grid>
-                <TextBlock Grid.Row="2" x:Name="LibraryStatusText" Text="Add a model folder to index GGUF, SafeTensors, and ONNX files." Foreground="#8CA6BC" TextWrapping="Wrap" Margin="0,0,0,12"/>
-                <DataGrid Grid.Row="3" x:Name="ModelFileGrid" SelectionMode="Single" SelectionChanged="ModelFileGrid_SelectionChanged" IsReadOnly="True" AutoGenerateColumns="False" CanUserAddRows="False" Background="#182638" Foreground="#E6EEF8" BorderBrush="#26394E" HeadersVisibility="Column" EnableRowVirtualization="True">
+                <TextBlock Grid.Row="2" x:Name="LibraryStatusText" Text="Add a model folder to index GGUF, SafeTensors, and ONNX files." Foreground="{DynamicResource NexusMutedBrush}" TextWrapping="Wrap" Margin="0,0,0,12"/>
+                <DataGrid Grid.Row="3" x:Name="ModelFileGrid" SelectionMode="Single" SelectionChanged="ModelFileGrid_SelectionChanged" IsReadOnly="True" AutoGenerateColumns="False" CanUserAddRows="False" Background="{DynamicResource NexusPanelBrush}" Foreground="{DynamicResource NexusTextBrush}" BorderBrush="{DynamicResource NexusBorderBrush}" HeadersVisibility="Column" EnableRowVirtualization="True">
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="Model file" Binding="{Binding Name}" Width="2*"/>
                         <DataGridTextColumn Header="Format" Binding="{Binding Format}" Width="Auto"/>
@@ -599,14 +632,14 @@
                     </DataGrid.Columns>
                 </DataGrid>
                 <StackPanel Grid.Row="4" Margin="0,12,0,0">
-                    <TextBlock x:Name="LibraryNoticeText" Text="Indexing reads file metadata only. Stop tracking removes a folder from this list; model files remain on disk. File format labels come from extensions and do not validate model contents." Foreground="#8CA6BC" TextWrapping="Wrap"/>
+                    <TextBlock x:Name="LibraryNoticeText" Text="Indexing reads file metadata only. Stop tracking removes a folder from this list; model files remain on disk. File format labels come from extensions and do not validate model contents." Foreground="{DynamicResource NexusMutedBrush}" TextWrapping="Wrap"/>
                     <WrapPanel Margin="0,10,0,8">
                         <Button x:Name="LibraryCheckButton" Content="Check selected file" Click="LibraryCheckButton_Click" IsEnabled="False" Padding="12,8"/>
                         <Button x:Name="LibraryRecoveryButton" Content="Review recovery steps" Click="LibraryRecoveryButton_Click" IsEnabled="False" Padding="12,8" Margin="8,0,0,0"/>
                         <Button x:Name="LibraryCancelCheckButton" Content="Cancel check" Click="LibraryCancelCheckButton_Click" IsEnabled="False" Padding="12,8" Margin="8,0,0,0"/>
                     </WrapPanel>
-                    <TextBlock x:Name="LibraryMaintenanceStatusText" Text="Select a GGUF file to check against an acquisition receipt. This reads local bytes only; it does not verify runtime readiness." TextWrapping="Wrap" Foreground="#8CA6BC"/>
-                    <Expander x:Name="LibraryRecoveryExpander" Header="Recovery review — no files changed" Visibility="Collapsed" Foreground="#AABFD4" Margin="0,8,0,0">
+                    <TextBlock x:Name="LibraryMaintenanceStatusText" Text="Select a GGUF file to check against an acquisition receipt. This reads local bytes only; it does not verify runtime readiness." TextWrapping="Wrap" Foreground="{DynamicResource NexusMutedBrush}"/>
+                    <Expander x:Name="LibraryRecoveryExpander" Header="Recovery review — no files changed" Visibility="Collapsed" Foreground="{DynamicResource NexusMutedBrush}" Margin="0,8,0,0">
                         <TextBox x:Name="LibraryRecoveryDetailsText" IsReadOnly="True" TextWrapping="Wrap" AcceptsReturn="True" VerticalScrollBarVisibility="Auto" Height="180"/>
                     </Expander>
                 </StackPanel>
@@ -615,8 +648,8 @@
         <TabItem x:Name="LlamaCppTab" Header="llama.cpp" Padding="18,10" Loaded="LlamaCppTab_Loaded">
             <Grid Margin="18">
                 <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
-                <TextBlock Text="PORTABLE LLAMA.CPP" FontSize="24" FontWeight="Bold" Margin="0,0,0,12"/>
-                <Border Grid.Row="1" Background="#182638" BorderBrush="#26394E" BorderThickness="1" Padding="12" Margin="0,0,0,12">
+                <TextBlock Text="PORTABLE LLAMA.CPP" FontSize="{DynamicResource NexusFontSize24}" FontWeight="Bold" Margin="0,0,0,12"/>
+                <Border Grid.Row="1" Background="{DynamicResource NexusPanelBrush}" BorderBrush="{DynamicResource NexusBorderBrush}" BorderThickness="1" Padding="12" Margin="0,0,0,12">
                     <Grid>
                         <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
                         <DockPanel Margin="0,0,0,8">
@@ -639,36 +672,36 @@
                                 <TextBox x:Name="LlamaCppContextText" Text="4096" Width="90" Padding="6" MaxLength="8" ToolTip="Requested context size; actual memory use depends on model, build, and hardware"/>
                             </StackPanel>
                         </DockPanel>
-                        <TextBlock Grid.Row="3" x:Name="LlamaCppRuntimeStatusText" Text="Select a portable server and existing GGUF. Start explicitly loads the model in a hidden server process. Only a server started by this portal stops on close; other local servers are preserved." Foreground="#8CA6BC" TextWrapping="Wrap"/>
+                        <TextBlock Grid.Row="3" x:Name="LlamaCppRuntimeStatusText" Text="Select a portable server and existing GGUF. Start explicitly loads the model in a hidden server process. Only a server started by this portal stops on close; other local servers are preserved." Foreground="{DynamicResource NexusMutedBrush}" TextWrapping="Wrap"/>
                     </Grid>
                 </Border>
                 <DockPanel Grid.Row="2" Margin="0,0,0,12">
                     <Button x:Name="LlamaCppRefreshButton" DockPanel.Dock="Right" Content="Query local server" Click="LlamaCppRefreshButton_Click" Padding="18,10" Margin="12,0,0,0"/>
                     <TextBox x:Name="LlamaCppEndpointText" Text="http://127.0.0.1:8080" Padding="10" ToolTip="Loopback HTTP or HTTPS root address of an existing llama-server"/>
                 </DockPanel>
-                <TextBlock Grid.Row="3" x:Name="LlamaCppStatusText" Text="No server queried yet. Connect to an existing local llama.cpp server to read its actual model IDs." Foreground="#8CA6BC" TextWrapping="Wrap" Margin="0,0,0,12"/>
-                <ListBox Grid.Row="4" x:Name="LlamaCppModelList" Background="#182638" Foreground="#E6F7FF" BorderBrush="#26394E" Padding="10" ScrollViewer.HorizontalScrollBarVisibility="Auto"/>
-                <Expander Grid.Row="5" Header="Owned server output" Foreground="#8CA6BC" Margin="0,8,0,0">
+                <TextBlock Grid.Row="3" x:Name="LlamaCppStatusText" Text="No server queried yet. Connect to an existing local llama.cpp server to read its actual model IDs." Foreground="{DynamicResource NexusMutedBrush}" TextWrapping="Wrap" Margin="0,0,0,12"/>
+                <ListBox Grid.Row="4" x:Name="LlamaCppModelList" Background="{DynamicResource NexusPanelBrush}" Foreground="{DynamicResource NexusTextBrush}" BorderBrush="{DynamicResource NexusBorderBrush}" Padding="10" ScrollViewer.HorizontalScrollBarVisibility="Auto"/>
+                <Expander Grid.Row="5" Header="Owned server output" Foreground="{DynamicResource NexusMutedBrush}" Margin="0,8,0,0">
                     <DockPanel>
                         <Button x:Name="LlamaCppLogButton" DockPanel.Dock="Top" Content="Refresh output" Click="LlamaCppLogButton_Click" HorizontalAlignment="Left" Padding="8,4" Margin="0,0,0,6"/>
-                        <TextBox x:Name="LlamaCppRuntimeLogText" Height="90" IsReadOnly="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" Background="#182638" Foreground="#E6F7FF"/>
+                        <TextBox x:Name="LlamaCppRuntimeLogText" Height="90" IsReadOnly="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" Background="{DynamicResource NexusPanelBrush}" Foreground="{DynamicResource NexusTextBrush}"/>
                     </DockPanel>
                 </Expander>
-                <TextBlock Grid.Row="6" Text="Query only reads /v1/models. Start loads your selected model; no downloads or global installation occur. Choose an actual returned model ID in Agent Tasks to send a prompt." Foreground="#8CA6BC" TextWrapping="Wrap" Margin="0,8,0,0"/>
+                <TextBlock Grid.Row="6" Text="Query only reads /v1/models. Start loads your selected model; no downloads or global installation occur. Choose an actual returned model ID in Agent Tasks to send a prompt." Foreground="{DynamicResource NexusMutedBrush}" TextWrapping="Wrap" Margin="0,8,0,0"/>
             </Grid>
         </TabItem>
         <TabItem x:Name="OllamaTab" Header="Ollama" Padding="18,10">
             <Grid Margin="18">
                 <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
-                <TextBlock Text="OLLAMA MODEL INVENTORY" FontSize="24" FontWeight="Bold" Margin="0,0,0,16"/>
+                <TextBlock Text="OLLAMA MODEL INVENTORY" FontSize="{DynamicResource NexusFontSize24}" FontWeight="Bold" Margin="0,0,0,16"/>
                 <DockPanel Grid.Row="1" Margin="0,0,0,12">
                     <Button x:Name="OllamaRefreshButton" DockPanel.Dock="Right" Content="Query local server" Click="OllamaRefreshButton_Click" Padding="18,10" Margin="12,0,0,0"/>
                     <TextBox x:Name="OllamaEndpointText" Text="http://127.0.0.1:11434" Padding="10" ToolTip="Loopback HTTP or HTTPS endpoint only"/>
                 </DockPanel>
-                <TextBlock Grid.Row="2" x:Name="OllamaStatusText" Text="No server queried yet. The portal does not start Ollama." Foreground="#8CA6BC" TextWrapping="Wrap" Margin="0,0,0,12"/>
-                <TabControl Grid.Row="3" Background="#090D16" Foreground="#E6F7FF" BorderBrush="#26394E">
+                <TextBlock Grid.Row="2" x:Name="OllamaStatusText" Text="No server queried yet. The portal does not start Ollama." Foreground="{DynamicResource NexusMutedBrush}" TextWrapping="Wrap" Margin="0,0,0,12"/>
+                <TabControl Grid.Row="3" Background="#090D16" Foreground="{DynamicResource NexusTextBrush}" BorderBrush="{DynamicResource NexusBorderBrush}">
                     <TabItem Header="Available models" Padding="12,8">
-                        <DataGrid x:Name="OllamaAvailableGrid" IsReadOnly="True" AutoGenerateColumns="False" CanUserAddRows="False" Background="#182638" Foreground="#E6EEF8" HeadersVisibility="Column">
+                        <DataGrid x:Name="OllamaAvailableGrid" IsReadOnly="True" AutoGenerateColumns="False" CanUserAddRows="False" Background="{DynamicResource NexusPanelBrush}" Foreground="{DynamicResource NexusTextBrush}" HeadersVisibility="Column">
                             <DataGrid.Columns>
                                 <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="2*"/>
                                 <DataGridTextColumn Header="Disk size" Binding="{Binding SizeDisplay}" Width="*"/>
@@ -678,7 +711,7 @@
                         </DataGrid>
                     </TabItem>
                     <TabItem Header="Loaded models" Padding="12,8">
-                        <DataGrid x:Name="OllamaRunningGrid" IsReadOnly="True" AutoGenerateColumns="False" CanUserAddRows="False" Background="#182638" Foreground="#E6EEF8" HeadersVisibility="Column">
+                        <DataGrid x:Name="OllamaRunningGrid" IsReadOnly="True" AutoGenerateColumns="False" CanUserAddRows="False" Background="{DynamicResource NexusPanelBrush}" Foreground="{DynamicResource NexusTextBrush}" HeadersVisibility="Column">
                             <DataGrid.Columns>
                                 <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="2*"/>
                                 <DataGridTextColumn Header="Loaded size" Binding="{Binding SizeDisplay}" Width="*"/>
@@ -688,19 +721,19 @@
                         </DataGrid>
                     </TabItem>
                 </TabControl>
-                <TextBlock Grid.Row="4" x:Name="OllamaNoticeText" Text="Read-only queries to /api/tags and /api/ps. No model downloads, inference, or load/unload operations." Foreground="#8CA6BC" TextWrapping="Wrap" Margin="0,12,0,0"/>
+                <TextBlock Grid.Row="4" x:Name="OllamaNoticeText" Text="Read-only queries to /api/tags and /api/ps. No model downloads, inference, or load/unload operations." Foreground="{DynamicResource NexusMutedBrush}" TextWrapping="Wrap" Margin="0,12,0,0"/>
             </Grid>
         </TabItem>
         <TabItem x:Name="EmbeddedTab" Header="Embedded Apps" Padding="18,10">
             <Grid Margin="18">
                 <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
-                <TextBlock Text="LOCAL APPLICATION INTERFACE" FontSize="24" FontWeight="Bold" Margin="0,0,0,16"/>
+                <TextBlock Text="LOCAL APPLICATION INTERFACE" FontSize="{DynamicResource NexusFontSize24}" FontWeight="Bold" Margin="0,0,0,16"/>
                 <DockPanel Grid.Row="1" Margin="0,0,0,12">
                     <Button x:Name="EmbeddedOpenButton" DockPanel.Dock="Right" Content="Open in portal" Click="EmbeddedOpenButton_Click" Padding="18,10" Margin="12,0,0,0"/>
                     <TextBox x:Name="EmbeddedEndpointText" Padding="10" ToolTip="Enter the loopback URL of an existing local AI web interface"/>
                 </DockPanel>
                 <local:EmbeddedAppHost Grid.Row="2" x:Name="EmbeddedHost"/>
-                <TextBlock Grid.Row="3" x:Name="EmbeddedStatusText" Text="Enter the address of an existing local web interface. The portal does not start a server. Downloads and new windows are blocked." Foreground="#8CA6BC" TextWrapping="Wrap" Margin="0,12,0,0"/>
+                <TextBlock Grid.Row="3" x:Name="EmbeddedStatusText" Text="Enter the address of an existing local web interface. The portal does not start a server. Downloads and new windows are blocked." Foreground="{DynamicResource NexusMutedBrush}" TextWrapping="Wrap" Margin="0,12,0,0"/>
             </Grid>
         </TabItem>
         <TabItem x:Name="AssistantTab" Header="Assistant" Padding="18,10">
@@ -708,7 +741,7 @@
                 <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
                 <DockPanel Margin="0,0,0,10">
                     <Button x:Name="AgentRefreshModelsButton" DockPanel.Dock="Right" Content="Refresh local models" Click="AgentRefreshModelsButton_Click" Padding="12,8"/>
-                    <TextBlock Text="LOCAL AGENT TASKS" FontSize="24" FontWeight="Bold"/>
+                    <TextBlock Text="LOCAL AGENT TASKS" FontSize="{DynamicResource NexusFontSize24}" FontWeight="Bold"/>
                 </DockPanel>
                 <Grid Grid.Row="1" Margin="0,0,0,10">
                     <Grid.ColumnDefinitions><ColumnDefinition Width="150"/><ColumnDefinition/><ColumnDefinition/></Grid.ColumnDefinitions>
@@ -719,11 +752,11 @@
                 <Grid Grid.Row="2" Margin="0,0,0,10">
                     <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition/></Grid.ColumnDefinitions>
                     <StackPanel Margin="0,0,12,0">
-                        <TextBlock Text="SYSTEM INSTRUCTION" Foreground="#8CA6BC" Margin="0,0,0,4"/>
+                        <TextBlock Text="SYSTEM INSTRUCTION" Foreground="{DynamicResource NexusMutedBrush}" Margin="0,0,0,4"/>
                         <TextBox x:Name="AgentSystemText" Text="Complete the user's task using the information provided." AcceptsReturn="True" TextWrapping="Wrap" Height="65" VerticalScrollBarVisibility="Auto" MaxLength="8192"/>
                     </StackPanel>
                     <StackPanel Grid.Column="1">
-                        <TextBlock Text="TASK PROMPT" Foreground="#8CA6BC" Margin="0,0,0,4"/>
+                        <TextBlock Text="TASK PROMPT" Foreground="{DynamicResource NexusMutedBrush}" Margin="0,0,0,4"/>
                         <TextBox x:Name="AgentPromptText" AcceptsReturn="True" TextWrapping="Wrap" Height="65" VerticalScrollBarVisibility="Auto" MaxLength="32768"/>
                     </StackPanel>
                 </Grid>
@@ -741,7 +774,7 @@
                         <TextBox x:Name="AgentMinVramText" Text="0" Width="48" Padding="5" MaxLength="12"/>
                     </WrapPanel>
                 </DockPanel>
-                <DataGrid Grid.Row="4" x:Name="AgentJobGrid" IsReadOnly="True" AutoGenerateColumns="False" CanUserAddRows="False" SelectionMode="Single" SelectionChanged="AgentJobGrid_SelectionChanged" Background="#182638" Foreground="#E6EEF8" HeadersVisibility="Column" Margin="0,0,0,10">
+                <DataGrid Grid.Row="4" x:Name="AgentJobGrid" IsReadOnly="True" AutoGenerateColumns="False" CanUserAddRows="False" SelectionMode="Single" SelectionChanged="AgentJobGrid_SelectionChanged" Background="{DynamicResource NexusPanelBrush}" Foreground="{DynamicResource NexusTextBrush}" HeadersVisibility="Column" Margin="0,0,0,10">
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="Task" Binding="{Binding Name}" Width="*"/>
                         <DataGridTextColumn Header="Runtime" Binding="{Binding Runtime}" Width="Auto"/>
@@ -750,16 +783,16 @@
                         <DataGridTextColumn Header="Detail" Binding="{Binding Detail}" Width="2*"/>
                     </DataGrid.Columns>
                 </DataGrid>
-                <TextBox Grid.Row="5" x:Name="AgentOutputText" IsReadOnly="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" Background="#182638" Foreground="#E6F7FF" Padding="10"/>
-                <TextBlock Grid.Row="6" x:Name="AgentStatusText" Text="Refresh local models, choose a model, and enter a prompt. Serial requests use resource admission checks, not OS quotas. Prompts and replies stay in this session. No model output is executed as code or tools." Foreground="#8CA6BC" TextWrapping="Wrap" Margin="0,10,0,0"/>
+                <TextBox Grid.Row="5" x:Name="AgentOutputText" IsReadOnly="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" Background="{DynamicResource NexusPanelBrush}" Foreground="{DynamicResource NexusTextBrush}" Padding="10"/>
+                <TextBlock Grid.Row="6" x:Name="AgentStatusText" Text="Refresh local models, choose a model, and enter a prompt. Serial requests use resource admission checks, not OS quotas. Prompts and replies stay in this session. No model output is executed as code or tools." Foreground="{DynamicResource NexusMutedBrush}" TextWrapping="Wrap" Margin="0,10,0,0"/>
             </Grid>
         </TabItem>
         <TabItem x:Name="OfflineVerificationTab" Header="Verify Offline" Padding="18,10">
             <Grid Margin="18">
                 <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
                 <StackPanel Margin="0,0,0,16">
-                    <TextBlock Text="VERIFY A LOCAL MODEL" FontSize="24" FontWeight="Bold"/>
-                    <TextBlock Text="Audit the saved artifact first, then explicitly test a selected local runtime. A checksum match alone does not prove inference works." Foreground="#8CA6BC" TextWrapping="Wrap" Margin="0,6,0,0"/>
+                    <TextBlock Text="VERIFY A LOCAL MODEL" FontSize="{DynamicResource NexusFontSize24}" FontWeight="Bold"/>
+                    <TextBlock Text="Audit the saved artifact first, then explicitly test a selected local runtime. A checksum match alone does not prove inference works." Foreground="{DynamicResource NexusMutedBrush}" TextWrapping="Wrap" Margin="0,6,0,0"/>
                 </StackPanel>
                 <DockPanel Grid.Row="1" Margin="0,0,0,12">
                     <Button x:Name="OfflineReceiptBrowseButton" DockPanel.Dock="Right" Content="Choose receipt" Click="OfflineReceiptBrowseButton_Click" Padding="12,8" Margin="10,0,0,0"/>
@@ -776,14 +809,14 @@
                     <Button x:Name="OfflineRunButton" Content="RUN LOCAL SMOKE TEST (LOADS MODEL)" Click="OfflineRunButton_Click" IsEnabled="False" Padding="12,8" Margin="12,0,0,0"/>
                     <Button x:Name="OfflineCancelButton" Content="Cancel" Click="OfflineCancelButton_Click" Padding="12,8" Margin="12,0,0,0" IsEnabled="False"/>
                 </WrapPanel>
-                <TextBox Grid.Row="4" x:Name="OfflineEvidenceText" IsReadOnly="True" AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" Background="#182638" Foreground="#E6F7FF" Padding="12" Text="An approved acquisition supplies a receipt automatically. You can also choose a saved receipt. Auditing reads local files only; running the smoke test temporarily loads the model and stops its own server afterward."/>
-                <TextBlock Grid.Row="5" x:Name="OfflineStatusText" Text="No verification has run. No model or runtime is required to use online discovery." Foreground="#8CA6BC" TextWrapping="Wrap" Margin="0,12,0,0"/>
+                <TextBox Grid.Row="4" x:Name="OfflineEvidenceText" IsReadOnly="True" AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" Background="{DynamicResource NexusPanelBrush}" Foreground="{DynamicResource NexusTextBrush}" Padding="12" Text="An approved acquisition supplies a receipt automatically. You can also choose a saved receipt. Auditing reads local files only; running the smoke test temporarily loads the model and stops its own server afterward."/>
+                <TextBlock Grid.Row="5" x:Name="OfflineStatusText" Text="No verification has run. No model or runtime is required to use online discovery." Foreground="{DynamicResource NexusMutedBrush}" TextWrapping="Wrap" Margin="0,12,0,0"/>
             </Grid>
         </TabItem>
         <TabItem x:Name="ImageStudioTab" Header="Image studio">
             <Grid Margin="28"><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
-                <StackPanel Margin="0,0,0,18"><TextBlock Text="From an idea to an image" FontSize="28" FontWeight="SemiBold"/><TextBlock Text="Create with a local diffusion checkpoint. Your prompt stays on this computer." Foreground="#AABFD4" TextWrapping="Wrap" Margin="0,8,0,0"/></StackPanel>
-                <Expander Grid.Row="1" Header="Image engine" IsExpanded="True" Foreground="#AABFD4" Margin="0,0,0,18"><StackPanel>
+                <StackPanel Margin="0,0,0,18"><TextBlock Text="From an idea to an image" FontSize="{DynamicResource NexusFontSize28}" FontWeight="SemiBold"/><TextBlock Text="Create with a local diffusion checkpoint. Your prompt stays on this computer." Foreground="{DynamicResource NexusMutedBrush}" TextWrapping="Wrap" Margin="0,8,0,0"/></StackPanel>
+                <Expander Grid.Row="1" Header="Image engine" IsExpanded="True" Foreground="{DynamicResource NexusMutedBrush}" Margin="0,0,0,18"><StackPanel>
                     <DockPanel Margin="0,10,0,8"><Button x:Name="ImageConnectButton" DockPanel.Dock="Right" Content="Check connection" Click="ImageConnectButton_Click" Margin="8,0,0,0"/><TextBox x:Name="ImageEndpointText" Text="http://127.0.0.1:8188" TextChanged="ImageInputsChanged" ToolTip="Only a local loopback image engine is supported"/></DockPanel>
                     <DockPanel><StackPanel DockPanel.Dock="Right" Orientation="Horizontal"><Button x:Name="ImageStartButton" Content="Start engine" Click="ImageStartButton_Click" Margin="8,0,0,0"/><Button x:Name="ImageStopButton" Content="Stop engine" Click="ImageStopButton_Click" IsEnabled="False" Margin="8,0,0,0"/></StackPanel><TextBox x:Name="ImageEnginePathText" ToolTip="Existing ComfyUI portable folder. Start engine lets you choose it. No software is installed automatically."/></DockPanel>
                 </StackPanel></Expander>
@@ -793,17 +826,17 @@
                         <ComboBox x:Name="ImageModelSelector" SelectionChanged="ImageModelChanged" IsEnabled="False"/>
                         <TextBlock Text="What would you like to create?" FontWeight="SemiBold" Margin="0,20,0,8"/>
                         <TextBox x:Name="ImagePromptText" Height="140" AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" MaxLength="4000"/>
-                        <Expander Header="Things to avoid (optional)" Foreground="#AABFD4" Margin="0,16,0,16"><TextBox x:Name="ImageNegativeText" Height="75" AcceptsReturn="True" TextWrapping="Wrap" MaxLength="4000" Margin="0,8,0,0"/></Expander>
-                        <TextBlock Text="Standard diffusion workflow · 512 × 512 · 20 steps. A checkpoint's actual support is established by running it, not its filename." Foreground="#829AB2" TextWrapping="Wrap" FontSize="12" Margin="0,0,0,16"/>
-                        <Button x:Name="ImageGenerateButton" Content="Generate image" Background="#286E9A" Click="ImageGenerateButton_Click" IsEnabled="False"/>
+                        <Expander Header="Things to avoid (optional)" Foreground="{DynamicResource NexusMutedBrush}" Margin="0,16,0,16"><TextBox x:Name="ImageNegativeText" Height="75" AcceptsReturn="True" TextWrapping="Wrap" MaxLength="4000" Margin="0,8,0,0"/></Expander>
+                        <TextBlock Text="Standard diffusion workflow · 512 × 512 · 20 steps. A checkpoint's actual support is established by running it, not its filename." Foreground="{DynamicResource NexusMutedBrush}" TextWrapping="Wrap" FontSize="{DynamicResource NexusFontSize12}" Margin="0,0,0,16"/>
+                        <Button x:Name="ImageGenerateButton" Content="Generate image" Background="{DynamicResource NexusButtonBrush}" Click="ImageGenerateButton_Click" IsEnabled="False"/>
                         <StackPanel Orientation="Horizontal" Margin="0,10,0,0"><Button x:Name="ImageCancelButton" Content="Cancel image" Click="ImageCancelButton_Click" IsEnabled="False"/><Button x:Name="ImageSaveButton" Content="Save PNG" Click="ImageSaveButton_Click" IsEnabled="False" Margin="8,0,0,0"/></StackPanel>
                     </StackPanel></ScrollViewer>
                     <Border Grid.Column="2" Background="#152333" CornerRadius="10" Padding="20"><Grid>
-                        <TextBlock Text="Your image will appear here" Foreground="#6F879E" HorizontalAlignment="Center" VerticalAlignment="Center"><TextBlock.Style><Style TargetType="TextBlock"><Setter Property="Visibility" Value="Collapsed"/><Style.Triggers><DataTrigger Binding="{Binding Source, ElementName=ImagePreview}" Value="{x:Null}"><Setter Property="Visibility" Value="Visible"/></DataTrigger></Style.Triggers></Style></TextBlock.Style></TextBlock>
+                        <TextBlock Text="Your image will appear here" Foreground="{DynamicResource NexusMutedBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"><TextBlock.Style><Style TargetType="TextBlock"><Setter Property="Visibility" Value="Collapsed"/><Style.Triggers><DataTrigger Binding="{Binding Source, ElementName=ImagePreview}" Value="{x:Null}"><Setter Property="Visibility" Value="Visible"/></DataTrigger></Style.Triggers></Style></TextBlock.Style></TextBlock>
                         <Image x:Name="ImagePreview" Stretch="Uniform"/>
                     </Grid></Border>
                 </Grid>
-                <TextBlock Grid.Row="3" x:Name="ImageStatusText" Text="No image engine has been checked. Connect an installed ComfyUI engine to discover its actual checkpoints. Nothing loads until you ask." Foreground="#AABFD4" TextWrapping="Wrap" Margin="0,18,0,0"/>
+                <TextBlock Grid.Row="3" x:Name="ImageStatusText" Text="No image engine has been checked. Connect an installed ComfyUI engine to discover its actual checkpoints. Nothing loads until you ask." Foreground="{DynamicResource NexusMutedBrush}" TextWrapping="Wrap" Margin="0,18,0,0"/>
             </Grid>
         </TabItem>
             </TabControl>

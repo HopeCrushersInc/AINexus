@@ -1,9 +1,10 @@
 # Current project status
 
-Release: **0.2.0-preview.5**, Windows x64 development preview, 2026-10-27.
+Release: **0.2.0-preview.6**, Windows x64 development preview, 2026-10-27.
 
 ## Working within tested limits
 
+- Simpler task/action buttons and a static black-hole backdrop. Standard starts each session; LCARS is optional and Shift-clicking LCARS opens hidden Retro. Shift-wheel or the Size menu scales text/buttons from 75% to 175%, with reset to 100%. Native title-bar dragging and all-edge/corner resizing remain available.
 - Actual CPU, RAM, GPU/driver and fixed-volume scans. Workload choices start unchecked and are not remembered.
 - Confirmed workloads initiate source searches. GGUF text-model artifacts have source links, pinned revisions, available sizes/hashes/licenses and local resource estimates. User selection is required; no model is selected automatically.
 - Supported GGUF acquisition: exact-plan approval, bounded transfer, byte/SHA-256 verification, matching existing-file reuse, receipts and no overwrite of a different file.
@@ -26,9 +27,10 @@ Release: **0.2.0-preview.5**, Windows x64 development preview, 2026-10-27.
 
 ## Validation and release identity
 
-- **839 default regression/native checks** passed on the development PC.
-- **Seven additional live checks** verified actual source discovery, explicit result selection, exact review/approval, installed-file hash/reuse, existing runtime configuration, real generation, two chat turns and owned-process cleanup. That run did not freshly download weights or install a new runtime.
+- **862 default regression/native checks** passed on the development PC.
+- **Seven additional live checks recorded for preview.5** verified actual source discovery, explicit result selection, exact review/approval, installed-file hash/reuse, existing runtime configuration, real generation, two chat turns and owned-process cleanup. That earlier run did not freshly download weights or install a new runtime; preview.6 appearance validation does not claim a fresh live model run.
 - Earlier live tests separately established a real model download and one ComfyUI generation path. They are specific model/runtime/hardware evidence, not all-model guarantees or recommendations.
+- Appearance checks cover palettes, hidden Retro selection, scaling/reset, native window settings and unchanged workload/approval state. Rendered previews were inspected at 100% and 150%; physical mouse/keyboard interaction is not established by those checks.
 - GitHub Windows CI is required for publication; its actual result is linked in release notes.
 
 The published ZIP's `PACKAGE-INFO.json` records the exact source commit and file hashes. The release tag and local active package must match that source commit and archive checksum. Historical packages and working branches are preserved rather than relabeled as current. Local paths, settings, machine logs, receipts and model weights are excluded from release assets.

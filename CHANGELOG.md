@@ -2,6 +2,14 @@
 
 User-visible changes are recorded here. Dates identify publication updates, not a promise that every feature was first implemented on that date.
 
+## 0.2.0-preview.6 — 2026-10-27 — Simpler controls and optional appearances
+
+- Simplified Home to task and action buttons, with a static black-hole backdrop. All 13 workload choices remain visible and unchecked; the search confirmation stays available below the scrollable choices.
+- Added session-only Standard and LCARS appearances. Hold Shift while clicking LCARS to reveal the hidden Retro appearance with cyan/magenta controls, stars and scanlines. Startup uses Standard.
+- Added Shift-wheel text/button scaling from 75% to 175%, plus a Size menu and reset to 100%. Sidebar and action widths scale with the controls. Ordinary scrolling retains its normal behavior.
+- Preserved native title-bar dragging and resizing from all edges and corners. Appearance and sizing do not select workloads, approve downloads, start engines or change GPU power settings.
+- Validation: 862 default regression/native checks, including appearance selection, startup choices, scaling bounds/reset, native window settings and unchanged approval state. Rendered previews cover Standard, LCARS, Retro, 150% and 175% sizing. The seven live model checks recorded for preview.5 remain earlier evidence; this appearance release does not claim a new live model download or chat run.
+
 ## 0.2.0-preview.5 — 2026-10-27 — User-selected setup and persistent catalog
 
 This release collects the local preview.3–preview.5 increments; preview.3 and preview.4 were not separate GitHub releases. Validation: 839 default regression/native checks and seven additional live checks through the generic selected-model workflow. The live run reused existing weights and runtime, completed two actual chat turns and stopped its owned server. Four-card identity/power controls are covered by fixtures; actual four-GPU model execution remains unverified. See [current status](docs/project-status.md) for implemented behavior and remaining gaps.

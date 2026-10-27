@@ -127,7 +127,7 @@ public partial class MainWindow
 
     private void GuidedChooseFolder_Click(object sender, RoutedEventArgs e)
     {
-        if (_guidedBusy) return;
+        if (_guidedBusy || _guidedInstalledOnly) return;
         var picker = new OpenFolderDialog { Title = "Choose an existing folder for model and portable engine files", Multiselect = false };
         if (picker.ShowDialog(this) == true) GuidedModelFolderText.Text = picker.FolderName;
     }
@@ -226,8 +226,20 @@ public partial class MainWindow
             try
             {
             GuidedStatusText.Text = "Verifying installed model bytes, then loading the model. Large models can take several minutes; Cancel stops this load.";
-            var audit = await OfflineModelVerifier.AuditReceiptAsync(receipt, token);
-            if (!audit.Integrity.Matches) throw new InvalidDataException("The acquired model no longer matches its receipt. Run the download review again.");
+            var validatedReceipt = await OfflineModelVerifier.ReadReceiptAsync(receipt, token);
+            if (validatedReceipt.Plan.PlanId != plan.PlanId || plan.PlanId != ModelAcquisitionPlanner.ComputeFingerprint(plan)
+                || validatedReceipt.Plan.Artifact != plan.Artifact
+                || !string.Equals(validatedReceipt.Plan.DestinationPath, plan.DestinationPath, StringComparison.OrdinalIgnoreCase))
+                throw new InvalidDataException("The receipt no longer matches the selected model review. Choose and review the installed copy again.");
+            OfflineModelVerifier.CheckNoReparsePath(plan.DestinationPath);
+            await using var modelLease = new FileStream(plan.DestinationPath, FileMode.Open, FileAccess.Read, FileShare.Read,
+                131072, FileOptions.Asynchronous | FileOptions.SequentialScan);
+            var integrity = await ModelArtifactVerifier.VerifyExistingAsync(plan, token);
+            if (!integrity.Matches) throw new InvalidDataException("The acquired model no longer matches its receipt. Run the download review again.");
+            var machine = GuidedHardwareOverride is { } scan ? await scan(token) : await HardwareCapabilityScanner.ScanAsync(token);
+            var capacity = OfflineModelVerifier.EvaluateCapacity(validatedReceipt, machine);
+            if (capacity.Status != RecommendationStatus.ResourceCandidate)
+                throw new InvalidOperationException("Current hardware cannot establish a fit for this installed model. " + string.Join(" ", capacity.Reasons));
             if (_llamaServer.IsRunning) throw new InvalidOperationException("Stop the current portal-owned model in Chat before loading another model.");
             LlamaCppExecutableText.Text = GuidedRuntimePathText.Text.Trim();
             LlamaCppModelPathText.Text = plan.DestinationPath;
@@ -302,16 +314,19 @@ public partial class MainWindow
     private void RefreshGuidedControls()
     {
         if (GuidedReviewButton is null) return;
-        GuidedReviewButton.IsEnabled = !_guidedBusy && (_guidedModel is not null || _guidedUserSelection is not null);
+        GuidedReviewButton.IsEnabled = !_guidedBusy && !_guidedInstalledOnly && (_guidedModel is not null || _guidedUserSelection is not null);
         GuidedDownloadButton.IsEnabled = !_guidedBusy && !_guidedInstalledOnly && _guidedModelPlan is not null && GuidedModelApprovalCheck.IsChecked == true;
         GuidedStartChatButton.IsEnabled = !_guidedBusy && _guidedReceipt is not null && !string.IsNullOrWhiteSpace(GuidedRuntimePathText.Text);
         GuidedCancelButton.IsEnabled = _guidedBusy;
-        GuidedModelFolderText.IsEnabled = GuidedModelApprovalCheck.IsEnabled = GuidedRuntimePathText.IsEnabled = !_guidedBusy;
+        GuidedRuntimePathText.IsEnabled = !_guidedBusy;
+        GuidedModelFolderText.IsEnabled = GuidedChooseFolderButton.IsEnabled = GuidedModelApprovalCheck.IsEnabled = !_guidedBusy && !_guidedInstalledOnly;
+        GuidedModelStep.Header = _guidedInstalledOnly ? "1 · Installed model review" : "1 · Model download";
         FeaturedCards.IsEnabled = !_guidedBusy && _workloadMachine is not null;
         ChatSendButton.IsEnabled = _chatOperation is null && _chatSession?.Model is not null && _llamaServer.IsRunning;
         ChatCancelButton.IsEnabled = _chatOperation is not null;
         ChatStopButton.IsEnabled = !_guidedBusy && !_llamaLifecycleBusy && _llamaServer.IsRunning;
         RefreshGuidedRuntimeControls();
+        RefreshCatalogLocalControls();
     }
 
     private async Task<string> FinishGuidedLoadCleanupAsync()

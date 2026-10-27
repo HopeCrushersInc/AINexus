@@ -1,4 +1,5 @@
 using System.IO;
+using System.Net.Http;
 using System.Security.Cryptography;
 using System.Windows;
 using System.Windows.Controls;
@@ -16,6 +17,8 @@ public partial class MainWindow
     private ComfyInventory? _imageInventory;
     private Uri? _imageConnectedEndpoint;
     private ComfyImageResult? _imageResult;
+    internal Func<HttpClient>? ImageHttpFactoryOverride { get; set; }
+    internal Func<CancellationToken, Task<ResourceAdmission>>? ImageAdmissionOverride { get; set; }
 
     private void InitializeImages()
     {
@@ -39,7 +42,10 @@ public partial class MainWindow
         ImageConnectButton.IsEnabled = ImageStartButton.IsEnabled = ImageEndpointText.IsEnabled = ImageEnginePathText.IsEnabled = !_imageBusy;
         ImageStopButton.IsEnabled = !_imageBusy && _imageServer.IsRunning;
         ImageModelSelector.IsEnabled = !_imageBusy && _imageInventory is not null;
-        ImageGenerateButton.IsEnabled = !_imageBusy && _imageConnectedEndpoint is not null && ImageModelSelector.SelectedItem is string;
+        var dimensionsValid = TryReadImageDimensions(out _, out _, out var dimensionMessage);
+        ImageWidthText.IsEnabled = ImageHeightText.IsEnabled = !_imageBusy;
+        ImageDimensionHintText.Text = dimensionMessage;
+        ImageGenerateButton.IsEnabled = !_imageBusy && dimensionsValid && _imageConnectedEndpoint is not null && ImageModelSelector.SelectedItem is string;
         ImageCancelButton.IsEnabled = _imageBusy;
         ImageSaveButton.IsEnabled = !_imageBusy && _imageResult is not null;
     }
@@ -115,8 +121,15 @@ public partial class MainWindow
         catch (Exception ex) { ImageStatusText.Text = "The owned engine could not stop: " + ex.Message; }
         RefreshImageControls();
     }
-    private async void ImageGenerateButton_Click(object sender, RoutedEventArgs e)
+    private async void ImageGenerateButton_Click(object sender, RoutedEventArgs e) => await GenerateSelectedImageAsync();
+    internal async Task GenerateSelectedImageAsync()
     {
+        if (_imageBusy || _lifetime.IsCancellationRequested) return;
+        if (!TryReadImageDimensions(out var width, out var height, out var dimensionMessage))
+        {
+            ImageStatusText.Text = dimensionMessage;
+            return;
+        }
         if (_imageConnectedEndpoint is not { } endpoint || ImageModelSelector.SelectedItem is not string checkpoint) return;
         var prompt = ImagePromptText.Text.Trim(); var negative = ImageNegativeText.Text.Trim();
         var seed = RandomNumberGenerator.GetInt32(int.MaxValue);
@@ -124,12 +137,17 @@ public partial class MainWindow
         {
             _imageResult = null; ImagePreview.Source = null;
             ImageStatusText.Text = "Checking available resources before starting one local image...";
-            var monitor = new ResourceMonitor(); await monitor.SampleAsync(token); await Task.Delay(250, token);
-            var admission = new ResourcePolicy(MinimumAvailableRamGb: 2).Evaluate(await monitor.SampleAsync(token));
+            ResourceAdmission admission;
+            if (ImageAdmissionOverride is { } inspect) admission = await inspect(token);
+            else
+            {
+                var monitor = new ResourceMonitor(); await monitor.SampleAsync(token); await Task.Delay(250, token);
+                admission = new ResourcePolicy(MinimumAvailableRamGb: 2).Evaluate(await monitor.SampleAsync(token));
+            }
             if (!admission.Allowed) throw new InvalidOperationException(admission.Reason);
             ImageStatusText.Text = "Generating on your local engine. The first image may take longer while the checkpoint loads.";
-            using var http = OllamaClient.CreateLocalHttpClient();
-            var result = await new ComfyImageClient(http).GenerateAsync(endpoint, checkpoint, prompt, negative, 512, 512, 20, seed, token);
+            using var http = ImageHttpFactoryOverride is { } createHttp ? createHttp() : OllamaClient.CreateLocalHttpClient();
+            var result = await new ComfyImageClient(http).GenerateAsync(endpoint, checkpoint, prompt, negative, width, height, 20, seed, token);
             RenderImageResult(result);
         });
     }

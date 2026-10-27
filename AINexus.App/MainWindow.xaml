@@ -164,7 +164,7 @@
             <Button Content="Open chat" Click="GuidedStartChat_Click" IsEnabled="{Binding IsEnabled, ElementName=GuidedStartChatButton}" Background="#246C94" HorizontalAlignment="Left" Margin="0,0,0,16"/>
             <ProgressBar x:Name="GuidedProgress" Height="6" Minimum="0" Maximum="100" Margin="0,0,0,16"/>
             <Border Style="{StaticResource PanelStyle}"><Expander x:Name="GuidedModelStep" Header="1 · Model download" IsExpanded="True" Foreground="#C3D5E5"><StackPanel>
-                <DockPanel Margin="0,12,0,10"><Button Content="Choose folder" Click="GuidedChooseFolder_Click" DockPanel.Dock="Right" Margin="10,0,0,0"/><TextBox x:Name="GuidedModelFolderText" ToolTip="Existing folder for model data" TextChanged="GuidedInputsChanged"/></DockPanel>
+                <DockPanel Margin="0,12,0,10"><Button x:Name="GuidedChooseFolderButton" Content="Choose folder" Click="GuidedChooseFolder_Click" DockPanel.Dock="Right" Margin="10,0,0,0"/><TextBox x:Name="GuidedModelFolderText" ToolTip="Existing folder for model data" TextChanged="GuidedInputsChanged"/></DockPanel>
                 <Button x:Name="GuidedReviewButton" Content="Check download size and fit" Click="GuidedReview_Click" HorizontalAlignment="Left"/>
                 <Expander Header="Source, license and file details" Foreground="{DynamicResource NexusMutedBrush}" Margin="0,12,0,10"><TextBox x:Name="GuidedModelDetailsText" IsReadOnly="True" Height="145" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto"/></Expander>
                 <Button Content="Read model card and license" Click="GuidedLicense_Click" HorizontalAlignment="Left" Margin="0,0,0,10"/>
@@ -597,6 +597,11 @@
                     </DataGrid.Columns>
                 </DataGrid>
                 <StackPanel Grid.Row="3" Margin="0,10,0,0">
+                    <TextBlock Text="Choose an installed copy to review. No copy is selected automatically." Foreground="{DynamicResource NexusMutedBrush}" TextWrapping="Wrap" Margin="0,0,0,6"/>
+                    <DockPanel Margin="0,0,0,8">
+                        <Button x:Name="CatalogReviewLocalButton" DockPanel.Dock="Right" Content="Review local model" Click="CatalogReviewLocalButton_Click" IsEnabled="False" Margin="8,0,0,0"/>
+                        <ComboBox x:Name="CatalogInstallationSelector" DisplayMemberPath="ModelPath" SelectionChanged="CatalogInstallationSelector_SelectionChanged" ToolTip="Explicitly choose the local copy and receipt to review"/>
+                    </DockPanel>
                     <Button x:Name="CatalogSearchSourceButton" Content="Search source in Discover" Click="CatalogSearchSourceButton_Click" IsEnabled="False" HorizontalAlignment="Left"/>
                     <Expander Header="Sources, artifact details &amp; private receipts" Foreground="{DynamicResource NexusMutedBrush}" Margin="0,8,0,6">
                         <TextBox x:Name="CatalogDetailsText" IsReadOnly="True" TextWrapping="Wrap" AcceptsReturn="True" VerticalScrollBarVisibility="Auto" Height="200" Background="{DynamicResource NexusPanelBrush}" Foreground="{DynamicResource NexusTextBrush}" Text="Choose an entry to inspect its evidence."/>
@@ -827,7 +832,12 @@
                         <TextBlock Text="What would you like to create?" FontWeight="SemiBold" Margin="0,20,0,8"/>
                         <TextBox x:Name="ImagePromptText" Height="140" AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" MaxLength="4000"/>
                         <Expander Header="Things to avoid (optional)" Foreground="{DynamicResource NexusMutedBrush}" Margin="0,16,0,16"><TextBox x:Name="ImageNegativeText" Height="75" AcceptsReturn="True" TextWrapping="Wrap" MaxLength="4000" Margin="0,8,0,0"/></Expander>
-                        <TextBlock Text="Standard diffusion workflow · 512 × 512 · 20 steps. A checkpoint's actual support is established by running it, not its filename." Foreground="{DynamicResource NexusMutedBrush}" TextWrapping="Wrap" FontSize="{DynamicResource NexusFontSize12}" Margin="0,0,0,16"/>
+                        <Grid Margin="0,0,0,8"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="12"/><ColumnDefinition/></Grid.ColumnDefinitions>
+                            <StackPanel><TextBlock Text="Width (px)" Margin="0,0,0,6"/><TextBox x:Name="ImageWidthText" Text="512" MaxLength="4" TextChanged="ImageDimensionsChanged" ToolTip="256–1024 pixels, in multiples of 64"/></StackPanel>
+                            <StackPanel Grid.Column="2"><TextBlock Text="Height (px)" Margin="0,0,0,6"/><TextBox x:Name="ImageHeightText" Text="512" MaxLength="4" TextChanged="ImageDimensionsChanged" ToolTip="256–1024 pixels, in multiples of 64"/></StackPanel>
+                        </Grid>
+                        <TextBlock x:Name="ImageDimensionHintText" Foreground="{DynamicResource NexusMutedBrush}" TextWrapping="Wrap" FontSize="{DynamicResource NexusFontSize12}" Margin="0,0,0,8"/>
+                        <TextBlock Text="Standard diffusion workflow · 20 steps. A checkpoint's actual support is established by running it, not its filename. Image size is session-only." Foreground="{DynamicResource NexusMutedBrush}" TextWrapping="Wrap" FontSize="{DynamicResource NexusFontSize12}" Margin="0,0,0,16"/>
                         <Button x:Name="ImageGenerateButton" Content="Generate image" Background="{DynamicResource NexusButtonBrush}" Click="ImageGenerateButton_Click" IsEnabled="False"/>
                         <StackPanel Orientation="Horizontal" Margin="0,10,0,0"><Button x:Name="ImageCancelButton" Content="Cancel image" Click="ImageCancelButton_Click" IsEnabled="False"/><Button x:Name="ImageSaveButton" Content="Save PNG" Click="ImageSaveButton_Click" IsEnabled="False" Margin="8,0,0,0"/></StackPanel>
                     </StackPanel></ScrollViewer>

@@ -8,7 +8,7 @@ Updated 2026-10-27. This replaces the early baseline audit with the current impl
 
 Read-only per-model library integrity checking against an explicit acquisition receipt is now available; a separate read-only recovery review now proposes a preserved-source replacement path and fresh-review steps. Neither feature is automated repair or update management.
 
-**Not yet implemented:** general model repair/update/rollback, live artifact editing, automatic switching, dockable/popout workspaces, durable multi-step workflows, service mode, training and non-Windows portal releases. GPU/multiple-archive runtime installation and dependency/source-build recipes remain incomplete. Preview.5 validation includes 839 default local regression/native checks and seven additional live selected-model checks. Publication CI is reported on the release; these checks do not establish all-model, four-GPU execution or cross-platform support.
+**Not yet implemented:** general model repair/update/rollback, live artifact editing, automatic switching, dockable/popout workspaces, durable multi-step workflows, service mode, training and non-Windows portal releases. GPU/multiple-archive runtime installation and dependency/source-build recipes remain incomplete. Preview.7 validation includes 893 default local regression/native checks, six live Library checks for each of two installed text models, and five actual image checks including explicit 1024×768 output. Publication CI is reported on the release; these checks do not establish all-model, four-GPU execution or cross-platform support.
 
 ## Projected phases
 

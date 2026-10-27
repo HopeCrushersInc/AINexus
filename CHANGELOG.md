@@ -2,6 +2,16 @@
 
 User-visible changes are recorded here. Dates identify publication updates, not a promise that every feature was first implemented on that date.
 
+## 0.2.0-preview.7 — 2026-10-27 — Installed models from Library and image size controls
+
+- Added a supported GGUF Library flow: choose a model, choose its exact installed copy, review the saved source and path, then explicitly load it with an existing engine and open chat. Neither the model nor a local copy is selected automatically.
+- Local review reads the selected private receipt without a source search, download, hardware scan or engine launch. Fresh-acquisition actions stay disabled for an installed-copy review.
+- Bound the selected copy to its receipt plan fingerprint, artifact identity and destination. Changed, missing, malformed or conflicting evidence is rejected rather than repaired or downloaded automatically.
+- Explicit loading verifies the current model hash, checks current hardware capacity and tests local generation before chat. A read lease prevents model writes/replacement during verification, hardware checking, startup and the initial response. An existing owned server still requires an explicit stop before another model can load.
+- Added session-only image width and height controls, from 256 to 1024 pixels in multiples of 64. Invalid dimensions cannot reach resource admission or the engine. One explicit generation captures the chosen dimensions/checkpoint and prevents competing submissions while busy; no checkpoint is selected automatically.
+- Validation: 893 default regression/native checks passed, including same-size corruption, receipt swapping, explicit copy selection, pending-load write protection, insufficient current capacity and image workflow dimension payloads. Fixture requests establish the selected dimensions and checkpoint in the real workflow payload. Five additional live image checks verified an actual 1024×768 decoded PNG using the existing SD1.5 checkpoint and stopped the owned image engine; this is one checkpoint/runtime combination, not all-checkpoint compatibility.
+- Six additional live Library checks passed for each of two existing models: a 7B coding model and a 32B text model. Both completed verification, loading, initial generation and two chat turns, then closed their owned servers. Existing weights and engines were reused without online source lookup or re-download; these runs do not establish all-model or multi-GPU support. One image-checkpoint combination remains the extent of actual image-generation evidence.
+
 ## 0.2.0-preview.6 — 2026-10-27 — Simpler controls and optional appearances
 
 - Simplified Home to task and action buttons, with a static black-hole backdrop. All 13 workload choices remain visible and unchecked; the search confirmation stays available below the scrollable choices.

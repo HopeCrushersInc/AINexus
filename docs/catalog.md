@@ -18,6 +18,18 @@ Private receipt-derived entries can appear before their source has been searched
 
 Image/video repository listings still lack dedicated complete-model and runtime requirement recipes. They remain unassessed. Coding/agent category membership is search scope, not proof of coding quality or tool-use ability.
 
+## Installed-model review and loading
+
+For supported GGUF text models, choose a Library model and then a specific local copy in the installation selector. Neither choice is made automatically, including when only one copy exists. **Review local model** reads that private acquisition receipt and shows its exact path, pinned artifact, expected hash, recorded license and source date. It does not search the internet, download files, scan hardware or launch an engine.
+
+The saved source remains historical. Review requires its artifact, destination and plan fingerprint to match the chosen installation; it also checks that the model still exists with the recorded size. Missing, conflicting, malformed or changed evidence prevents preparation. Review does not approve a fresh acquisition, and download actions are disabled for this installed-copy flow.
+
+The separate **Load model and open chat** action re-reads and binds the receipt to the reviewed plan, hashes the current model, scans current hardware and requires the installed-model capacity check to pass. A read lease blocks writes or replacement throughout verification, hardware checking, engine startup and initial generation. An existing engine must be selected, and an already running portal-owned model must be stopped explicitly before another can load. Chat opens only after actual local generation succeeds. Cancellation and failure preserve files and clean up any server started by that load.
+
+This flow does not implement automatic server switching, media-model launch adapters or model repair. The engine's offline-mode flag and loopback communication are not an operating-system network-isolation guarantee.
+
+Six live Library checks passed for each of two existing text models, including initial generation, two chat turns and owned-server cleanup. These runs reused local weights and engines without refreshing online metadata or downloading replacements. They validate those particular model/runtime combinations, not the entire catalog or multi-GPU execution.
+
 ## Storage and recovery
 
 The default is the current user's local application-data directory under `AINexus/Catalog/catalog.db`. A portable package may include `catalog-root.txt` containing one absolute data-directory path. The deployed development package uses the owner's stable data folder on F:. An explicit catalog folder selected in the UI takes precedence and is saved as a storage preference; it never restores workload selections or approvals.
@@ -28,7 +40,7 @@ The first schema supports 10,000 entries and bounded payloads. Reaching the limi
 
 ## Next increments
 
-Complete model/runtime dependency recipes for media workloads; evidence-backed hardware requirements; explicit installation queue and progress; verified local launch links; updates/rollback; versioned metadata import/export; and reviewed community submissions. Each requires its own verification gates. No hosted service, account or paid subscription is required for this local catalog.
+Complete model/runtime dependency recipes for media workloads; evidence-backed hardware requirements; explicit installation queue and progress; broader model/tool launch adapters; updates/rollback; versioned metadata import/export; and reviewed community submissions. Each requires its own verification gates. No hosted service, account or paid subscription is required for this local catalog.
 
 ## Dependency sources
 

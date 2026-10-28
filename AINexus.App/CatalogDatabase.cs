@@ -138,6 +138,17 @@ public sealed class CatalogDatabase
                 throw new InvalidDataException("A model catalog entry needs a pinned repository revision and safe artifact path.");
             return $"huggingface:{artifact.Repository}@{artifact.Revision.ToLowerInvariant()}:{artifact.FileName}";
         }
+        if (item is { Kind: "Model", Interest: DiscoveryInterest.Video, PipelineTag: "text-to-video" or "image-to-video" })
+        {
+            var card = item.Sources?.FirstOrDefault(source => source?.Url is { IsAbsoluteUri: true, Host: "huggingface.co" });
+            if (card is null) throw new InvalidDataException("A video pipeline catalog entry needs a pinned public model card.");
+            RequireUrl(card.Url);
+            var segments = card.Url.AbsolutePath.Trim('/').Split('/');
+            if (segments.Length != 5 || !Repository(segments[0] + "/" + segments[1]) || segments[2] != "blob"
+                || !Hex(segments[3], 40) || segments[4] != "README.md")
+                throw new InvalidDataException("Video pipeline provenance must identify an exact repository revision.");
+            return $"huggingface-repository:{segments[0]}/{segments[1]}@{segments[3].ToLowerInvariant()}";
+        }
         var source = item.Sources?.FirstOrDefault(s => s?.Url is { IsAbsoluteUri: true, Host: "github.com" });
         if (source is null) throw new InvalidDataException("A tool/runtime catalog entry needs a canonical public GitHub repository source.");
         RequireUrl(source.Url);

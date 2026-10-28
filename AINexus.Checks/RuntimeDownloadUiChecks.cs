@@ -112,7 +112,7 @@ internal static class RuntimeDownloadUiChecks
         var window = new MainWindow(null, service);
         window.CompleteWorkloadScan(machine);
         window.ApplyWorkloadSelection([DiscoveryInterest.LocalAssistants]);
-        Find<CheckBox>(window, "DiscoveryShowUnassessedCheck").IsChecked = true; // Runtime requirements still need separate review.
+        Find<CheckBox>(window, "DiscoveryShowUnassessedCheck").IsChecked = false; // Include runtimes whose requirements still need separate review.
         window.RenderDiscoveryReport(report);
         if (Find<DataGrid>(window, "DiscoveryResultsGrid").SelectedIndex != -1)
             throw new InvalidOperationException("Runtime download fixture unexpectedly selected its source without user action.");

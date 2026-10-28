@@ -49,6 +49,8 @@ internal static class Program
             ModelEvaluationUiChecks.RunAsync(Check).GetAwaiter().GetResult();
             TextSearchUiChecks.RunAsync(Check).GetAwaiter().GetResult();
             ImageArtifactDiscoveryChecks.RunAsync(Check).GetAwaiter().GetResult();
+            VideoModelDiscoveryChecks.RunAsync(Check).GetAwaiter().GetResult();
+            VideoCatalogChecks.RunAsync(Check).GetAwaiter().GetResult();
             ImageArtifactAcquisitionChecks.RunAsync(Check).GetAwaiter().GetResult();
             ComfyCheckpointFolderChecks.RunAsync(Check).GetAwaiter().GetResult();
             DiscoveryPipelineChecks.RunAsync(Check).GetAwaiter().GetResult();
@@ -63,6 +65,7 @@ internal static class Program
             if (args.Contains("--live")) CheckLiveDiscovery().GetAwaiter().GetResult();
             if (args.Contains("--llama-live")) CheckLiveLlamaCpp().GetAwaiter().GetResult();
             if (args.Contains("--discovery-live")) OnlineDiscoveryChecks.RunLiveAsync(Check).GetAwaiter().GetResult();
+            if (args.Contains("--video-discovery-live")) VideoCatalogChecks.RunLiveAsync(Check).GetAwaiter().GetResult();
             var textSearchLive = Array.IndexOf(args, "--text-model-search-live");
             var modelEvidenceLive = Array.IndexOf(args, "--model-evidence-live");
             if (modelEvidenceLive >= 0)
@@ -235,6 +238,7 @@ internal static class Program
         GuidedInstallChecks.RunNative(window, Check);
         UserChoiceFlowChecks.RunNative(Check);
         ImageDiscoveryUiChecks.RunNative(Check);
+        MediaDiscoveryActionChecks.Run(Check);
         ImageArtifactSetupUiChecks.RunNative(Check);
         ComfyCheckpointFolderUiChecks.RunNative(Check);
         var comfyFoldersLive = Array.IndexOf(args, "--comfy-folders-live");

@@ -87,6 +87,9 @@ public partial class MainWindow
         DiscoveryScanButton.IsEnabled = !_discoveryBusy;
         DiscoveryInterestSelector.IsEnabled = DiscoveryQueryText.IsEnabled = DiscoveryVolumeSelector.IsEnabled = !_discoveryBusy;
         DiscoveryOrderSelector.IsEnabled = !_discoveryBusy;
+        if (DiscoveryOpenSourceButton is not null)
+            DiscoveryOpenSourceButton.IsEnabled = !_discoveryBusy && DiscoveryResultsGrid.SelectedItem is DiscoveryRow sourceRow
+                && DiscoverySourceUri(sourceRow.Recommendation.Item) is not null;
         var supported = DiscoveryInterestSelector.SelectedItem is DiscoveryWorkflow workflow && Enum.IsDefined(workflow.Interest)
             || _workspaceProfile is { Interests.Count: > 0 };
         DiscoverySearchButton.IsEnabled = !_discoveryBusy && supported;
@@ -384,9 +387,9 @@ public partial class MainWindow
     private void RefreshDiscoveryResults()
     {
         if (_lastDiscoveryReport is not { } report) return;
-        var showOthers = DiscoveryShowUnassessedCheck.IsChecked == true;
+        var onlyFits = DiscoveryShowUnassessedCheck.IsChecked == true;
         DiscoveryResultsGrid.ItemsSource = report.Recommendations
-            .Where(r => showOthers || r.Status == RecommendationStatus.ResourceCandidate || r.Item is { Kind: "Model", Artifact: not null })
+            .Where(r => !onlyFits || r.Status == RecommendationStatus.ResourceCandidate)
             .Select(r => new DiscoveryRow(r, report)).ToArray();
         DiscoveryResultsGrid.SelectedIndex = -1;
         var fit = report.Recommendations.Count(r => r.Status == RecommendationStatus.ResourceCandidate);
@@ -400,7 +403,8 @@ public partial class MainWindow
         DiscoveryFitSummaryText.Text = $"{fit} estimated to fit · {imageFiles} image file candidates (fit unverified) · {unknown - imageFiles} other results need compatibility evidence · {insufficient} exceed available resources · {unsupported} need a platform recipe. "
             + (fit == 0 ? "No hardware-fit matches established. " : "")
             + (missingMediaRecipe ? "Image/video artifacts and tools need dedicated model/runtime requirements before fit can be assessed." : "")
-            + (showOthers ? " Showing all results." : " Showing all returned model files, including unknown or unmet requirements. Reveal runtime/tool results below.")
+            + (onlyFits ? " Showing estimated-fit results only; uncheck the filter to see models and tools needing review."
+                : " Showing all returned models and tools, including unknown requirements or missing installation recipes.")
             + " Download size is disk space, not parameter count or available VRAM. Runtime memory is a conservative estimate; partial CPU/GPU offload is not assessed.";
     }
 
@@ -507,6 +511,15 @@ public partial class MainWindow
             }
         }
         public string LicenseDisplay => Recommendation.Item.License ?? "Unknown";
+        public string ActionDisplay => Recommendation.Item switch
+        {
+            { Interest: DiscoveryInterest.Images, Kind: "Model", Artifact.Format: "Safetensors" } => "Review image file download",
+            { Interest: DiscoveryInterest.Video, Kind: "Model" } => "Inspect video pipeline / manual setup",
+            { Kind: "Model", Artifact.Format: "GGUF" } => "Review text model download",
+            { Kind: "Tool" } => "View source / manual setup",
+            { Kind: "Runtime" } => "Review runtime setup",
+            _ => "Inspect source requirements"
+        };
         public string ExecutionPath => Recommendation.ExecutionPath;
         public string StatusDisplay => Recommendation.Status switch
         {

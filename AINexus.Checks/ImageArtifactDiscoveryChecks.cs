@@ -77,9 +77,9 @@ internal static class ImageArtifactDiscoveryChecks
             && snapshot.Notes.Any(note => note.Contains("Duplicate", StringComparison.Ordinal)),
             "Image metadata excludes obvious components, shards, duplicates, conflicting sizes and unsafe paths with explanations");
         check(models.All(item => item.Description.Contains("does not prove", StringComparison.Ordinal))
-            && snapshot.Notes.Any(note => note.Contains("unverified source metadata", StringComparison.Ordinal)
-                && note.Contains("other-results filter", StringComparison.Ordinal)) && metadataOnly,
-            "Image discovery discloses unproven completeness and how to reveal unassessed results, using metadata GETs only");
+            && snapshot.Notes.Any(note => note.Contains("source metadata", StringComparison.Ordinal)
+                && note.Contains("fit-only filter", StringComparison.Ordinal)) && metadataOnly,
+            "Image discovery discloses unproven completeness and its explicit fit-only filter, using metadata GETs only");
         var machine = DiscoveryPipelineChecks.FixtureMachine();
         var report = DiscoveryPipeline.Evaluate(snapshot, machine, machine.Volumes[0].Path);
         check(report.Recommendations.All(result => result.Status == RecommendationStatus.NeedsDetails

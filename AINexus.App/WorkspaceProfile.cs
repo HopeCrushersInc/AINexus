@@ -22,7 +22,8 @@ public sealed class WorkloadChoice(DiscoveryWorkflow workflow, bool selected = f
     public string Name => workflow.Name;
     public string Description => Interest switch
     {
-        DiscoveryInterest.Images => "Choose an image engine and model. An existing ComfyUI installation can be configured; image downloads are not integrated yet.",
+        DiscoveryInterest.Images => "Review and approve a selected image-model file download, then connect its folder to an existing ComfyUI engine. Generator-tool installation still requires manual setup.",
+        DiscoveryInterest.Video => "Browse video-model pipelines and tools. Complete model files, runtime setup and hardware fit need separate review; video setup is not integrated yet.",
         DiscoveryInterest.LocalAssistants or DiscoveryInterest.Coding or DiscoveryInterest.Agents => "Search compatible local text models, review the exact download, then configure your chosen runtime.",
         _ => "Search online tool sources for this task. Review the results yourself; automated installation support varies by tool."
     };

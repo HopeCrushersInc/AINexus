@@ -4,6 +4,26 @@ namespace AINexus.App;
 
 public partial class MainWindow
 {
+    internal Action<Uri>? DiscoverySourceOpenOverride { get; set; }
+    private static Uri? DiscoverySourceUri(DiscoveredItem item) => item.Sources.Select(source => source.Url)
+        .FirstOrDefault(url => url is { IsAbsoluteUri: true, Scheme: "https", Port: 443 }
+            && (url.Host is "github.com" or "huggingface.co") && url.UserInfo.Length == 0
+            && url.Query.Length == 0 && url.Fragment.Length == 0);
+
+    private void DiscoveryOpenSourceButton_Click(object sender, RoutedEventArgs e) => OpenSelectedDiscoverySource();
+
+    internal void OpenSelectedDiscoverySource()
+    {
+        if (_discoveryBusy || DiscoveryResultsGrid.SelectedItem is not DiscoveryRow row
+            || DiscoverySourceUri(row.Recommendation.Item) is not { } source) return;
+        try
+        {
+            if (DiscoverySourceOpenOverride is { } open) open(source);
+            else System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(source.AbsoluteUri) { UseShellExecute = true });
+            DiscoveryStatusText.Text = "Opened the selected public source page. No download, installation or model launch was approved by Nexus.";
+        }
+        catch (Exception ex) { DiscoveryStatusText.Text = "Could not open the source page: " + ex.Message; }
+    }
     private void DiscoveryReviewSelected_Click(object sender, RoutedEventArgs e)
         => ReviewSelectedDiscoveryItem();
 
@@ -17,10 +37,12 @@ public partial class MainWindow
         var item = row.Recommendation.Item;
         if (item is { Interest: DiscoveryInterest.Images, Kind: "Model", Artifact: { Format: "Safetensors" } })
         {
-            TrySelectImageArtifactSetup(item, row.Report.Catalog);
+            if (!TrySelectImageArtifactSetup(item, row.Report.Catalog))
+                DiscoveryStatusText.Text = "Image-file review could not open. Finish the active setup step and confirm an image workload with a hardware scan, then review this result again.";
             return;
         }
-        if (item.Kind == "Model" && item.Artifact is { Format: "GGUF" })
+        if (item.Kind == "Model" && item.Artifact is { Format: "GGUF" }
+            && (item.Interest is DiscoveryInterest.LocalAssistants or DiscoveryInterest.Coding or DiscoveryInterest.Agents))
         {
             _guidedModel = null;
             _guidedUserSelection = item;
@@ -44,8 +66,15 @@ public partial class MainWindow
         }
         DiscoveryDetailsText.Text = DescribeRecommendation(row);
         DiscoveryStatusText.Text = item.Kind == "Tool"
-            ? "You selected online tool metadata. Its source and license are shown; an automated installation recipe has not been implemented. No software was installed."
-            : "You selected this result. Review its details and supported setup actions. No software was installed.";
-        DownloadsTab.IsSelected = true;
+            ? "Tool source only. Automatic installation is not available for this result. Open the source page for manual setup. No software was installed."
+            : item.Interest == DiscoveryInterest.Video
+                ? "Video pipeline source only. A complete model-file inventory, compatible runtime and installation recipe are not integrated. No download or hardware-fit claim was made."
+                : "You selected this result. Review its details and supported setup actions. No software was installed.";
+        if (item.Kind == "Tool" || item.Interest == DiscoveryInterest.Video)
+        {
+            DiscoveryDetailsExpander.IsExpanded = true;
+            DiscoveryTab.IsSelected = true;
+        }
+        else DownloadsTab.IsSelected = true;
     }
 }

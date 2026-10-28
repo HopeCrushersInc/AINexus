@@ -33,7 +33,7 @@ internal static class ImageDiscoveryUiChecks
             var showOthers = (CheckBox)window.FindName("DiscoveryShowUnassessedCheck");
             var notice = (TextBlock)window.FindName("DiscoveryImageCandidatesNoticeText");
             window.RenderDiscoveryReport(report);
-            check(grid.Items.Count == 3 && grid.SelectedIndex == -1 && showOthers.IsChecked != true,
+            check(grid.Items.Count == 4 && grid.SelectedIndex == -1 && showOthers.IsChecked != true,
                 "Image artifact facts are visible alongside estimated-fit text results without selecting a model or checking other-result options");
             check(report.Recommendations.Where(r => r.Item.Interest == DiscoveryInterest.Images)
                     .All(r => r.Status == RecommendationStatus.NeedsDetails && r.EstimatedMemoryGiB is null)
@@ -64,15 +64,15 @@ internal static class ImageDiscoveryUiChecks
                 "Changing storage invalidates the old image report and removes its unverified-candidate notice");
             window.RenderDiscoveryReport(report);
             showOthers.IsChecked = true;
-            check(grid.Items.Count == 4 && grid.SelectedIndex == -1,
-                "Explicitly revealing other results includes the unassessed tool while clearing the old selection");
+            check(grid.Items.Count == 1 && grid.SelectedIndex == -1,
+                "Explicit fit-only filtering hides unverified image files and tools without declaring them incompatible");
             showOthers.IsChecked = false;
             window.RenderDiscoveryReport(DiscoveryPipeline.Evaluate(original, machine, "C:\\"));
             check(grid.Items.Count == 1 && grid.SelectedIndex == -1 && notice.Visibility == Visibility.Collapsed,
                 "A later text-only report removes the image notice and preserves the ordinary fit filter");
             var unsupportedText = image with { Interest = DiscoveryInterest.LocalAssistants };
             window.RenderDiscoveryReport(DiscoveryPipeline.Evaluate(original with { Items = [unsupportedText, tool] }, machine, "C:\\"));
-            check(grid.Items.Count == 1 && notice.Visibility == Visibility.Collapsed
+            check(grid.Items.Count == 2 && notice.Visibility == Visibility.Collapsed
                 && (string?)grid.Items[0].GetType().GetProperty("StatusDisplay")!.GetValue(grid.Items[0]) == "Needs review",
                 "Unassessed text model files remain visible without an image-fit notice or automatic tool selection");
         }

@@ -67,7 +67,7 @@ public sealed partial class VerifiedOnlineDiscoveryProvider
         caller.ThrowIfCancellationRequested();
         if (!items.Any(item => item.Artifact is not null))
             notes.Add("No root image artifact candidates were found in this bounded source search. No model or file was substituted.");
-        notes.Add("Image file candidates are shown as unverified source metadata, not hardware-fit matches. The optional other-results filter reveals additional unassessed tool listings and resource-limited results.");
+        notes.Add("Image files and tools are shown by default as source metadata, not hardware-fit matches. The optional fit-only filter hides unassessed results; a missing installation recipe does not make a tool incompatible.");
         notes.Add("A root safetensors file is only an image artifact candidate; complete checkpoint contents, architecture, companion assets and ComfyUI compatibility remain unproven. No memory estimate was inferred from its size or filename.");
         notes.Add("Only public metadata was requested: no weight bytes, downloads, installations, model selection or engine execution. Results use a bounded source order, not recommendations or a complete catalog.");
         return Snapshot(items, notes);

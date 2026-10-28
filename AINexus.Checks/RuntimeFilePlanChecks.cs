@@ -58,7 +58,7 @@ internal static class RuntimeFilePlanChecks
     {
         var cpu = Asset("llama-bin-win-cpu-x64.zip");
         var destination = Path.Combine(AppContext.BaseDirectory, "fixtures", Guid.NewGuid().ToString("N"));
-        ((CheckBox)window.FindName("DiscoveryShowUnassessedCheck")).IsChecked = true; // Runtime metadata is not an assessed model fit.
+        ((CheckBox)window.FindName("DiscoveryShowUnassessedCheck")).IsChecked = false; // Runtime metadata is not an assessed model fit.
         window.RenderDiscoveryReport(RuntimeSetupChecks.Report(RuntimeSetupChecks.Machine(), cpu));
         check(((DataGrid)window.FindName("DiscoveryResultsGrid")).SelectedIndex == -1,
             "Exact runtime file review cannot inherit an automatically selected search result");

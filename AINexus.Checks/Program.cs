@@ -47,8 +47,11 @@ internal static class Program
             MultiSourceTextDiscoveryChecks.RunAsync(Check).GetAwaiter().GetResult();
             ModelEvaluationEvidenceChecks.Run(Check);
             ModelEvaluationUiChecks.RunAsync(Check).GetAwaiter().GetResult();
+            ModelEvaluationCacheChecks.RunAsync(Check).GetAwaiter().GetResult();
             TextSearchUiChecks.RunAsync(Check).GetAwaiter().GetResult();
             ImageArtifactDiscoveryChecks.RunAsync(Check).GetAwaiter().GetResult();
+            VideoModelDiscoveryChecks.RunAsync(Check).GetAwaiter().GetResult();
+            VideoCatalogChecks.RunAsync(Check).GetAwaiter().GetResult();
             ImageArtifactAcquisitionChecks.RunAsync(Check).GetAwaiter().GetResult();
             ComfyCheckpointFolderChecks.RunAsync(Check).GetAwaiter().GetResult();
             DiscoveryPipelineChecks.RunAsync(Check).GetAwaiter().GetResult();
@@ -63,8 +66,15 @@ internal static class Program
             if (args.Contains("--live")) CheckLiveDiscovery().GetAwaiter().GetResult();
             if (args.Contains("--llama-live")) CheckLiveLlamaCpp().GetAwaiter().GetResult();
             if (args.Contains("--discovery-live")) OnlineDiscoveryChecks.RunLiveAsync(Check).GetAwaiter().GetResult();
+            if (args.Contains("--video-discovery-live")) VideoCatalogChecks.RunLiveAsync(Check).GetAwaiter().GetResult();
             var textSearchLive = Array.IndexOf(args, "--text-model-search-live");
             var modelEvidenceLive = Array.IndexOf(args, "--model-evidence-live");
+            var savedEvidenceLive = Array.IndexOf(args, "--evaluation-cache-live");
+            if (savedEvidenceLive >= 0)
+            {
+                if (savedEvidenceLive + 2 >= args.Length) throw new ArgumentException("--evaluation-cache-live requires an exact public repository and local catalog cache directory.");
+                ModelEvaluationCacheChecks.RunLiveAsync(args[savedEvidenceLive + 1], args[savedEvidenceLive + 2], Check).GetAwaiter().GetResult();
+            }
             if (modelEvidenceLive >= 0)
             {
                 if (modelEvidenceLive + 1 >= args.Length) throw new ArgumentException("--model-evidence-live requires an exact public model repository.");
@@ -214,6 +224,7 @@ internal static class Program
         WorkloadDiscoveryChecks.RunNative(window, Check);
         TextSearchUiChecks.Run(Check);
         ModelEvaluationUiChecks.RunNative(Check);
+        ModelEvaluationCacheChecks.RunNative(Check);
         GpuPowerUiChecks.RunNative(Check);
         AppearanceChecks.RunNative(window, Check);
         var appearancePreview = Array.IndexOf(args, "--appearance-preview");
@@ -235,6 +246,7 @@ internal static class Program
         GuidedInstallChecks.RunNative(window, Check);
         UserChoiceFlowChecks.RunNative(Check);
         ImageDiscoveryUiChecks.RunNative(Check);
+        MediaDiscoveryActionChecks.Run(Check);
         ImageArtifactSetupUiChecks.RunNative(Check);
         ComfyCheckpointFolderUiChecks.RunNative(Check);
         var comfyFoldersLive = Array.IndexOf(args, "--comfy-folders-live");

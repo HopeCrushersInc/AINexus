@@ -20,7 +20,7 @@ public sealed partial class VerifiedOnlineDiscoveryProvider(HttpClient httpClien
         new DiscoveryWorkflow(DiscoveryInterest.Coding, "Coding and software development", "Search GGUF model metadata; coding ability requires separate evaluation."),
         new DiscoveryWorkflow(DiscoveryInterest.Images, "Image generation and editing", "Search public image-artifact and tool metadata. Checkpoint completeness and hardware fit require separate evidence."),
         new DiscoveryWorkflow(DiscoveryInterest.MusicAudio, "Music and audio production", "Search online tool sources; automated installation support is not yet implemented for this workflow."),
-        new DiscoveryWorkflow(DiscoveryInterest.Video, "Video generation", "Search online tool sources; automated installation support is not yet implemented for this workflow."),
+        new DiscoveryWorkflow(DiscoveryInterest.Video, "Video generation", "Search public text-to-video and image-to-video model repositories and video tools. Complete model files, runtime setup, hardware fit and installation support require separate verification."),
         new DiscoveryWorkflow(DiscoveryInterest.Speech, "Speech recognition and synthesis", "Search online tool sources; automated installation support is not yet implemented for this workflow."),
         new DiscoveryWorkflow(DiscoveryInterest.ThreeD, "3D modeling", "Search online tool sources; automated installation support is not yet implemented for this workflow."),
         new DiscoveryWorkflow(DiscoveryInterest.Cad, "CAD", "Search online tool sources; automated installation support is not yet implemented for this workflow."),
@@ -32,7 +32,7 @@ public sealed partial class VerifiedOnlineDiscoveryProvider(HttpClient httpClien
     });
 
     public static bool Supports(DiscoveryInterest interest) => interest is
-        DiscoveryInterest.LocalAssistants or DiscoveryInterest.Coding or DiscoveryInterest.Agents or DiscoveryInterest.Images;
+        DiscoveryInterest.LocalAssistants or DiscoveryInterest.Coding or DiscoveryInterest.Agents or DiscoveryInterest.Images or DiscoveryInterest.Video;
 
     /// <summary>Caller owns this dedicated unauthenticated metadata client.</summary>
     public static HttpClient CreateHttpClient() => new(new SocketsHttpHandler
@@ -60,6 +60,8 @@ public sealed partial class VerifiedOnlineDiscoveryProvider(HttpClient httpClien
         deadline.CancelAfter(TimeSpan.FromSeconds(60));
         if (request.Interest == DiscoveryInterest.Images && request.RuntimeReleaseTag is null)
             return await SearchImageArtifactsAndToolsAsync(request, deadline.Token, cancellationToken);
+        if (request.Interest == DiscoveryInterest.Video && request.RuntimeReleaseTag is null)
+            return await SearchVideoModelsAndToolsAsync(request, deadline.Token, cancellationToken);
         if (!Supports(request.Interest) && request.RuntimeReleaseTag is null)
         {
             try { return await SearchWorkflowToolsAsync(request, deadline.Token); }

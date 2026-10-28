@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.2.0-preview.12 — 2026-10-28 — Visible media choices, clear setup actions and saved evidence
+
+- Show all returned model, tool and runtime results by default. Rename the optional unchecked filter to **Show only estimated-fit results**, so tools without a compatibility recipe no longer disappear from the initial list. Keep unknown requirements distinct from hardware-fit claims.
+- Add an **Available action** column and an explicit **Open source page** action. Distinguish supported image-file downloads from generator-tool manual setup and video-pipeline inspection. Tool/video review stays in Discover with source details visible instead of navigating to an unrelated setup page. Opening a source page grants no install or launch approval.
+- Clarify supported image acquisition: explicitly choose an existing destination folder, review the exact file and license, approve, then download/verify. Folder connection remains a separate approved action for an existing engine; generator engine installation is not implemented by image-file acquisition.
+- Search live text-to-video and image-to-video model repository feeds, interleave/deduplicate up to eight pinned public repositories and preserve successful results when another source fails. Video entries contain no invented complete model artifact, size, hardware fit or installation support. Direct repository inspection does not substitute unrelated results; video GGUF is not routed into text-model setup.
+- Earlier media-increment validation: 1,138 regression/native checks plus two live video-discovery checks passed (1,140 in that live run). Eight actual pinned video repository candidates were returned; a separate GitHub tools HTTP403 was reported while successful model-source results were retained. No model weights were downloaded or executed by that run.
+
+- Save bounded, exact-repository public evaluation snapshots privately beside the configured catalog. Preserve original retrieval time, raw source facts, unknown flags and provenance; do not save model selections or approvals.
+- Add explicit offline loading with a prominent saved/as-of label. Missing, corrupt or unavailable saved evidence never triggers an online fallback. Input/model changes cancel stale responses for both read modes.
+- Publish cache files atomically, reject unsafe paths, mismatched identities, oversized data and future retrieval timestamps. Preserve corrupt files on read; clean only owned temporary writes. Live lookup remains usable with a warning if saving fails.
+- Earlier saved-evidence increment validation: 1,119 regression/native checks and two actual public-snapshot save/reopen checks passed (1,121 in the live run). The real snapshot reopened from disk after disposal of its network client, preserving its original timestamp and two reported task values; no model was downloaded or loaded.
+- Combined validation: 1,150 regression/native checks plus four live video-discovery and saved-evidence checks passed (1,154 in the live run). These establish metadata/action behavior, not new image/video inference or model-quality guarantees.
+
 User-visible changes are recorded here. Dates identify publication updates, not a promise that every feature was first implemented on that date.
 
 ## 0.2.0-preview.11 — 2026-10-28 — Broader text discovery and reported benchmark evidence

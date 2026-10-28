@@ -185,7 +185,7 @@ public partial class MainWindow
                 ImageArtifactSetupDetailsText.Text = ImageArtifactAcquisitionPlanner.Describe(plan)
                     + $"\n\nIMAGE FILE BYTES VERIFIED\nFile: {result.Path}\nReceipt: {result.ReceiptPath}\nActual bytes: {result.ActualBytes:N0}\nActual SHA-256: {result.ActualSha256}\nReused matching existing file: {result.ReusedExisting}\n\n"
                     + "Only this file's identity and bytes were verified. This is not proof of a complete checkpoint, compatible hardware, installed engine or successful generation. No engine configuration or model launch occurred.";
-                ImageArtifactSetupStatusText.Text = "Image file verified and private receipt saved. Approval consumed. Engine setup and actual local generation remain separate, unimplemented steps for this artifact.";
+                ImageArtifactSetupStatusText.Text = "Image file verified and private receipt saved. Approval consumed. Connect this folder to an existing image engine, then explicitly start it and select a supported checkpoint. Downloading a file alone does not establish that it works.";
             }, TimeSpan.FromHours(2));
         }
         finally { _imageArtifactActivePlanId = null; }

@@ -37,7 +37,7 @@ internal static class RuntimeInstallationUiChecks
                 var filePlan = RuntimeFilePlanner.Create(report, "fixture/runtime", destination, name);
                 var inspected = await RuntimeArchiveInspector.InspectAsync(filePlan, root);
                 var plan = await RuntimeInstallationPlanner.CreateAsync(inspected, root);
-                Find<CheckBox>(window, "DiscoveryShowUnassessedCheck").IsChecked = true; // Explicit user access to runtime setup metadata.
+                Find<CheckBox>(window, "DiscoveryShowUnassessedCheck").IsChecked = false; // Include runtime setup metadata.
                 window.RenderDiscoveryReport(report);
                 check(Find<DataGrid>(window, "DiscoveryResultsGrid").SelectedIndex == -1,
                     "Native installation review begins with no automatically selected runtime result");

@@ -131,7 +131,7 @@ internal static class WorkloadDiscoveryChecks
         toggle.IsChecked = false;
         window.RenderDiscoveryReport(report);
         var grid = (DataGrid)window.FindName("DiscoveryResultsGrid");
-        check(grid.Items.Count == 2 && grid.SelectedIndex == -1,
+        check(grid.Items.Count == 3 && grid.SelectedIndex == -1,
             "Discovery exposes returned model files with unmet requirements without choosing a model for the user");
         var largeRow = grid.Items.Cast<object>().Single(row =>
             ((CompatibilityRecommendation)row.GetType().GetProperty("Recommendation")!.GetValue(row)!).Item.Id == tooLarge.Id);
@@ -155,11 +155,11 @@ internal static class WorkloadDiscoveryChecks
         check(!browseVariants.IsEnabled && grid.SelectedIndex == -1,
             "Replacing discovery evidence clears the model choice and disables file browsing until another explicit selection");
         toggle.IsChecked = true;
-        check(grid.Items.Count == 3 && grid.SelectedIndex == -1,
-            "The user can inspect unknown and insufficient-resource alternatives without approving or selecting them");
+        check(grid.Items.Count == 1 && grid.SelectedIndex == -1,
+            "An explicit fit-only filter hides unverified tools and resource-limited alternatives without approving or selecting a model");
         toggle.IsChecked = false;
-        check(grid.Items.Count == 2 && !window.OwnedLlamaServerRunning,
-            "Hiding runtime/tool results retains model alternatives and neither launches an engine nor changes workload choices");
+        check(grid.Items.Count == 3 && !window.OwnedLlamaServerRunning,
+            "Removing the fit-only filter restores all source alternatives and neither launches an engine nor changes workload choices");
 
         var root = Path.Combine(AppContext.BaseDirectory, "fixtures", Guid.NewGuid().ToString("N"));
         var selectionWindow = new MainWindow { GuidedPersistPreferences = false };

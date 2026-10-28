@@ -59,6 +59,12 @@ internal static class Program
             if (args.Contains("--live")) CheckLiveDiscovery().GetAwaiter().GetResult();
             if (args.Contains("--llama-live")) CheckLiveLlamaCpp().GetAwaiter().GetResult();
             if (args.Contains("--discovery-live")) OnlineDiscoveryChecks.RunLiveAsync(Check).GetAwaiter().GetResult();
+            var textSearchLive = Array.IndexOf(args, "--text-model-search-live");
+            if (textSearchLive >= 0)
+            {
+                if (textSearchLive + 1 >= args.Length) throw new ArgumentException("--text-model-search-live requires an explicit public model query or repository.");
+                TextModelSearchLiveChecks.RunAsync(args[textSearchLive + 1], Check).GetAwaiter().GetResult();
+            }
             var imageMetadataLive = Array.IndexOf(args, "--image-artifacts-live");
             if (imageMetadataLive >= 0)
             {

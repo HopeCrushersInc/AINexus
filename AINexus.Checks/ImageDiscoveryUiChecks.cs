@@ -72,8 +72,9 @@ internal static class ImageDiscoveryUiChecks
                 "A later text-only report removes the image notice and preserves the ordinary fit filter");
             var unsupportedText = image with { Interest = DiscoveryInterest.LocalAssistants };
             window.RenderDiscoveryReport(DiscoveryPipeline.Evaluate(original with { Items = [unsupportedText, tool] }, machine, "C:\\"));
-            check(grid.Items.Count == 0 && notice.Visibility == Visibility.Collapsed,
-                "Default image visibility does not expose unrelated unassessed text formats or tools as fit models");
+            check(grid.Items.Count == 1 && notice.Visibility == Visibility.Collapsed
+                && (string?)grid.Items[0].GetType().GetProperty("StatusDisplay")!.GetValue(grid.Items[0]) == "Needs review",
+                "Unassessed text model files remain visible without an image-fit notice or automatic tool selection");
         }
         finally { window.Close(); }
     }

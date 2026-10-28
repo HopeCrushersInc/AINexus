@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased — Text search coverage and clear resource assessments
+
+- Expand the bounded GGUF search from four to up to twelve repositories and twelve total results. Give broad searches repository diversity before repeated variants, explicitly request download-popularity order and disclose that coverage is partial and popularity is not quality. Preserve source order within assessment groups instead of promoting smaller artifacts.
+- Keep all returned model files visible, including missing evidence or unmet requirements, without selecting or approving them. Display selected-drive storage, runtime-memory estimates and the actual shortage reason separately.
+- Add an explicit source-file browsing action. An exact repository lookup reads that repository directly; it does not depend on broad search ranking. Download, installation and runtime approvals remain separate.
+- Add regression cases for a 101 GiB artifact with ample storage and insufficient memory, a quantized 32B-size artifact qualifying through RAM, repository coverage beyond the first four, neutral ordering and native selection/resource displays. Add opt-in live metadata search checks; no weights are downloaded by those checks.
+- Validation: 1,059 regression/native checks plus two live `32B` metadata checks passed. The native development executable opened, responded and closed gracefully. This does not publish a new release or establish execution/quality of newly discovered models.
+
 User-visible changes are recorded here. Dates identify publication updates, not a promise that every feature was first implemented on that date.
 
 ## 0.2.0-preview.10 — 2026-10-28 — Approved image checkpoint-folder connections

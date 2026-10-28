@@ -17,6 +17,7 @@ public partial class MainWindow
     private ModelAcquisitionPlan? _reviewedAcquisitionPlan;
     private string? _discoveryTargetVolume;
     private RuntimeFilePlan? _reviewedRuntimeFiles;
+    internal Func<CancellationToken, Task<MachineCapabilities>>? DiscoveryHardwareOverride { get; set; }
 
     private void InitializeDiscovery()
     {
@@ -70,6 +71,9 @@ public partial class MainWindow
         DiscoverySearchAllButton.IsEnabled = !_discoveryBusy;
         DiscoverySavedButton.IsEnabled = !_discoveryBusy && DiscoveryInterestSelector.SelectedItem is DiscoveryWorkflow;
         DiscoveryCancelButton.IsEnabled = _discoveryBusy;
+        if (DiscoveryBrowseVariantsButton is not null)
+            DiscoveryBrowseVariantsButton.IsEnabled = !_discoveryBusy
+                && DiscoveryResultsGrid.SelectedItem is DiscoveryRow { Recommendation.Item.Artifact.Format: "GGUF" };
         if (RuntimeSetupReviewButton is not null)
             RuntimeSetupReviewButton.IsEnabled = !_discoveryBusy && _lastDiscoveryReport is not null
                 && DiscoveryResultsGrid.SelectedItem is DiscoveryRow { Recommendation.Item.RuntimeRelease: not null };
@@ -113,13 +117,13 @@ public partial class MainWindow
 
     private async Task ScanDiscoveryHardwareAsync(CancellationToken token)
     {
-        await _preferencesReady.Task.WaitAsync(token);
+        if (DiscoveryHardwareOverride is null) await _preferencesReady.Task.WaitAsync(token);
         var selected = _discoveryTargetVolume ?? (DiscoveryVolumeSelector.SelectedItem as StorageVolume)?.Path;
         if (selected is null && !string.IsNullOrWhiteSpace(_settings.LlamaCppModelPath))
             selected = Path.GetPathRoot(_settings.LlamaCppModelPath);
         selected ??= Path.GetPathRoot(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData));
         _discoveryTargetVolume = selected;
-        var machine = await HardwareCapabilityScanner.ScanAsync(token);
+        var machine = DiscoveryHardwareOverride is { } scan ? await scan(token) : await HardwareCapabilityScanner.ScanAsync(token);
         token.ThrowIfCancellationRequested();
         _discoveryMachine = machine;
         _workloadMachine = machine;
@@ -130,6 +134,15 @@ public partial class MainWindow
     }
 
     private async void DiscoverySearchButton_Click(object sender, RoutedEventArgs e) => await RunDiscoverySearchAsync(online: true);
+    private async void DiscoveryBrowseVariantsButton_Click(object sender, RoutedEventArgs e) => await BrowseSelectedModelFilesAsync();
+
+    internal async Task BrowseSelectedModelFilesAsync()
+    {
+        if (_discoveryBusy || DiscoveryResultsGrid.SelectedItem is not DiscoveryRow { Recommendation.Item.Artifact: { Format: "GGUF" } artifact } row) return;
+        DiscoveryQueryText.Text = artifact.Repository;
+        DiscoveryInterestSelector.SelectedItem = VerifiedOnlineDiscoveryProvider.Workflows.Single(w => w.Interest == row.Recommendation.Item.Interest);
+        await RunDiscoverySearchAsync(online: true);
+    }
     private async void DiscoverySearchAllButton_Click(object sender, RoutedEventArgs e) => await FindSelectedWorkloadsAsync();
     private async void DiscoverySavedButton_Click(object sender, RoutedEventArgs e) => await RunDiscoverySearchAsync(online: false);
 
@@ -344,7 +357,7 @@ public partial class MainWindow
         if (_lastDiscoveryReport is not { } report) return;
         var showOthers = DiscoveryShowUnassessedCheck.IsChecked == true;
         DiscoveryResultsGrid.ItemsSource = report.Recommendations
-            .Where(r => showOthers || r.Status == RecommendationStatus.ResourceCandidate || IsUnverifiedImageArtifact(r))
+            .Where(r => showOthers || r.Status == RecommendationStatus.ResourceCandidate || r.Item is { Kind: "Model", Artifact: not null })
             .Select(r => new DiscoveryRow(r, report)).ToArray();
         DiscoveryResultsGrid.SelectedIndex = -1;
         var fit = report.Recommendations.Count(r => r.Status == RecommendationStatus.ResourceCandidate);
@@ -358,9 +371,8 @@ public partial class MainWindow
         DiscoveryFitSummaryText.Text = $"{fit} estimated to fit · {imageFiles} image file candidates (fit unverified) · {unknown - imageFiles} other results need compatibility evidence · {insufficient} exceed available resources · {unsupported} need a platform recipe. "
             + (fit == 0 ? "No hardware-fit matches established. " : "")
             + (missingMediaRecipe ? "Image/video artifacts and tools need dedicated model/runtime requirements before fit can be assessed." : "")
-            + (showOthers ? " Showing all results." : imageFiles > 0
-                ? " Showing estimated-fit results and unverified image file candidates; reveal other results below."
-                : " Showing estimated-fit results only; reveal the others below.");
+            + (showOthers ? " Showing all results." : " Showing all returned model files, including unknown or unmet requirements. Reveal runtime/tool results below.")
+            + " Download size is disk space, not parameter count or available VRAM. Runtime memory is a conservative estimate; partial CPU/GPU offload is not assessed.";
     }
 
     private void DiscoveryResultsGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -442,12 +454,24 @@ public partial class MainWindow
         public string Workload => VerifiedOnlineDiscoveryProvider.Workflows.Single(w => w.Interest == Recommendation.Item.Interest).Name;
         public string Publisher => Recommendation.Item.Publisher;
         public string SizeDisplay => ByteSizeDisplay.ModelSize(Recommendation.Item.Artifact?.SizeBytes);
+        public string MemoryDisplay => Recommendation.EstimatedMemoryGiB is { } memory ? $"{memory:N2} GiB (estimate)" : "Not assessed";
+        public string StorageDisplay
+        {
+            get
+            {
+                if (Recommendation.RequiredStorageGiB is not { } required) return "Not assessed";
+                var volume = Report.Machine.Volumes.FirstOrDefault(v => string.Equals(v.Path, Report.TargetVolume, StringComparison.OrdinalIgnoreCase));
+                if (volume is null || volume.TotalBytes <= 0 || volume.AvailableBytes < 0 || volume.AvailableBytes > volume.TotalBytes)
+                    return "Drive reading required";
+                return $"{(volume.AvailableBytes / 1_073_741_824d >= required ? "Fits" : "More space required")} on {volume.Path} ({required:N2} GiB budget)";
+            }
+        }
         public string LicenseDisplay => Recommendation.Item.License ?? "Unknown";
         public string ExecutionPath => Recommendation.ExecutionPath;
         public string StatusDisplay => Recommendation.Status switch
         {
             RecommendationStatus.ResourceCandidate => "Estimated to fit",
-            RecommendationStatus.InsufficientResources => "Not enough resources",
+            RecommendationStatus.InsufficientResources => Recommendation.ExecutionPath,
             RecommendationStatus.Unsupported => "Not supported yet",
             _ => "Needs review"
         };

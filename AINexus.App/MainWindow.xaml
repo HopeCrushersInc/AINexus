@@ -353,7 +353,10 @@
                 </DockPanel>
                     <TextBlock x:Name="DiscoveryFitSummaryText" TextWrapping="Wrap" Foreground="{DynamicResource NexusMutedBrush}" Margin="0,8,0,4"/>
                     <TextBlock x:Name="DiscoveryImageCandidatesNoticeText" Text="Image file candidates — hardware fit and complete checkpoint contents are unverified." Visibility="Collapsed" TextWrapping="Wrap" Foreground="{DynamicResource NexusSecondaryBrush}" Margin="0,0,0,8"/>
-                    <CheckBox x:Name="DiscoveryShowUnassessedCheck" Content="Show other results needing review or more resources" IsChecked="False" Checked="DiscoveryShowUnassessedCheck_Changed" Unchecked="DiscoveryShowUnassessedCheck_Changed" Foreground="{DynamicResource NexusMutedBrush}"/>
+                    <DockPanel>
+                        <Button x:Name="DiscoveryBrowseVariantsButton" DockPanel.Dock="Right" Content="Browse selected model's files" Click="DiscoveryBrowseVariantsButton_Click" IsEnabled="False" Padding="12,6"/>
+                        <CheckBox x:Name="DiscoveryShowUnassessedCheck" Content="Also show runtime and tool results needing review" IsChecked="False" Checked="DiscoveryShowUnassessedCheck_Changed" Unchecked="DiscoveryShowUnassessedCheck_Changed" Foreground="{DynamicResource NexusMutedBrush}" VerticalAlignment="Center"/>
+                    </DockPanel>
                 </StackPanel>
                 <DataGrid Grid.Row="4" x:Name="DiscoveryResultsGrid" IsReadOnly="True" AutoGenerateColumns="False" CanUserAddRows="False" SelectionMode="Single" SelectionChanged="DiscoveryResultsGrid_SelectionChanged" Background="{DynamicResource NexusPanelBrush}" Foreground="{DynamicResource NexusTextBrush}" HeadersVisibility="Column" EnableRowVirtualization="True" Margin="0,0,0,12">
                     <DataGrid.Columns>
@@ -361,6 +364,8 @@
                         <DataGridTextColumn Header="Category" Binding="{Binding Workload}" Width="1.4*"/>
 
                         <DataGridTextColumn Header="Download size" Binding="{Binding SizeDisplay}" Width="Auto"/>
+                        <DataGridTextColumn Header="Selected drive" Binding="{Binding StorageDisplay}" Width="Auto"/>
+                        <DataGridTextColumn Header="Runtime memory estimate" Binding="{Binding MemoryDisplay}" Width="Auto"/>
                         <DataGridTextColumn Header="License" Binding="{Binding LicenseDisplay}" Width="*"/>
                         <DataGridTextColumn Header="Hardware estimate" Binding="{Binding StatusDisplay}" Width="1.2*"/>
 

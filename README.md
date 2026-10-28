@@ -18,7 +18,7 @@ AI Nexus scans the computer, shows workload categories, and searches live intern
 
 1. **Open Nexus.** It scans local hardware; no software is installed or started.
 2. **Choose your tasks.** Coding, art/images, music/audio, video, speech, 3D, CAD, 3D printing, game development, reverse engineering, streaming, assistants and agents are visible. Nothing is checked or remembered.
-3. **Find online choices.** Confirming the checked tasks searches every selected category using the startup hardware snapshot. Estimated-fit results appear first; a separate toggle reveals unassessed or insufficient-resource results. No result is preselected or labeled “best.” A category or query can narrow a later search.
+3. **Find online choices.** Confirming the checked tasks searches every selected category using the startup hardware snapshot. All returned model files remain visible, including unknown or unmet requirements; a separate toggle reveals runtime/tool results. Estimated-fit results appear first, preserving source order within each assessment group. No result is preselected or labeled “best.” A category or query can narrow a later search.
 4. **Choose a result.** Inspect the actual source, license and available evidence. Unknown information stays unknown.
 5. **Approve a specific action.** Supported download/install recipes require review and explicit approval. Configuration and launch remain separate actions.
 
@@ -34,6 +34,10 @@ AI Nexus scans the computer, shows workload categories, and searches live intern
 | Runtime and local use | Explicit engine setup, local chat, image-engine configuration and owned-process controls |
 
 **Discovery is not installation. A search result is not a recommendation or proof of compatibility.** Automated installation is currently limited to implemented recipes; finding an art or music tool does not mean its installer is supported.
+
+Text searches currently inspect a bounded Hugging Face GGUF catalog slice: up to twelve repositories and twelve total results, including supporting runtime metadata. Broad searches request download popularity order, give repositories one file each before repeat variants, and follow no pagination. Popularity is not a quality or writing score. Use the search field for a model/publisher term or explicitly browse a selected repository's files to see more quantizations. Exact repository browsing reads that repository directly. Parameter counts are not inferred from filenames, and split GGUF sets are not supported yet.
+
+Download size and selected-drive space are shown separately from the conservative runtime-memory estimate. A file can fit on disk and still exceed the assessed available RAM/VRAM. Text models may qualify through system RAM when full GPU offload does not fit; partial CPU/GPU offload and disk-backed execution remain unassessed, and no speed is promised.
 
 Image discovery searches public Hugging Face text-to-image repositories for bounded root Safetensors candidates and also lists GitHub tools. Pinned file sizes, hashes and licenses are shown when supplied. Image file candidates appear by default with an explicit unverified notice; a file may be a component or adapter, and its hardware fit and complete checkpoint contents are not established. Video and other non-text categories still retrieve tool repositories. Nexus does not apply text-model memory rules to these results. Explicit image-file setup can download the selected data after exact source/license/destination approval, with hash verification. It does not connect model folders, install an engine or establish a working checkpoint.
 

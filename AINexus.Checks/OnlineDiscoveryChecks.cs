@@ -14,6 +14,7 @@ internal static class OnlineDiscoveryChecks
     private const string Tree = "[{\"type\":\"file\",\"path\":\"fixture-q4_k_m.gguf\",\"size\":1024,\"lfs\":{\"oid\":\"" + Hash + "\",\"size\":1024}}," +
         "{\"type\":\"file\",\"path\":\"fixture-q8.gguf\",\"size\":2048}," +
         "{\"type\":\"file\",\"path\":\"fixture-00001-of-00002.gguf\",\"size\":999}," +
+        "{\"type\":\"file\",\"path\":\"mmproj-companion.gguf\",\"size\":512}," +
         "{\"type\":\"file\",\"path\":\"../unsafe.gguf\",\"size\":1}]";
 
     public static async Task RunAsync(Action<bool, string> check)
@@ -39,6 +40,9 @@ internal static class OnlineDiscoveryChecks
                 "Sharded and unsafe artifact paths are excluded with explicit notes");
             check(models.All(item => !item.Artifact!.FileName.Contains("00001") && !item.Artifact.FileName.Contains("..")),
                 "A single GGUF shard is never presented as complete model weights");
+            check(models.All(item => !item.Artifact!.FileName.Contains("mmproj", StringComparison.OrdinalIgnoreCase))
+                && snapshot.Notes.Any(note => note.Contains("projector", StringComparison.OrdinalIgnoreCase)),
+                "A named multimodal projector is excluded from standalone text-model search results with an explicit explanation");
             check(requests.Count == 5 && requests.All(uri => uri.Host is "huggingface.co" or "api.github.com"), "Discovery stays inside its fixed public sources and bounded request budget");
             check(requests[0].OriginalString.Contains("search=hello%20%26%20x%3Fsearch%3D", StringComparison.Ordinal), "User search text is escaped rather than interpreted as API parameters");
             check(requests.Any(uri => uri.AbsolutePath.Contains("/tree/" + Revision)), "Artifact metadata is read at the reported immutable revision");
@@ -63,8 +67,12 @@ internal static class OnlineDiscoveryChecks
         }
         check(VerifiedOnlineDiscoveryProvider.Workflows.Count == Enum.GetValues<DiscoveryInterest>().Length, "Workflow catalog explicitly accounts for every requested interest");
 
+        var exactRepositoryRequests = new List<Uri>();
         using (var http = new HttpClient(new FixtureHandler((request, _) =>
         {
+            exactRepositoryRequests.Add(request.RequestUri!);
+            if (request.RequestUri!.AbsolutePath == "/api/models")
+                return Task.FromResult(Json("[]"));
             if (request.RequestUri!.AbsolutePath.Contains("/tree/"))
                 return Task.FromResult(Json(Tree[..^1] + ", {\"type\":\"file\",\"path\":\"third.gguf\",\"size\":4096}]"));
             return Task.FromResult(ReplyFor(request.RequestUri));
@@ -73,10 +81,49 @@ internal static class OnlineDiscoveryChecks
             var catalog = await new VerifiedOnlineDiscoveryProvider(http).SearchAsync(new(DiscoveryInterest.Coding, "Fixture/Model", 8));
             check(catalog.Items.Count(item => item.Artifact is not null) == 3 && catalog.Items.Any(item => item.Artifact?.FileName == "third.gguf"),
                 "An exact repository search exposes further file variants within the requested budget instead of restricting user choice to two files");
+            check(exactRepositoryRequests.Count == 4 && exactRepositoryRequests.All(uri => uri.AbsolutePath != "/api/models")
+                && exactRepositoryRequests[0].AbsolutePath == "/api/models/Fixture/Model"
+                && catalog.Notes.Any(note => note.Contains("no broad search or repository substitution", StringComparison.Ordinal)),
+                "An explicitly chosen repository is inspected directly even when a broad source search would omit it, with no substitute repository");
         }
+        await CheckRepositoryCoverageAsync(check);
         await CheckPartialResultsAsync(check);
         await CheckMalformedMetadataAsync(check);
         await CheckLimitsAndCancellationAsync(check);
+    }
+
+    private static async Task CheckRepositoryCoverageAsync(Action<bool, string> check)
+    {
+        var requests = new List<Uri>();
+        var repositories = Enumerable.Range(1, 12)
+            .Select(index => index == 7 ? "Fixture/Writer-32B" : $"Fixture/Model{index:D2}").ToArray();
+        using var http = new HttpClient(new FixtureHandler((request, _) =>
+        {
+            var uri = request.RequestUri!;
+            requests.Add(uri);
+            if (uri.AbsolutePath == "/api/models")
+                return Task.FromResult(Json("[" + string.Join(",", repositories.Select(repository => "{\"id\":\"" + repository + "\"}")) + "]"));
+            if (uri.Host == "huggingface.co" && !uri.AbsolutePath.Contains("/tree/"))
+            {
+                var repository = uri.AbsolutePath["/api/models/".Length..];
+                return Task.FromResult(Json(ModelInfo.Replace("Fixture/Model", repository, StringComparison.Ordinal)));
+            }
+            return Task.FromResult(ReplyFor(uri));
+        }));
+        var snapshot = await new VerifiedOnlineDiscoveryProvider(http).SearchAsync(new(DiscoveryInterest.LocalAssistants, "", 12));
+        var models = snapshot.Items.Where(item => item.Kind == "Model").ToArray();
+        check(models.Length == 11 && models.Select(item => item.Artifact!.Repository).Distinct().Count() == 11
+            && models.Any(item => item.Artifact!.Repository == "Fixture/Writer-32B"),
+            "Broad discovery reaches a source repository beyond the first four, including a source-named 32B entry, before allocating repeat variants");
+        check(snapshot.Items.Count == 12 && snapshot.Items.Count(item => item.Kind == "Runtime") == 1
+            && requests.Count <= 27 && requests[0].Query.Contains("limit=12", StringComparison.Ordinal)
+            && requests[0].Query.Contains("sort=downloads&direction=-1", StringComparison.Ordinal),
+            "Expanded discovery requests explicit download ordering while retaining the twelve-result and twenty-seven-request bounds");
+        check(snapshot.Notes.Any(note => note.Contains("No pagination", StringComparison.Ordinal))
+            && snapshot.Notes.Any(note => note.Contains("not a quality rating", StringComparison.Ordinal))
+            && snapshot.Notes.Any(note => note.Contains("Parameter counts are not inferred", StringComparison.Ordinal))
+            && models.All(item => !item.Description.Contains("32 billion", StringComparison.OrdinalIgnoreCase)),
+            "Discovery discloses bounded coverage and popularity ordering without inventing quality ratings or parameter counts from source names");
     }
 
     public static async Task RunLiveAsync(Action<bool, string> check)

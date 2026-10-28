@@ -131,14 +131,35 @@ internal static class WorkloadDiscoveryChecks
         toggle.IsChecked = false;
         window.RenderDiscoveryReport(report);
         var grid = (DataGrid)window.FindName("DiscoveryResultsGrid");
-        check(grid.Items.Count == 1 && grid.SelectedIndex == -1,
-            "Discovery initially presents only estimated hardware-fit results and does not choose a model for the user");
+        check(grid.Items.Count == 2 && grid.SelectedIndex == -1,
+            "Discovery exposes returned model files with unmet requirements without choosing a model for the user");
+        var largeRow = grid.Items.Cast<object>().Single(row =>
+            ((CompatibilityRecommendation)row.GetType().GetProperty("Recommendation")!.GetValue(row)!).Item.Id == tooLarge.Id);
+        var browseVariants = (Button)window.FindName("DiscoveryBrowseVariantsButton");
+        check(!browseVariants.IsEnabled, "Model file browsing requires an explicit model selection");
+        grid.SelectedItem = largeRow;
+        check(browseVariants.IsEnabled && !window.OwnedLlamaServerRunning,
+            "A returned GGUF model with unmet requirements still offers explicit browsing of its source file variants without launching it");
+        check((string?)largeRow.GetType().GetProperty("StatusDisplay")!.GetValue(largeRow) == "More storage required"
+            && ((string?)largeRow.GetType().GetProperty("StorageDisplay")!.GetValue(largeRow))?.Contains("More space required") == true
+            && ((string?)largeRow.GetType().GetProperty("MemoryDisplay")!.GetValue(largeRow))?.Contains("estimate") == true,
+            "Discovery shows the actual storage shortage separately from runtime memory instead of a generic out-of-specs verdict");
+        var ampleDisk = report.Machine with { Volumes = [new("C:\\", 2048L * 1_073_741_824, 4096L * 1_073_741_824)] };
+        window.RenderDiscoveryReport(DiscoveryPipeline.Evaluate(catalog with { Items = [tooLarge] }, ampleDisk, "C:\\"));
+        var memoryRow = grid.Items[0];
+        check((string?)memoryRow.GetType().GetProperty("StatusDisplay")!.GetValue(memoryRow) == "Larger memory budget required"
+            && ((string?)memoryRow.GetType().GetProperty("StorageDisplay")!.GetValue(memoryRow))?.StartsWith("Fits on C:\\") == true
+            && grid.SelectedIndex == -1,
+            "A large model remains visible with disk-fit evidence and a separate memory shortage without being selected");
+        window.RenderDiscoveryReport(report);
+        check(!browseVariants.IsEnabled && grid.SelectedIndex == -1,
+            "Replacing discovery evidence clears the model choice and disables file browsing until another explicit selection");
         toggle.IsChecked = true;
         check(grid.Items.Count == 3 && grid.SelectedIndex == -1,
             "The user can inspect unknown and insufficient-resource alternatives without approving or selecting them");
         toggle.IsChecked = false;
-        check(grid.Items.Count == 1 && !window.OwnedLlamaServerRunning,
-            "Returning to hardware-fit results neither launches an engine nor changes the user's workload choices");
+        check(grid.Items.Count == 2 && !window.OwnedLlamaServerRunning,
+            "Hiding runtime/tool results retains model alternatives and neither launches an engine nor changes workload choices");
 
         var root = Path.Combine(AppContext.BaseDirectory, "fixtures", Guid.NewGuid().ToString("N"));
         var selectionWindow = new MainWindow { GuidedPersistPreferences = false };
@@ -147,6 +168,7 @@ internal static class WorkloadDiscoveryChecks
             Pump(async () =>
             {
                 var machine = DiscoveryPipelineChecks.FixtureMachine();
+                selectionWindow.DiscoveryHardwareOverride = _ => Task.FromResult(machine);
                 var provider = new WorkloadProvider();
                 typeof(MainWindow).GetField("_discoveryPipeline", BindingFlags.Instance | BindingFlags.NonPublic)!
                     .SetValue(selectionWindow, new DiscoveryPipeline(provider, new DiscoveryCacheStore(root)));
@@ -166,6 +188,14 @@ internal static class WorkloadDiscoveryChecks
                 check(!selectionWindow.OwnedLlamaServerRunning && ((CheckBox)selectionWindow.FindName("AcquisitionApprovalCheck")).IsChecked != true
                     && ((CheckBox)selectionWindow.FindName("GuidedModelApprovalCheck")).IsChecked != true,
                     "Automatic selected-workload searches grant no acquisition approval and start no text server");
+                results.SelectedIndex = 0;
+                var selectedArtifact = ((CompatibilityRecommendation)results.Items[0].GetType().GetProperty("Recommendation")!.GetValue(results.Items[0])!).Item.Artifact!;
+                await selectionWindow.BrowseSelectedModelFilesAsync();
+                check(provider.Requests.Count == 4 && provider.Requests[^1].Query == selectedArtifact.Repository
+                    && provider.Requests[^1].Interest == DiscoveryInterest.Coding && results.SelectedIndex == -1
+                    && !selectionWindow.OwnedLlamaServerRunning
+                    && ((CheckBox)selectionWindow.FindName("AcquisitionApprovalCheck")).IsChecked != true,
+                    "Explicit model-file browsing searches only the selected source repository and category, clears model selection and grants no download or runtime approval");
             });
         }
         finally { selectionWindow.Close(); if (Directory.Exists(root)) Directory.Delete(root, recursive: true); }

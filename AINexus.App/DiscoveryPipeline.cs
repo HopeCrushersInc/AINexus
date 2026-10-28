@@ -81,7 +81,7 @@ public sealed class DiscoveryPipeline(IOnlineDiscoveryProvider provider, Discove
                 RecommendationStatus.NeedsDetails => 1,
                 RecommendationStatus.Unsupported => 2,
                 _ => 3
-            }).ThenBy(result => result.EstimatedMemoryGiB ?? double.MaxValue).ToArray();
+            }).ToArray(); // Preserve source order within assessment groups; model size is not a quality ranking.
         return new(snapshot, machine, targetVolume, recommendations);
     }
 }

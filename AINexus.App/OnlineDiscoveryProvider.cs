@@ -16,7 +16,7 @@ public sealed partial class VerifiedOnlineDiscoveryProvider(HttpClient httpClien
 
     public static IReadOnlyList<DiscoveryWorkflow> Workflows { get; } = Array.AsReadOnly(new[]
     {
-        new DiscoveryWorkflow(DiscoveryInterest.LocalAssistants, "Local assistants", "Find local text models and their runtime requirements."),
+        new DiscoveryWorkflow(DiscoveryInterest.LocalAssistants, "Local assistants", "Search Hugging Face GGUF files by download popularity, not quality. Up to 12 results; use search or browse a repository for more files. Hardware estimates remain unverified."),
         new DiscoveryWorkflow(DiscoveryInterest.Coding, "Coding and software development", "Search GGUF model metadata; coding ability requires separate evaluation."),
         new DiscoveryWorkflow(DiscoveryInterest.Images, "Image generation and editing", "Search public image-artifact and tool metadata. Checkpoint completeness and hardware fit require separate evidence."),
         new DiscoveryWorkflow(DiscoveryInterest.MusicAudio, "Music and audio production", "Search online tool sources; automated installation support is not yet implemented for this workflow."),
@@ -80,34 +80,48 @@ public sealed partial class VerifiedOnlineDiscoveryProvider(HttpClient httpClien
         }
         try
         {
-            // Budget: one search + at most four metadata/tree pairs + two supporting
-            // runtime metadata requests = at most eleven requests. No pagination is followed.
-            var count = Math.Min(4, request.Limit);
-            var search = "https://huggingface.co/api/models?filter=gguf&full=true&limit=" + count +
-                "&search=" + Uri.EscapeDataString(request.Query.Trim());
-            using var results = await GetJsonAsync(new Uri(search), deadline.Token);
-            if (results.RootElement.ValueKind != JsonValueKind.Array) throw new InvalidDataException("The model search response was not a list.");
             var modelSlots = request.Limit == 1 ? 1 : request.Limit - 1;
-            var repositories = results.RootElement.EnumerateArray().Take(count)
-                .Select(item => ReadString(item, "id")).Where(id => id is not null).Distinct(StringComparer.Ordinal).ToArray();
-            foreach (var repository in repositories)
+            var exactRepositoryQuery = request.Query.Trim();
+            if (IsRepositoryId(exactRepositoryQuery))
             {
-                if (items.Count >= modelSlots) break;
-                deadline.Token.ThrowIfCancellationRequested();
-                if (!IsRepositoryId(repository!)) { notes.Add("A source returned an invalid repository identifier; it was skipped."); continue; }
-                try
+                notes.Add($"Exact Hugging Face repository lookup: {exactRepositoryQuery}. Up to {modelSlots} alphabetically listed standalone GGUF files; no broad search or repository substitution. No pagination is followed; split models and other formats require separate support.");
+                notes.Add("File ordering is not a quality rating or recommendation. Parameter counts are not inferred from repository or file names.");
+                items.AddRange(await ReadRepositoryAsync(exactRepositoryQuery, request.Interest, modelSlots, notes, deadline.Token));
+            }
+            else
+            {
+                // Budget: one search + at most twelve metadata/tree pairs + two supporting
+                // runtime metadata requests = at most twenty-seven requests. No pagination is followed.
+                var count = request.Limit;
+                notes.Add($"Bounded Hugging Face GGUF search: at most {count} repositories and {request.Limit} total results, including supporting runtime metadata. No pagination is followed; this is not the full model catalog.");
+                notes.Add("Source ordering requests Hugging Face downloads, descending. Download popularity is not a quality rating, benchmark, writing assessment, or recommendation. Parameter counts are not inferred from names.");
+                notes.Add("Broad searches show one alphabetically listed standalone file per repository before additional variants. Search an exact owner/repository to browse more of its file variants; search text such as 32B matches repository names, not verified parameter counts.");
+                var search = "https://huggingface.co/api/models?filter=gguf&full=true&limit=" + count +
+                    "&sort=downloads&direction=-1&search=" + Uri.EscapeDataString(request.Query.Trim());
+                using var results = await GetJsonAsync(new Uri(search), deadline.Token);
+                if (results.RootElement.ValueKind != JsonValueKind.Array) throw new InvalidDataException("The model search response was not a list.");
+                var repositories = results.RootElement.EnumerateArray().Take(count)
+                    .Select(item => ReadString(item, "id")).Where(id => id is not null).Distinct(StringComparer.Ordinal).ToArray();
+                var additionalVariants = new List<DiscoveredItem>();
+                foreach (var repository in repositories)
                 {
-                    // An exact repository query asks to browse its file variants. Broad
-                    // searches retain a small per-repository share of the result budget.
-                    var fileSlots = string.Equals(request.Query.Trim(), repository, StringComparison.OrdinalIgnoreCase)
-                        ? modelSlots - items.Count : Math.Min(2, modelSlots - items.Count);
-                    var found = await ReadRepositoryAsync(repository!, request.Interest, fileSlots, notes, deadline.Token);
-                    items.AddRange(found);
+                    if (items.Count >= modelSlots) break;
+                    deadline.Token.ThrowIfCancellationRequested();
+                    if (!IsRepositoryId(repository!)) { notes.Add("A source returned an invalid repository identifier; it was skipped."); continue; }
+                    try
+                    {
+                        // Give broad searches repository diversity before filling spare slots
+                        // with a second variant.
+                        var found = await ReadRepositoryAsync(repository!, request.Interest, Math.Min(2, modelSlots), notes, deadline.Token);
+                        items.AddRange(found.Take(1));
+                        additionalVariants.AddRange(found.Skip(1));
+                    }
+                    catch (Exception ex) when (IsSourceFailure(ex))
+                    {
+                        notes.Add($"Model metadata could not be read for {repository}: {FailureMessage(ex)}");
+                    }
                 }
-                catch (Exception ex) when (IsSourceFailure(ex))
-                {
-                    notes.Add($"Model metadata could not be read for {repository}: {FailureMessage(ex)}");
-                }
+                items.AddRange(additionalVariants.Take(modelSlots - items.Count));
             }
             if (items.Count == 0) notes.Add("No supported standalone GGUF artifacts were found in the bounded search. Try a publisher or model name.");
             if (items.Count < request.Limit)
@@ -156,6 +170,11 @@ public sealed partial class VerifiedOnlineDiscoveryProvider(HttpClient httpClien
             if (ReadString(file, "type") != "file" || path is null || !path.EndsWith(".gguf", StringComparison.OrdinalIgnoreCase)) continue;
             if (!IsArtifactPath(path)) { notes.Add("An invalid artifact path was skipped."); continue; }
             if (ShardRegex().IsMatch(path)) { shardFound = true; continue; }
+            if (Path.GetFileName(path).Contains("mmproj", StringComparison.OrdinalIgnoreCase))
+            {
+                notes.Add($"A named multimodal projector in {repository} was skipped; a companion file is not a complete text model.");
+                continue;
+            }
             var bytes = ReadPositiveBytes(file, "size");
             string? hash = null;
             if (file.TryGetProperty("lfs", out var lfs) && lfs.ValueKind == JsonValueKind.Object)

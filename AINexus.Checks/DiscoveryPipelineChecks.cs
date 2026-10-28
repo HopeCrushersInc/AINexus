@@ -61,6 +61,11 @@ internal static class DiscoveryPipelineChecks
                 "Online discovery composes source metadata and local evaluation without claiming cached data is fresh");
             check(report.Recommendations.Count == 1 && report.Recommendations[0].Status == RecommendationStatus.ResourceCandidate,
                 "Complete source evidence and sufficient fixture resources produce an unverified resource candidate");
+            var largerFirst = snapshot.Items[0] with { Id = "larger-first", Artifact = snapshot.Items[0].Artifact! with { SizeBytes = 2L * 1_073_741_824 } };
+            var ordered = DiscoveryPipeline.Evaluate(snapshot with { Items = [largerFirst, snapshot.Items[0]] }, machine, "C:\\");
+            check(ordered.Recommendations[0].Item.Id == "larger-first"
+                && ordered.Recommendations.All(r => r.Status == RecommendationStatus.ResourceCandidate),
+                "Equally assessed results preserve source ordering instead of promoting smaller models as better choices");
             var offline = await pipeline.LoadSavedAsync(request, machine, "C:\\");
             check(provider.Calls == 1 && offline.Catalog.IsCached && offline.Catalog.RetrievedAt == snapshot.RetrievedAt,
                 "Saved-search review makes no provider call and preserves the original retrieval timestamp");

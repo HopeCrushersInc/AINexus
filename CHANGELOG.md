@@ -2,6 +2,15 @@
 
 User-visible changes are recorded here. Dates identify publication updates, not a promise that every feature was first implemented on that date.
 
+## 0.2.0-preview.9 — 2026-10-28 — Explicit image-file downloads
+
+- Added a neutral image-file setup page reached only from an explicitly selected source result. Destination starts empty; review and approval are separate. No preset model or automatic download, configuration or launch.
+- Exact pinned source/license/file/bytes/hash and current storage evidence bind a short-lived approval. Folder/source changes, failure or cancellation revoke it. Transfer consumes approval; close waits for safe cancellation and owned-partial cleanup.
+- Verify real bytes and SHA-256, preserve conflicting files, rehash matching existing files, and record private image-specific receipts. Reuse-only reviews cannot silently turn into replacement downloads if a file disappears.
+- Preserve unknown checkpoint completeness, hardware fit and runtime execution. Image-data approval is not a GGUF or engine-launch approval. Engine-folder connection remains a separate unfinished increment.
+- Validation: zero-warning Release build; 988 regression/native checks plus six real image-acquisition checks passed. A fresh official SDXL base file (6,938,078,334 bytes) matched its published hash; separately approved reuse made no second transfer. No engine was configured or launched. Existing preview.7 text-chat and SD1.5 generation evidence is retained.
+- Added ignore rules for model weights and private receipts to prevent accidental source publication.
+
 ## 0.2.0-preview.8 — 2026-10-27 — Neutral image artifact discovery
 
 - Image searches now inspect public text-to-image model repositories for pinned root Safetensors candidates and retain separate GitHub tool listings. Exact repository queries inspect the named source directly; no featured/default model or silent substitute is chosen.

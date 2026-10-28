@@ -217,6 +217,12 @@ internal static class Program
         UserChoiceFlowChecks.RunNative(Check);
         ImageDiscoveryUiChecks.RunNative(Check);
         ImageArtifactSetupUiChecks.RunNative(Check);
+        var imageSetupLive = Array.IndexOf(args, "--image-artifact-setup-live");
+        if (imageSetupLive >= 0)
+        {
+            if (imageSetupLive + 3 >= args.Length) throw new ArgumentException("--image-artifact-setup-live requires an exact repository, filename and existing destination folder; it downloads that explicit file.");
+            ImageArtifactSetupLiveChecks.Run(args[imageSetupLive + 1], args[imageSetupLive + 2], args[imageSetupLive + 3], Check);
+        }
         var selectedLive = Array.IndexOf(args, "--selected-model-live");
         if (selectedLive >= 0)
         {

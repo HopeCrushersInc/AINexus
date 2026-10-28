@@ -44,6 +44,8 @@ internal static class Program
             ImageWorkflowChecks.RunAsync(Check).GetAwaiter().GetResult();
             WorkloadSetupChecks.RunAsync(Check).GetAwaiter().GetResult();
             OnlineDiscoveryChecks.RunAsync(Check).GetAwaiter().GetResult();
+            MultiSourceTextDiscoveryChecks.RunAsync(Check).GetAwaiter().GetResult();
+            TextSearchUiChecks.RunAsync(Check).GetAwaiter().GetResult();
             ImageArtifactDiscoveryChecks.RunAsync(Check).GetAwaiter().GetResult();
             ImageArtifactAcquisitionChecks.RunAsync(Check).GetAwaiter().GetResult();
             ComfyCheckpointFolderChecks.RunAsync(Check).GetAwaiter().GetResult();
@@ -202,6 +204,7 @@ internal static class Program
         Check(window.FindName("CpuText") is TextBlock, "Hardware XAML loads");
         WorkloadSetupChecks.RunNative(window, Check);
         WorkloadDiscoveryChecks.RunNative(window, Check);
+        TextSearchUiChecks.Run(Check);
         GpuPowerUiChecks.RunNative(Check);
         AppearanceChecks.RunNative(window, Check);
         var appearancePreview = Array.IndexOf(args, "--appearance-preview");

@@ -2,11 +2,13 @@
 
 ## Unreleased — Text search coverage and clear resource assessments
 
-- Expand the bounded GGUF search from four to up to twelve repositories and twelve total results. Give broad searches repository diversity before repeated variants, explicitly request download-popularity order and disclose that coverage is partial and popularity is not quality. Preserve source order within assessment groups instead of promoting smaller artifacts.
+- Combine popular, trending and recently updated text-generation GGUF feeds across all supported text workloads. Deduplicate repositories, interleave source lists and inspect up to 24 repositories with four concurrent reads; native text searches request up to 48 total results. Preserve source order within assessment groups instead of promoting smaller artifacts. Keep explicit single-order views and direct repository browsing available.
+- Show source-reported repository parameters, update dates and downloads separately from hardware estimates and quality judgments. Missing or invalid metadata stays unknown. Source activity does not establish quality, and a repository modification is not necessarily a model release.
+- Exclude known non-text tasks and files named as projectors, importance matrices, drafts or adapters from primary text-model results. Keep source failures partial, deadlines/cancellation bounded and saved searches isolated by ordering. Pagination and complete split-model support remain unfinished.
 - Keep all returned model files visible, including missing evidence or unmet requirements, without selecting or approving them. Display selected-drive storage, runtime-memory estimates and the actual shortage reason separately.
 - Add an explicit source-file browsing action. An exact repository lookup reads that repository directly; it does not depend on broad search ranking. Download, installation and runtime approvals remain separate.
 - Add regression cases for a 101 GiB artifact with ample storage and insufficient memory, a quantized 32B-size artifact qualifying through RAM, repository coverage beyond the first four, neutral ordering and native selection/resource displays. Add opt-in live metadata search checks; no weights are downloaded by those checks.
-- Validation: 1,059 regression/native checks plus two live `32B` metadata checks passed. The native development executable opened, responded and closed gracefully. This does not publish a new release or establish execution/quality of newly discovered models.
+- Validation: 1,077 regression/native checks plus four live metadata check instances across separate general and `32B` searches passed (1,079 checks in each run). This does not publish a new release or establish execution/quality of newly discovered models.
 
 User-visible changes are recorded here. Dates identify publication updates, not a promise that every feature was first implemented on that date.
 

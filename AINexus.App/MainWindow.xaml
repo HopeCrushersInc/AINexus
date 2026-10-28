@@ -351,6 +351,10 @@
                     </StackPanel>
                     <TextBlock x:Name="DiscoveryScopeText" TextWrapping="Wrap" Foreground="{DynamicResource NexusMutedBrush}" VerticalAlignment="Center"/>
                 </DockPanel>
+                    <DockPanel Margin="0,8,0,0">
+                        <ComboBox x:Name="DiscoveryOrderSelector" DockPanel.Dock="Left" Width="230" DisplayMemberPath="Name" SelectionChanged="DiscoveryOrderSelector_SelectionChanged" Padding="6" ToolTip="Optional text-model search order. Blank combines popular, trending and recently updated sources. No model is chosen."/>
+                        <TextBlock Text="Text search: blank mixes popular, trending and recent. Source activity is not a quality score." TextWrapping="Wrap" Foreground="{DynamicResource NexusMutedBrush}" VerticalAlignment="Center" Margin="10,0,0,0"/>
+                    </DockPanel>
                     <TextBlock x:Name="DiscoveryFitSummaryText" TextWrapping="Wrap" Foreground="{DynamicResource NexusMutedBrush}" Margin="0,8,0,4"/>
                     <TextBlock x:Name="DiscoveryImageCandidatesNoticeText" Text="Image file candidates — hardware fit and complete checkpoint contents are unverified." Visibility="Collapsed" TextWrapping="Wrap" Foreground="{DynamicResource NexusSecondaryBrush}" Margin="0,0,0,8"/>
                     <DockPanel>
@@ -360,10 +364,13 @@
                 </StackPanel>
                 <DataGrid Grid.Row="4" x:Name="DiscoveryResultsGrid" IsReadOnly="True" AutoGenerateColumns="False" CanUserAddRows="False" SelectionMode="Single" SelectionChanged="DiscoveryResultsGrid_SelectionChanged" Background="{DynamicResource NexusPanelBrush}" Foreground="{DynamicResource NexusTextBrush}" HeadersVisibility="Column" EnableRowVirtualization="True" Margin="0,0,0,12">
                     <DataGrid.Columns>
-                        <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="3*"/>
+                        <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="3*" MinWidth="260"/>
                         <DataGridTextColumn Header="Category" Binding="{Binding Workload}" Width="1.4*"/>
 
                         <DataGridTextColumn Header="Download size" Binding="{Binding SizeDisplay}" Width="Auto"/>
+                        <DataGridTextColumn Header="Repository updated" Binding="{Binding UpdatedDisplay}" Width="Auto"/>
+                        <DataGridTextColumn Header="Repository parameters" Binding="{Binding ParametersDisplay}" Width="Auto"/>
+                        <DataGridTextColumn Header="HF downloads" Binding="{Binding DownloadsDisplay}" Width="Auto"/>
                         <DataGridTextColumn Header="Selected drive" Binding="{Binding StorageDisplay}" Width="Auto"/>
                         <DataGridTextColumn Header="Runtime memory estimate" Binding="{Binding MemoryDisplay}" Width="Auto"/>
                         <DataGridTextColumn Header="License" Binding="{Binding LicenseDisplay}" Width="*"/>

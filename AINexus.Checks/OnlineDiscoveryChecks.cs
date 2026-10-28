@@ -15,6 +15,9 @@ internal static class OnlineDiscoveryChecks
         "{\"type\":\"file\",\"path\":\"fixture-q8.gguf\",\"size\":2048}," +
         "{\"type\":\"file\",\"path\":\"fixture-00001-of-00002.gguf\",\"size\":999}," +
         "{\"type\":\"file\",\"path\":\"mmproj-companion.gguf\",\"size\":512}," +
+        "{\"type\":\"file\",\"path\":\"imatrix.gguf\",\"size\":512}," +
+        "{\"type\":\"file\",\"path\":\"fixture-draft-Q4_0.gguf\",\"size\":512}," +
+        "{\"type\":\"file\",\"path\":\"fixture-lora.gguf\",\"size\":512}," +
         "{\"type\":\"file\",\"path\":\"../unsafe.gguf\",\"size\":1}]";
 
     public static async Task RunAsync(Action<bool, string> check)
@@ -22,12 +25,12 @@ internal static class OnlineDiscoveryChecks
         var requests = new List<Uri>();
         using (var http = new HttpClient(new FixtureHandler((request, _) =>
         {
-            requests.Add(request.RequestUri!);
+            lock (requests) requests.Add(request.RequestUri!);
             check(request.Method == HttpMethod.Get && request.Headers.Authorization is null, "Online discovery issues read-only unauthenticated metadata GET requests");
             return Task.FromResult(ReplyFor(request.RequestUri!));
         })))
         {
-            var snapshot = await new VerifiedOnlineDiscoveryProvider(http).SearchAsync(new(DiscoveryInterest.LocalAssistants, "hello & x?search=", 3));
+            var snapshot = await new VerifiedOnlineDiscoveryProvider(http).SearchAsync(new(DiscoveryInterest.LocalAssistants, "hello & x?search=", 3, SearchOrder: TextSearchOrder.Popular));
             var models = snapshot.Items.Where(item => item.Kind == "Model").ToArray();
             check(models.Length == 2 && snapshot.Items.Count == 3, "Bounded discovery returns actual fixture artifacts and supporting release metadata");
             check(models[0].Artifact is { SizeBytes: 1024, Revision: Revision, Sha256: Hash, Gated: false, Format: "GGUF" },
@@ -43,6 +46,11 @@ internal static class OnlineDiscoveryChecks
             check(models.All(item => !item.Artifact!.FileName.Contains("mmproj", StringComparison.OrdinalIgnoreCase))
                 && snapshot.Notes.Any(note => note.Contains("projector", StringComparison.OrdinalIgnoreCase)),
                 "A named multimodal projector is excluded from standalone text-model search results with an explicit explanation");
+            check(models.All(item => !item.Artifact!.FileName.Contains("imatrix", StringComparison.OrdinalIgnoreCase)
+                    && !item.Artifact.FileName.Contains("draft", StringComparison.OrdinalIgnoreCase)
+                    && !item.Artifact.FileName.Contains("lora", StringComparison.OrdinalIgnoreCase))
+                && snapshot.Notes.Any(note => note.Contains("importance matrix")),
+                "Importance-matrix, draft and adapter-labelled files are not offered as a repository's primary text model");
             check(requests.Count == 5 && requests.All(uri => uri.Host is "huggingface.co" or "api.github.com"), "Discovery stays inside its fixed public sources and bounded request budget");
             check(requests[0].OriginalString.Contains("search=hello%20%26%20x%3Fsearch%3D", StringComparison.Ordinal), "User search text is escaped rather than interpreted as API parameters");
             check(requests.Any(uri => uri.AbsolutePath.Contains("/tree/" + Revision)), "Artifact metadata is read at the reported immutable revision");
@@ -100,7 +108,7 @@ internal static class OnlineDiscoveryChecks
         using var http = new HttpClient(new FixtureHandler((request, _) =>
         {
             var uri = request.RequestUri!;
-            requests.Add(uri);
+            lock (requests) requests.Add(uri);
             if (uri.AbsolutePath == "/api/models")
                 return Task.FromResult(Json("[" + string.Join(",", repositories.Select(repository => "{\"id\":\"" + repository + "\"}")) + "]"));
             if (uri.Host == "huggingface.co" && !uri.AbsolutePath.Contains("/tree/"))
@@ -110,7 +118,7 @@ internal static class OnlineDiscoveryChecks
             }
             return Task.FromResult(ReplyFor(uri));
         }));
-        var snapshot = await new VerifiedOnlineDiscoveryProvider(http).SearchAsync(new(DiscoveryInterest.LocalAssistants, "", 12));
+        var snapshot = await new VerifiedOnlineDiscoveryProvider(http).SearchAsync(new(DiscoveryInterest.LocalAssistants, "", 12, SearchOrder: TextSearchOrder.Popular));
         var models = snapshot.Items.Where(item => item.Kind == "Model").ToArray();
         check(models.Length == 11 && models.Select(item => item.Artifact!.Repository).Distinct().Count() == 11
             && models.Any(item => item.Artifact!.Repository == "Fixture/Writer-32B"),

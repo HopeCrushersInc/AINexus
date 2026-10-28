@@ -9,7 +9,8 @@ public sealed record DiscoveryReport(OnlineDiscoverySnapshot Catalog, MachineCap
 public sealed class DiscoveryPipeline(IOnlineDiscoveryProvider provider, DiscoveryCacheStore cache, CatalogDatabase? catalog = null)
 {
     public async Task<DiscoveryReport> SearchWorkloadsOnlineAsync(IEnumerable<DiscoveryInterest> interests,
-        MachineCapabilities machine, string targetVolume, string query = "", CancellationToken token = default)
+        MachineCapabilities machine, string targetVolume, string query = "", CancellationToken token = default,
+        TextSearchOrder searchOrder = TextSearchOrder.Broad)
     {
         var profile = WorkspaceProfile.Create(machine, interests);
         if (query is null || query.Length > 160 || query.Any(char.IsControl))
@@ -23,7 +24,9 @@ public sealed class DiscoveryPipeline(IOnlineDiscoveryProvider provider, Discove
             var name = VerifiedOnlineDiscoveryProvider.Workflows.Single(w => w.Interest == interest).Name;
             try
             {
-                var report = await SearchOnlineAsync(new(interest, query), machine, targetVolume, token: token);
+                var textWorkflow = interest is DiscoveryInterest.LocalAssistants or DiscoveryInterest.Coding or DiscoveryInterest.Agents;
+                var report = await SearchOnlineAsync(new(interest, query, textWorkflow ? 48 : 12,
+                    SearchOrder: textWorkflow ? searchOrder : TextSearchOrder.Broad), machine, targetVolume, token: token);
                 // One source artifact can appear in several selected categories. Keep each
                 // category's evidence without making ID-based review ambiguous.
                 items.AddRange(report.Catalog.Items.Select(item => item with { Id = interest + ":" + item.Id }));

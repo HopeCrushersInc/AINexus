@@ -18,6 +18,8 @@ public partial class MainWindow
     private string? _discoveryTargetVolume;
     private RuntimeFilePlan? _reviewedRuntimeFiles;
     internal Func<CancellationToken, Task<MachineCapabilities>>? DiscoveryHardwareOverride { get; set; }
+    internal sealed record TextSearchChoice(TextSearchOrder Order, string Name);
+    private TextSearchOrder SelectedTextSearchOrder => (DiscoveryOrderSelector.SelectedItem as TextSearchChoice)?.Order ?? TextSearchOrder.Broad;
 
     private void InitializeDiscovery()
     {
@@ -27,6 +29,14 @@ public partial class MainWindow
         _discoveryPipeline = new(new VerifiedOnlineDiscoveryProvider(_discoveryHttp), DiscoveryCacheStore.ForCurrentUser());
         DiscoveryInterestSelector.ItemsSource = VerifiedOnlineDiscoveryProvider.Workflows;
         DiscoveryInterestSelector.SelectedIndex = -1;
+        DiscoveryOrderSelector.ItemsSource = new[]
+        {
+            new TextSearchChoice(TextSearchOrder.Broad, "Broad coverage"),
+            new TextSearchChoice(TextSearchOrder.Popular, "Most downloaded"),
+            new TextSearchChoice(TextSearchOrder.Trending, "Trending"),
+            new TextSearchChoice(TextSearchOrder.RecentlyUpdated, "Recently updated")
+        };
+        DiscoveryOrderSelector.SelectedIndex = -1;
         Closed += (_, _) => _discoveryHttp.Dispose();
         RefreshDiscoveryControls();
     }
@@ -52,6 +62,18 @@ public partial class MainWindow
         RefreshDiscoveryControls();
     }
 
+    private void DiscoveryOrderSelector_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (_discoveryBusy || DiscoveryResultsGrid is null || DiscoveryDetailsText is null) return;
+        _lastDiscoveryReport = null;
+        InvalidateAcquisitionReview();
+        DiscoveryResultsGrid.ItemsSource = null;
+        DiscoveryImageCandidatesNoticeText.Visibility = Visibility.Collapsed;
+        DiscoveryFitSummaryText.Text = "Search order changed. Search again to read fresh source results.";
+        DiscoveryDetailsText.Text = "No model selected. Text source ordering is not a quality rating.";
+        RefreshDiscoveryControls();
+    }
+
     private void RefreshDiscoveryControls()
     {
         RefreshImageArtifactSetupControls();
@@ -64,6 +86,7 @@ public partial class MainWindow
         RefreshRuntimeDownloadControls();
         DiscoveryScanButton.IsEnabled = !_discoveryBusy;
         DiscoveryInterestSelector.IsEnabled = DiscoveryQueryText.IsEnabled = DiscoveryVolumeSelector.IsEnabled = !_discoveryBusy;
+        DiscoveryOrderSelector.IsEnabled = !_discoveryBusy;
         var supported = DiscoveryInterestSelector.SelectedItem is DiscoveryWorkflow workflow && Enum.IsDefined(workflow.Interest)
             || _workspaceProfile is { Interests.Count: > 0 };
         DiscoverySearchButton.IsEnabled = !_discoveryBusy && supported;
@@ -168,7 +191,9 @@ public partial class MainWindow
             return;
         }
         if (DiscoveryInterestSelector.SelectedItem is not DiscoveryWorkflow workflow || _discoveryPipeline is null) return;
-        var request = runtimeTag is null ? new OnlineDiscoveryRequest(workflow.Interest, DiscoveryQueryText.Text.Trim())
+        var textWorkflow = workflow.Interest is DiscoveryInterest.LocalAssistants or DiscoveryInterest.Coding or DiscoveryInterest.Agents;
+        var request = runtimeTag is null ? new OnlineDiscoveryRequest(workflow.Interest, DiscoveryQueryText.Text.Trim(), textWorkflow ? 48 : 12,
+            SearchOrder: textWorkflow ? SelectedTextSearchOrder : TextSearchOrder.Broad)
             : new OnlineDiscoveryRequest(DiscoveryInterest.LocalAssistants, "", 1, runtimeTag);
         await RunDiscoveryOperationAsync(async token =>
         {
@@ -215,7 +240,7 @@ public partial class MainWindow
             DiscoveryDetailsText.Text = "Searching every confirmed workload. Hardware stays on this PC; only category/search terms go to public sources.";
             DiscoveryStatusText.Text = "Searching: " + string.Join(", ", VerifiedOnlineDiscoveryProvider.Workflows
                 .Where(w => profile.Interests.Contains(w.Interest)).Select(w => w.Name)) + ". No downloads or installation.";
-            var report = await _discoveryPipeline.SearchWorkloadsOnlineAsync(profile.Interests, machine, target, query, token);
+            var report = await _discoveryPipeline.SearchWorkloadsOnlineAsync(profile.Interests, machine, target, query, token, SelectedTextSearchOrder);
             token.ThrowIfCancellationRequested();
             RenderDiscoveryReport(report);
             await RefreshCatalogLibraryAsync();
@@ -423,6 +448,13 @@ public partial class MainWindow
         text.AppendLine($"{item.Name} — {row.StatusDisplay}");
         text.AppendLine($"Publisher: {item.Publisher}; declared license: {item.License ?? "unknown; review source terms"}");
         text.AppendLine(item.Description);
+        if (item.Signals is { } signals)
+        {
+            text.AppendLine($"Repository updated (not necessarily model release): {signals.UpdatedAt?.ToUniversalTime().ToString("u") ?? "unknown"}");
+            text.AppendLine($"Hugging Face downloads: {signals.Downloads?.ToString("N0") ?? "unknown"}; likes: {signals.Likes?.ToString("N0") ?? "unknown"}. Source activity, not a quality assessment.");
+            text.AppendLine($"Source-reported repository parameters: {signals.ParameterCount?.ToString("N0") ?? "unknown"}. Not inferred from a filename; exact artifact architecture still requires verification.");
+        }
+        text.AppendLine("Task quality and this exact quantization's evaluation: not independently assessed by Nexus. No best-model score is inferred from source activity or update date.");
         if (item.RuntimeRelease is { } runtime)
         {
             text.AppendLine($"Release: {runtime.Tag} | Prerelease: {runtime.Prerelease} | Upstream immutable: {runtime.Immutable}");
@@ -454,6 +486,9 @@ public partial class MainWindow
         public string Workload => VerifiedOnlineDiscoveryProvider.Workflows.Single(w => w.Interest == Recommendation.Item.Interest).Name;
         public string Publisher => Recommendation.Item.Publisher;
         public string SizeDisplay => ByteSizeDisplay.ModelSize(Recommendation.Item.Artifact?.SizeBytes);
+        public string UpdatedDisplay => Recommendation.Item.Signals?.UpdatedAt?.ToUniversalTime().ToString("yyyy-MM-dd") ?? "Unknown";
+        public string DownloadsDisplay => Recommendation.Item.Signals?.Downloads?.ToString("N0") ?? "Unknown";
+        public string ParametersDisplay => Recommendation.Item.Signals?.ParameterCount is { } count ? $"{count / 1_000_000_000d:N2}B (source)" : "Unknown";
         public string MemoryDisplay => Recommendation.EstimatedMemoryGiB is { } memory ? $"{memory:N2} GiB (estimate)" : "Not assessed";
         public string StorageDisplay
         {

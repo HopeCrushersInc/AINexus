@@ -76,7 +76,7 @@ public sealed class DiscoveryCacheStore(string directory)
     private string CachePath(OnlineDiscoveryRequest request)
     {
         var key = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(
-            $"{request.Interest}\n{request.Query}\n{request.Limit}" +
+            $"{request.Interest}\n{request.Query}\n{request.Limit}\ntext-search-v2\n{request.SearchOrder}" +
             (request.RuntimeReleaseTag is null ? "" : "\nruntime-tag\n" + request.RuntimeReleaseTag))));
         return Path.Combine(directory, key + ".json");
     }

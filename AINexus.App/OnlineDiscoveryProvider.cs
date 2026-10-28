@@ -16,7 +16,7 @@ public sealed partial class VerifiedOnlineDiscoveryProvider(HttpClient httpClien
 
     public static IReadOnlyList<DiscoveryWorkflow> Workflows { get; } = Array.AsReadOnly(new[]
     {
-        new DiscoveryWorkflow(DiscoveryInterest.LocalAssistants, "Local assistants", "Search Hugging Face GGUF files by download popularity, not quality. Up to 12 results; use search or browse a repository for more files. Hardware estimates remain unverified."),
+        new DiscoveryWorkflow(DiscoveryInterest.LocalAssistants, "Local assistants", "Search popular, trending and recently updated Hugging Face text-generation GGUF repositories. Choose a search view or browse source files. Source signals are not quality ratings; hardware estimates remain unverified."),
         new DiscoveryWorkflow(DiscoveryInterest.Coding, "Coding and software development", "Search GGUF model metadata; coding ability requires separate evaluation."),
         new DiscoveryWorkflow(DiscoveryInterest.Images, "Image generation and editing", "Search public image-artifact and tool metadata. Checkpoint completeness and hardware fit require separate evidence."),
         new DiscoveryWorkflow(DiscoveryInterest.MusicAudio, "Music and audio production", "Search online tool sources; automated installation support is not yet implemented for this workflow."),
@@ -44,7 +44,10 @@ public sealed partial class VerifiedOnlineDiscoveryProvider(HttpClient httpClien
     {
         ArgumentNullException.ThrowIfNull(request);
         if (!Enum.IsDefined(request.Interest)) throw new ArgumentOutOfRangeException(nameof(request.Interest));
-        if (request.Limit is < 1 or > 12) throw new ArgumentOutOfRangeException(nameof(request.Limit), "Choose between 1 and 12 results.");
+        var textSearch = request.Interest is DiscoveryInterest.LocalAssistants or DiscoveryInterest.Coding or DiscoveryInterest.Agents;
+        var maximumResults = textSearch ? 48 : 12;
+        if (request.Limit < 1 || request.Limit > maximumResults) throw new ArgumentOutOfRangeException(nameof(request.Limit), $"Choose between 1 and {maximumResults} results for this category.");
+        if (!Enum.IsDefined(request.SearchOrder)) throw new ArgumentOutOfRangeException(nameof(request.SearchOrder));
         if (request.Query is null || request.Query.Length > 160 || request.Query.Any(char.IsControl))
             throw new ArgumentException("Search text must contain at most 160 characters without control characters.", nameof(request));
         if (request.RuntimeReleaseTag is not null && !RuntimeTag().IsMatch(request.RuntimeReleaseTag))
@@ -90,38 +93,7 @@ public sealed partial class VerifiedOnlineDiscoveryProvider(HttpClient httpClien
             }
             else
             {
-                // Budget: one search + at most twelve metadata/tree pairs + two supporting
-                // runtime metadata requests = at most twenty-seven requests. No pagination is followed.
-                var count = request.Limit;
-                notes.Add($"Bounded Hugging Face GGUF search: at most {count} repositories and {request.Limit} total results, including supporting runtime metadata. No pagination is followed; this is not the full model catalog.");
-                notes.Add("Source ordering requests Hugging Face downloads, descending. Download popularity is not a quality rating, benchmark, writing assessment, or recommendation. Parameter counts are not inferred from names.");
-                notes.Add("Broad searches show one alphabetically listed standalone file per repository before additional variants. Search an exact owner/repository to browse more of its file variants; search text such as 32B matches repository names, not verified parameter counts.");
-                var search = "https://huggingface.co/api/models?filter=gguf&full=true&limit=" + count +
-                    "&sort=downloads&direction=-1&search=" + Uri.EscapeDataString(request.Query.Trim());
-                using var results = await GetJsonAsync(new Uri(search), deadline.Token);
-                if (results.RootElement.ValueKind != JsonValueKind.Array) throw new InvalidDataException("The model search response was not a list.");
-                var repositories = results.RootElement.EnumerateArray().Take(count)
-                    .Select(item => ReadString(item, "id")).Where(id => id is not null).Distinct(StringComparer.Ordinal).ToArray();
-                var additionalVariants = new List<DiscoveredItem>();
-                foreach (var repository in repositories)
-                {
-                    if (items.Count >= modelSlots) break;
-                    deadline.Token.ThrowIfCancellationRequested();
-                    if (!IsRepositoryId(repository!)) { notes.Add("A source returned an invalid repository identifier; it was skipped."); continue; }
-                    try
-                    {
-                        // Give broad searches repository diversity before filling spare slots
-                        // with a second variant.
-                        var found = await ReadRepositoryAsync(repository!, request.Interest, Math.Min(2, modelSlots), notes, deadline.Token);
-                        items.AddRange(found.Take(1));
-                        additionalVariants.AddRange(found.Skip(1));
-                    }
-                    catch (Exception ex) when (IsSourceFailure(ex))
-                    {
-                        notes.Add($"Model metadata could not be read for {repository}: {FailureMessage(ex)}");
-                    }
-                }
-                items.AddRange(additionalVariants.Take(modelSlots - items.Count));
+                await SearchBroadTextModelsAsync(request, modelSlots, items, notes, deadline.Token);
             }
             if (items.Count == 0) notes.Add("No supported standalone GGUF artifacts were found in the bounded search. Try a publisher or model name.");
             if (items.Count < request.Limit)
@@ -159,6 +131,7 @@ public sealed partial class VerifiedOnlineDiscoveryProvider(HttpClient httpClien
                 .FirstOrDefault(tag => tag?.StartsWith("license:", StringComparison.Ordinal) == true)?[8..];
         var gated = !root.TryGetProperty("gated", out var gate) || gate.ValueKind != JsonValueKind.False;
         var pipeline = ReadString(root, "pipeline_tag");
+        var signals = ReadDiscoverySignals(root);
         var treeUri = new Uri($"https://huggingface.co/api/models/{repoPath}/tree/{revision}?recursive=true&expand=false&limit=1000");
         using var tree = await GetJsonAsync(treeUri, token);
         if (tree.RootElement.ValueKind != JsonValueKind.Array) throw new InvalidDataException("The source repository tree was not a list.");
@@ -173,6 +146,11 @@ public sealed partial class VerifiedOnlineDiscoveryProvider(HttpClient httpClien
             if (Path.GetFileName(path).Contains("mmproj", StringComparison.OrdinalIgnoreCase))
             {
                 notes.Add($"A named multimodal projector in {repository} was skipped; a companion file is not a complete text model.");
+                continue;
+            }
+            if (TextCompanionName().IsMatch(Path.GetFileNameWithoutExtension(path)))
+            {
+                notes.Add($"A file named as an importance matrix, draft model or adapter in {repository} was skipped; it is not presented as the repository's standalone primary model.");
                 continue;
             }
             var bytes = ReadPositiveBytes(file, "size");
@@ -197,7 +175,7 @@ public sealed partial class VerifiedOnlineDiscoveryProvider(HttpClient httpClien
                 {
                     new DiscoverySource("Hugging Face model card", new Uri($"https://huggingface.co/{repoPath}/blob/{revision}/README.md"), readAt),
                     new DiscoverySource("Pinned artifact metadata", new Uri($"https://huggingface.co/{repoPath}/blob/{revision}/{EncodePath(file.Path)}"), readAt)
-                }), "Standalone GGUF artifact reported by the repository. Model contents, license obligations, architecture support, and runtime behavior require verification.", pipeline))
+                }), "Standalone GGUF artifact reported by the repository. Model contents, license obligations, architecture support, and runtime behavior require verification.", pipeline, Signals: signals))
             .ToList().AsReadOnly();
     }
 
@@ -278,4 +256,6 @@ public sealed partial class VerifiedOnlineDiscoveryProvider(HttpClient httpClien
     [GeneratedRegex("^[a-fA-F0-9]{40}$", RegexOptions.CultureInvariant)] private static partial Regex RevisionRegex();
     [GeneratedRegex("^[a-fA-F0-9]{64}$", RegexOptions.CultureInvariant)] private static partial Regex HashRegex();
     [GeneratedRegex(@"-\d+-of-\d+\.gguf$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)] private static partial Regex ShardRegex();
+    [GeneratedRegex(@"(?:^|[-_.])(?:imatrix|draft|lora|adapter|controlvector)(?:[-_.]|$)", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
+    private static partial Regex TextCompanionName();
 }

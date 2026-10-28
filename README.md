@@ -4,11 +4,11 @@
 
 AI Nexus scans the computer, shows workload categories, and searches live internet sources after the user asks. It does not choose a model, promote a provider, or install software automatically.
 
-### [Download for Windows x64](https://github.com/HopeCrushersInc/AINexus/releases/download/v0.2.0-preview.10/AINexus-0.2.0-preview.10-win-x64.zip)
+### [Download for Windows x64](https://github.com/HopeCrushersInc/AINexus/releases/download/v0.2.0-preview.11/AINexus-0.2.0-preview.11-win-x64.zip)
 
-**0.2.0-preview.10 · Development preview**
+**0.2.0-preview.11 · Development preview**
 
-[Release notes & checksums](https://github.com/HopeCrushersInc/AINexus/releases/tag/v0.2.0-preview.10) · [What works / what is unfinished](docs/project-status.md) · [Changelog](CHANGELOG.md) · [Discussions](https://github.com/HopeCrushersInc/AINexus/discussions)
+[Release notes & checksums](https://github.com/HopeCrushersInc/AINexus/releases/tag/v0.2.0-preview.11) · [What works / what is unfinished](docs/project-status.md) · [Changelog](CHANGELOG.md) · [Discussions](https://github.com/HopeCrushersInc/AINexus/discussions)
 
 ![Workload-first startup with unchecked categories](docs/assets/workload-choices.png)
 
@@ -26,7 +26,8 @@ AI Nexus scans the computer, shows workload categories, and searches live intern
 
 | Area | Current behavior |
 | --- | --- |
-| Text/coding model discovery | Live public GGUF metadata with pinned source identities and resource estimates |
+| Text/coding model discovery | Popular, trending and recent GGUF sources; pinned artifacts, reported parameters/dates and separate memory/storage estimates |
+| Reported benchmark evidence | Explicit exact-repository lookup; benchmark/task scores, attribution and source-verification flags remain distinct from Nexus evaluation |
 | Image discovery | Live pinned Safetensors artifact metadata plus tool repositories; image files remain unverified candidates |
 | Other workload discovery | Live public tool-repository metadata; install adapters vary and are explicitly identified |
 | Persistent catalog and Library | SQLite source catalog, merged task categories, offline browsing and private acquisition-receipt links |

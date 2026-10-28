@@ -6,7 +6,7 @@ using System.Text.RegularExpressions;
 namespace AINexus.App;
 
 /// <summary>Reads attribution and scores only; never follows reported source URLs or loads a model.</summary>
-public sealed partial class ModelEvaluationClient(HttpClient http)
+public sealed partial class ModelEvaluationClient(HttpClient http, ModelEvaluationCache? cache = null)
 {
     public static Uri RequestUri(string repository)
     {
@@ -45,7 +45,20 @@ public sealed partial class ModelEvaluationClient(HttpClient http)
         }
         using var json = JsonDocument.Parse(buffer.GetBuffer().AsMemory(0, checked((int)buffer.Length)), new JsonDocumentOptions { MaxDepth = 24 });
         token.ThrowIfCancellationRequested();
-        return ModelEvaluationParser.Parse(repository, json.RootElement, DateTimeOffset.UtcNow);
+        var snapshot = ModelEvaluationParser.Parse(repository, json.RootElement, DateTimeOffset.UtcNow);
+        if (cache is not null)
+        {
+            try
+            {
+                await cache.SaveAsync(repository, json.RootElement, snapshot.RetrievedAt, token);
+                snapshot = snapshot with { Notes = snapshot.Notes.Append("Source snapshot saved for offline review with its original retrieval time. Saved evidence is not refreshed or independently verified by Nexus.").ToArray() };
+            }
+            catch (Exception ex) when (ex is IOException or InvalidDataException or UnauthorizedAccessException or InvalidOperationException or ArgumentException)
+            {
+                snapshot = snapshot with { Notes = snapshot.Notes.Append("Evidence is available in this session, but saving failed. Previous saved evidence was preserved where possible; no saved refresh is claimed.").ToArray() };
+            }
+        }
+        return snapshot;
     }
 
     [GeneratedRegex(@"^[A-Za-z0-9][A-Za-z0-9._-]{0,95}/[A-Za-z0-9][A-Za-z0-9._-]{0,95}$", RegexOptions.CultureInvariant)]

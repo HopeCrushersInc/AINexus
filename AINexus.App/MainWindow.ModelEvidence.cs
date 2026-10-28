@@ -9,6 +9,10 @@ public partial class MainWindow
     private CancellationTokenSource? _modelEvidenceOperation;
     private long _modelEvidenceGeneration;
     internal Func<string, CancellationToken, Task<ModelEvaluationSnapshot>>? ModelEvidenceReadOverride { get; set; }
+    internal ModelEvaluationCache? ModelEvidenceCacheOverride { get; set; }
+    private ModelEvaluationCache? CurrentModelEvidenceCache => ModelEvidenceCacheOverride
+        ?? (_catalogDatabase is { } database
+            ? new ModelEvaluationCache(System.IO.Path.Combine(System.IO.Path.GetDirectoryName(database.DatabasePath)!, "Evaluations")) : null);
 
     private void InvalidateModelEvidenceForSelection()
     {
@@ -40,9 +44,10 @@ public partial class MainWindow
     }
 
     private async void ModelEvidenceReadButton_Click(object sender, RoutedEventArgs e) => await ReadModelEvidenceAsync();
+    private async void ModelEvidenceSavedButton_Click(object sender, RoutedEventArgs e) => await ReadModelEvidenceAsync(saved: true);
     private void ModelEvidenceCancelButton_Click(object sender, RoutedEventArgs e) => _modelEvidenceOperation?.Cancel();
 
-    internal async Task ReadModelEvidenceAsync()
+    internal async Task ReadModelEvidenceAsync(bool saved = false)
     {
         if (_modelEvidenceOperation is not null || _lifetime.IsCancellationRequested) return;
         var repository = ModelEvidenceRepositoryText.Text.Trim();
@@ -53,17 +58,38 @@ public partial class MainWindow
         _modelEvidenceOperation = cancellation;
         DiscoveryEvidenceButton.IsEnabled = false;
         ModelEvidenceReadButton.IsEnabled = false;
+        ModelEvidenceSavedButton.IsEnabled = false;
         ModelEvidenceCancelButton.IsEnabled = true;
-        ModelEvidenceDetailsText.Text = "Reading public benchmark metadata for " + repository + ". No weights, inference requests or external source pages are fetched.";
+        ModelEvidenceDetailsText.Text = saved
+            ? "Reading saved benchmark evidence for " + repository + ". No online request will be made."
+            : "Reading public benchmark metadata for " + repository + ". No weights, inference requests or external source pages are fetched.";
         try
         {
-            var snapshot = ModelEvidenceReadOverride is { } read
-                ? await read(repository, cancellation.Token)
-                : await new ModelEvaluationClient(_discoveryHttp).ReadAsync(repository, cancellation.Token);
+            var cache = CurrentModelEvidenceCache;
+            ModelEvaluationSnapshot? snapshot;
+            if (saved)
+            {
+                if (cache is null) throw new InvalidOperationException("No catalog folder is configured for saved evidence");
+                snapshot = await cache.LoadAsync(repository, cancellation.Token);
+            }
+            else
+            {
+                snapshot = ModelEvidenceReadOverride is { } read
+                    ? await read(repository, cancellation.Token)
+                    : await new ModelEvaluationClient(_discoveryHttp, cache).ReadAsync(repository, cancellation.Token);
+            }
             cancellation.Token.ThrowIfCancellationRequested();
             if (generation != _modelEvidenceGeneration || ModelEvidenceRepositoryText.Text.Trim() != repository) return;
+            if (snapshot is null)
+            {
+                ModelEvidenceDetailsText.Text = "No saved evidence exists for this exact repository. No online request was made; quality remains unknown.";
+                return;
+            }
             var text = new StringBuilder();
             text.AppendLine($"Repository: {snapshot.ModelRepository}\nRetrieved: {snapshot.RetrievedAt.ToLocalTime():g}");
+            text.AppendLine(snapshot.IsCached ? "SAVED evidence as of the original retrieval time. No online request was made; the source may have changed."
+                : cache is null ? "Live source snapshot; no catalog folder was available for saving."
+                : "Live source snapshot. Saved-evidence status and any save failure are reported below.");
             text.AppendLine("Reported benchmark evidence, not a Nexus quality certification. Raw scores from different tasks are not directly comparable. Exact evaluated weights/quantization are not established.");
             if (snapshot.Results.Count == 0) text.AppendLine("No evaluation rows were returned for this repository. Quality remains unknown; an upstream model's scores are not substituted.");
             foreach (var result in snapshot.Results)
@@ -84,7 +110,8 @@ public partial class MainWindow
         catch (Exception ex)
         {
             if (!_lifetime.IsCancellationRequested && generation == _modelEvidenceGeneration)
-                ModelEvidenceDetailsText.Text = "Evidence unavailable: " + ex.Message + ". Quality remains unknown.";
+                ModelEvidenceDetailsText.Text = (saved ? "Saved evidence unavailable: " : "Evidence unavailable: ") + ex.Message
+                    + (saved ? ". No online request was made; quality remains unknown." : ". Quality remains unknown.");
         }
         finally
         {
@@ -92,6 +119,7 @@ public partial class MainWindow
             if (!_lifetime.IsCancellationRequested)
             {
                 ModelEvidenceReadButton.IsEnabled = true;
+                ModelEvidenceSavedButton.IsEnabled = true;
                 ModelEvidenceCancelButton.IsEnabled = false;
                 RefreshDiscoveryControls();
             }

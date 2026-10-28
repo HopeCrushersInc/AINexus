@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased — Saved benchmark evidence
+
+- Save bounded, exact-repository public evaluation snapshots privately beside the configured catalog. Preserve original retrieval time, raw source facts, unknown flags and provenance; do not save model selections or approvals.
+- Add explicit offline loading with a prominent saved/as-of label. Missing, corrupt or unavailable saved evidence never triggers an online fallback. Input/model changes cancel stale responses for both read modes.
+- Publish cache files atomically, reject unsafe paths, mismatched identities, oversized data and future retrieval timestamps. Preserve corrupt files on read; clean only owned temporary writes. Live lookup remains usable with a warning if saving fails.
+- Validation: 1,119 regression/native checks and two actual public-snapshot save/reopen checks passed (1,121 in the live run). The real snapshot reopened from disk after disposal of its network client, preserving its original timestamp and two reported task values; no model was downloaded or loaded.
+
 User-visible changes are recorded here. Dates identify publication updates, not a promise that every feature was first implemented on that date.
 
 ## 0.2.0-preview.11 — 2026-10-28 — Broader text discovery and reported benchmark evidence

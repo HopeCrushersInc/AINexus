@@ -13,3 +13,4 @@ artifacts/
 *.safetensors
 .ainexus/
 .ainexus-image-artifact-receipts/
+ainexus-approved-checkpoints*.json

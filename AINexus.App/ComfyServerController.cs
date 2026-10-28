@@ -36,6 +36,7 @@ public sealed class ComfyServerController : IDisposable
         foreach (var arg in new[] { "-s", main, "--windows-standalone-build", "--listen", "127.0.0.1", "--port", port.ToString(System.Globalization.CultureInfo.InvariantCulture), "--disable-auto-launch", "--disable-all-custom-nodes" }) info.ArgumentList.Add(arg);
         var config = Path.Combine(root, "ainexus-models.yaml");
         if (File.Exists(config)) { OfflineModelVerifier.CheckNoReparsePath(config); info.ArgumentList.Add("--extra-model-paths-config"); info.ArgumentList.Add(config); }
+        ComfyCheckpointFolderPlanner.AppendStartupConfiguration(info, root);
         info.Environment["HF_HUB_OFFLINE"] = "1";
         info.Environment["TRANSFORMERS_OFFLINE"] = "1";
         info.Environment["PYTHONDONTWRITEBYTECODE"] = "1";

@@ -44,16 +44,18 @@ internal static class ImageDiscoveryUiChecks
             grid.SelectedItem = grid.Items.Cast<object>().Single(row =>
                 (string?)row.GetType().GetProperty("Name")!.GetValue(row) == image.Name);
             window.ReviewSelectedDiscoveryItem();
-            var details = ((TextBox)window.FindName("DiscoveryDetailsText")).Text;
-            check(((TabItem)window.FindName("DiscoveryTab")).IsSelected
-                    && ((Expander)window.FindName("DiscoveryDetailsExpander")).IsExpanded
+            var details = ((TextBox)window.FindName("ImageArtifactSetupDetailsText")).Text;
+            check(((TabItem)window.FindName("ImageArtifactSetupTab")).IsSelected
+                    && ((TextBox)window.FindName("ImageArtifactDestinationText")).Text == ""
                     && details.Contains(image.Artifact!.Repository) && details.Contains(image.Artifact.Revision)
                     && details.Contains(image.Artifact.FileName) && details.Contains(image.Artifact.Sha256!)
                     && details.Contains("unverified"),
-                "Explicit image review stays in Discover and exposes the exact pinned file and unverified execution requirements");
+                "Explicit image review opens neutral file setup with no chosen destination and exposes pinned identity and unverified execution requirements");
             check(window.GuidedModelPath is null && !window.OwnedLlamaServerRunning
                 && ((CheckBox)window.FindName("GuidedModelApprovalCheck")).IsChecked != true
-                && !((Button)window.FindName("DiscoveryPlanButton")).IsEnabled,
+                && !((Button)window.FindName("DiscoveryPlanButton")).IsEnabled
+                && ((CheckBox)window.FindName("ImageArtifactApprovalCheck")).IsChecked != true
+                && !((Button)window.FindName("ImageArtifactDownloadButton")).IsEnabled,
                 "Image metadata review cannot prepare a GGUF acquisition, grant approval or start a model");
             var volumeSelector = (ComboBox)window.FindName("DiscoveryVolumeSelector");
             volumeSelector.SelectedIndex = -1;

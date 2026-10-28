@@ -7,3 +7,9 @@ artifacts/
 .vs/
 *.user
 *.suo
+
+# Private local AI data and acquisition/verification receipts
+*.gguf
+*.safetensors
+.ainexus/
+.ainexus-image-artifact-receipts/

@@ -4,11 +4,11 @@
 
 AI Nexus scans the computer, shows workload categories, and searches live internet sources after the user asks. It does not choose a model, promote a provider, or install software automatically.
 
-### [Download for Windows x64](https://github.com/HopeCrushersInc/AINexus/releases/download/v0.2.0-preview.8/AINexus-0.2.0-preview.8-win-x64.zip)
+### [Download for Windows x64](https://github.com/HopeCrushersInc/AINexus/releases/download/v0.2.0-preview.9/AINexus-0.2.0-preview.9-win-x64.zip)
 
-**0.2.0-preview.8 · Development preview**
+**0.2.0-preview.9 · Development preview**
 
-[Release notes & checksums](https://github.com/HopeCrushersInc/AINexus/releases/tag/v0.2.0-preview.8) · [What works / what is unfinished](docs/project-status.md) · [Changelog](CHANGELOG.md) · [Discussions](https://github.com/HopeCrushersInc/AINexus/discussions)
+[Release notes & checksums](https://github.com/HopeCrushersInc/AINexus/releases/tag/v0.2.0-preview.9) · [What works / what is unfinished](docs/project-status.md) · [Changelog](CHANGELOG.md) · [Discussions](https://github.com/HopeCrushersInc/AINexus/discussions)
 
 ![Workload-first startup with unchecked categories](docs/assets/workload-choices.png)
 
@@ -30,12 +30,12 @@ AI Nexus scans the computer, shows workload categories, and searches live intern
 | Image discovery | Live pinned Safetensors artifact metadata plus tool repositories; image files remain unverified candidates |
 | Other workload discovery | Live public tool-repository metadata; install adapters vary and are explicitly identified |
 | Persistent catalog and Library | SQLite source catalog, merged task categories, offline browsing and private acquisition-receipt links |
-| Supported model acquisition | Exact-plan approval, size/SHA-256 verification, receipts and no overwrite of different files |
+| Supported data acquisition | Explicit GGUF and image-Safetensors file reviews, exact approval, size/SHA-256 verification, private receipts and no conflicting overwrite |
 | Runtime and local use | Explicit engine setup, local chat, image-engine configuration and owned-process controls |
 
 **Discovery is not installation. A search result is not a recommendation or proof of compatibility.** Automated installation is currently limited to implemented recipes; finding an art or music tool does not mean its installer is supported.
 
-Image discovery searches public Hugging Face text-to-image repositories for bounded root Safetensors candidates and also lists GitHub tools. Pinned file sizes, hashes and licenses are shown when supplied. Image file candidates appear by default with an explicit unverified notice; a file may be a component or adapter, and its hardware fit and complete checkpoint contents are not established. Video and other non-text categories still retrieve tool repositories. Nexus does not apply text-model memory rules to these results or install image candidates automatically.
+Image discovery searches public Hugging Face text-to-image repositories for bounded root Safetensors candidates and also lists GitHub tools. Pinned file sizes, hashes and licenses are shown when supplied. Image file candidates appear by default with an explicit unverified notice; a file may be a component or adapter, and its hardware fit and complete checkpoint contents are not established. Video and other non-text categories still retrieve tool repositories. Nexus does not apply text-model memory rules to these results. Explicit image-file setup can download the selected data after exact source/license/destination approval, with hash verification. It does not connect model folders, install an engine or establish a working checkpoint.
 
 The new Library keeps saved source facts separate from private local receipts. Browsing and filtering do not contact the internet, rehash large models, install software or start engines. A receipt means an acquisition was recorded; current integrity and successful offline execution need their own checks. See [catalog design and storage](docs/catalog.md).
 

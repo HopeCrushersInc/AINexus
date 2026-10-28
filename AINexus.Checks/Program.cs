@@ -216,6 +216,7 @@ internal static class Program
         GuidedInstallChecks.RunNative(window, Check);
         UserChoiceFlowChecks.RunNative(Check);
         ImageDiscoveryUiChecks.RunNative(Check);
+        ImageArtifactSetupUiChecks.RunNative(Check);
         var selectedLive = Array.IndexOf(args, "--selected-model-live");
         if (selectedLive >= 0)
         {

@@ -327,6 +327,7 @@ public partial class MainWindow
         ChatStopButton.IsEnabled = !_guidedBusy && !_llamaLifecycleBusy && _llamaServer.IsRunning;
         RefreshGuidedRuntimeControls();
         RefreshCatalogLocalControls();
+        RefreshImageArtifactSetupControls();
     }
 
     private async Task<string> FinishGuidedLoadCleanupAsync()

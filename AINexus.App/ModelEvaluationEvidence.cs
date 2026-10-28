@@ -10,7 +10,7 @@ public sealed record ModelEvaluationEvidence(string ModelRepository, string Data
     DateTimeOffset RetrievedAt, int? PullRequest = null);
 
 public sealed record ModelEvaluationSnapshot(string ModelRepository, IReadOnlyList<ModelEvaluationEvidence> Results,
-    DateTimeOffset RetrievedAt, IReadOnlyList<string> Notes);
+    DateTimeOffset RetrievedAt, IReadOnlyList<string> Notes, bool IsCached = false);
 
 /// <summary>
 /// Pure bounded parsing of the model-centric Hub evalResults API. Source documents and URLs are data only.

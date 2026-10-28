@@ -389,6 +389,7 @@
                             <TextBlock Text="Repository (publisher/model)" Margin="0,0,0,4"/>
                             <DockPanel>
                                 <Button x:Name="ModelEvidenceReadButton" DockPanel.Dock="Right" Content="Read public evaluations" Click="ModelEvidenceReadButton_Click" Margin="8,0,0,0"/>
+                                <Button x:Name="ModelEvidenceSavedButton" DockPanel.Dock="Right" Content="Load saved evidence" Click="ModelEvidenceSavedButton_Click" Margin="8,0,0,0"/>
                                 <Button x:Name="ModelEvidenceCancelButton" DockPanel.Dock="Right" Content="Cancel" Click="ModelEvidenceCancelButton_Click" IsEnabled="False" Margin="8,0,0,0"/>
                                 <TextBox x:Name="ModelEvidenceRepositoryText" TextChanged="ModelEvidenceRepositoryText_TextChanged" MaxLength="193" Padding="8" ToolTip="Exact publisher/model repository. Blank on startup; no upstream repository is substituted."/>
                             </DockPanel>

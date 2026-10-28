@@ -45,6 +45,7 @@ internal static class Program
             WorkloadSetupChecks.RunAsync(Check).GetAwaiter().GetResult();
             OnlineDiscoveryChecks.RunAsync(Check).GetAwaiter().GetResult();
             ImageArtifactDiscoveryChecks.RunAsync(Check).GetAwaiter().GetResult();
+            ImageArtifactAcquisitionChecks.RunAsync(Check).GetAwaiter().GetResult();
             DiscoveryPipelineChecks.RunAsync(Check).GetAwaiter().GetResult();
             WorkloadDiscoveryChecks.RunAsync(Check).GetAwaiter().GetResult();
             CatalogDatabaseChecks.RunAsync(Check).GetAwaiter().GetResult();

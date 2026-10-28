@@ -140,7 +140,7 @@ public sealed class ModelAcquisitionService(HttpClient httpClient)
         }
     }
 
-    private async Task<HttpResponseMessage> OpenSourceAsync(Uri source, long expectedBytes, CancellationToken token)
+    internal async Task<HttpResponseMessage> OpenSourceAsync(Uri source, long expectedBytes, CancellationToken token)
     {
         var current = source;
         for (var redirects = 0; redirects <= 5; redirects++)
@@ -189,7 +189,7 @@ public sealed class ModelAcquisitionService(HttpClient httpClient)
             || uri.IdnHost.Equals("hf.co", StringComparison.OrdinalIgnoreCase)
             || uri.IdnHost.EndsWith(".hf.co", StringComparison.OrdinalIgnoreCase));
 
-    private static async Task<Stream> OpenBodyAsync(HttpContent content, CancellationToken token)
+    internal static async Task<Stream> OpenBodyAsync(HttpContent content, CancellationToken token)
     {
         try { return await content.ReadAsStreamAsync(token).ConfigureAwait(false); }
         catch (IOException) { throw new IOException("The approved source stream could not be opened. No unchecked final artifact was published."); }

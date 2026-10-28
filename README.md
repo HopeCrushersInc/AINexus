@@ -4,11 +4,11 @@
 
 AI Nexus scans the computer, shows workload categories, and searches live internet sources after the user asks. It does not choose a model, promote a provider, or install software automatically.
 
-### [Download for Windows x64](https://github.com/HopeCrushersInc/AINexus/releases/download/v0.2.0-preview.11/AINexus-0.2.0-preview.11-win-x64.zip)
+### [Download for Windows x64](https://github.com/HopeCrushersInc/AINexus/releases/download/v0.2.0-preview.12/AINexus-0.2.0-preview.12-win-x64.zip)
 
-**0.2.0-preview.11 · Development preview**
+**0.2.0-preview.12 · Development preview**
 
-[Release notes & checksums](https://github.com/HopeCrushersInc/AINexus/releases/tag/v0.2.0-preview.11) · [What works / what is unfinished](docs/project-status.md) · [Changelog](CHANGELOG.md) · [Discussions](https://github.com/HopeCrushersInc/AINexus/discussions)
+[Release notes & checksums](https://github.com/HopeCrushersInc/AINexus/releases/tag/v0.2.0-preview.12) · [What works / what is unfinished](docs/project-status.md) · [Changelog](CHANGELOG.md) · [Discussions](https://github.com/HopeCrushersInc/AINexus/discussions)
 
 ![Workload-first startup with unchecked categories](docs/assets/workload-choices.png)
 
@@ -18,7 +18,7 @@ AI Nexus scans the computer, shows workload categories, and searches live intern
 
 1. **Open Nexus.** It scans local hardware; no software is installed or started.
 2. **Choose your tasks.** Coding, art/images, music/audio, video, speech, 3D, CAD, 3D printing, game development, reverse engineering, streaming, assistants and agents are visible. Nothing is checked or remembered.
-3. **Find online choices.** Confirming the checked tasks searches every selected category using the startup hardware snapshot. All returned model files remain visible, including unknown or unmet requirements; a separate toggle reveals runtime/tool results. Estimated-fit results appear first, preserving source order within each assessment group. No result is preselected or labeled “best.” A category or query can narrow a later search.
+3. **Find online choices.** Confirming the checked tasks searches every selected category using the startup hardware snapshot. All returned models, tools and runtimes are visible by default, including unknown or unmet requirements and missing installation recipes. The optional **Show only estimated-fit results** filter narrows the list; it starts unchecked. Estimated-fit results appear first, preserving source order within each assessment group. No result is preselected or labeled “best.” A category or query can narrow a later search.
 4. **Choose a result.** Inspect the actual source, license and available evidence. Unknown information stays unknown.
 5. **Approve a specific action.** Supported download/install recipes require review and explicit approval. Configuration and launch remain separate actions.
 
@@ -27,8 +27,9 @@ AI Nexus scans the computer, shows workload categories, and searches live intern
 | Area | Current behavior |
 | --- | --- |
 | Text/coding model discovery | Popular, trending and recent GGUF sources; pinned artifacts, reported parameters/dates and separate memory/storage estimates |
-| Reported benchmark evidence | Explicit exact-repository lookup; benchmark/task scores, attribution and source-verification flags remain distinct from Nexus evaluation |
+| Reported benchmark evidence | Explicit exact-repository lookup, private saved snapshots and offline loading; reported scores and source-verification flags remain distinct from Nexus evaluation |
 | Image discovery | Live pinned Safetensors artifact metadata plus tool repositories; image files remain unverified candidates |
+| Video discovery | Live pinned text-to-video and image-to-video repository candidates plus tools; complete model files, runtime setup and hardware fit are unverified |
 | Other workload discovery | Live public tool-repository metadata; install adapters vary and are explicitly identified |
 | Persistent catalog and Library | SQLite source catalog, merged task categories, offline browsing and private acquisition-receipt links |
 | Supported data acquisition | Explicit GGUF and image-Safetensors file reviews, exact approval, size/SHA-256 verification, private receipts and no conflicting overwrite |
@@ -46,7 +47,11 @@ You can also enter another exact repository to inspect it separately. Missing ro
 
 Download size and selected-drive space are shown separately from the conservative runtime-memory estimate. A file can fit on disk and still exceed the assessed available RAM/VRAM. Text models may qualify through system RAM when full GPU offload does not fit; partial CPU/GPU offload and disk-backed execution remain unassessed, and no speed is promised.
 
-Image discovery searches public Hugging Face text-to-image repositories for bounded root Safetensors candidates and also lists GitHub tools. Pinned file sizes, hashes and licenses are shown when supplied. Image file candidates appear by default with an explicit unverified notice; a file may be a component or adapter, and its hardware fit and complete checkpoint contents are not established. Video and other non-text categories still retrieve tool repositories. Nexus does not apply text-model memory rules to these results. Explicit image-file setup can download the selected data after exact source/license/destination approval, with hash verification. It does not connect model folders, install an engine or establish a working checkpoint.
+Image discovery searches public Hugging Face text-to-image repositories for bounded root Safetensors candidates and also lists GitHub tools. Pinned file sizes, hashes and licenses are shown when supplied. Image file candidates appear with an explicit unverified notice; a file may be a component or adapter, and its hardware fit and complete checkpoint contents are not established. The **Available action** column distinguishes **Review image file download** from **View source / manual setup**. A generator application listed as a tool has no automatic installation recipe yet; inspecting it keeps its source details visible in Discover. **Open source page** opens the selected public page only when clicked and approves no download or installation.
+
+To acquire a supported image file, select its result and **Review selected item**, then **Choose existing folder → Review exact file download → approve the displayed source/license/plan → Download approved file**. The destination starts blank. Transfer verifies exact bytes and SHA-256, or rehashes a matching existing file when the review permits reuse. This acquires model data; it does not install a generator or prove that the checkpoint runs. After completion, **Connect this folder** opens a separate review for an existing portable ComfyUI engine; applying that configuration still requires its own approval.
+
+Video searches both Hugging Face **text-to-video** and **image-to-video** feeds, interleaves and deduplicates their repositories, and adds a separate GitHub tool search. It inspects at most four repositories per task and eight repositories total, with at most eleven metadata requests and no pagination. Exact publisher/repository queries inspect that source directly. A video candidate has a pinned repository/model-card source, task and available license metadata, **not a fabricated complete-file inventory or download size**. Video models may require multiple components and dedicated runtimes; video download, installation and generation recipes are not integrated. **Inspect video pipeline / manual setup** exposes those limits without assigning video GGUF files to the text runtime. Nexus does not apply text-model memory estimates to image or video candidates.
 
 The new Library keeps saved source facts separate from private local receipts. Browsing and filtering do not contact the internet, rehash large models, install software or start engines. A receipt means an acquisition was recorded; current integrity and successful offline execution need their own checks. See [catalog design and storage](docs/catalog.md).
 

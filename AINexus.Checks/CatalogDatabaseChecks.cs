@@ -24,9 +24,9 @@ internal static class CatalogDatabaseChecks
         var expected = report.Catalog.Items.Select(CatalogDatabase.CanonicalId).Distinct().ToArray();
         check(expected.Length > 0 && expected.All(id => reopened.Any(r => r.Id == id)),
             "Real online discoveries survive closing and reopening the SQLite catalog under canonical identities");
-        check(reopened.Where(r => expected.Contains(r.Id)).All(r => r.Item.Artifact is null
-            && r.LastCheckedAt != DateTimeOffset.MinValue && r.Item.Sources.Count > 0),
-            "Live media listings retain source evidence without fabricated model weights or offline readiness");
+        check(reopened.Where(r => expected.Contains(r.Id)).All(r => r.LastCheckedAt != DateTimeOffset.MinValue && r.Item.Sources.Count > 0
+            && (r.Item.Artifact is null || r.Interests.Contains(DiscoveryInterest.Images) && r.Item.Artifact.Format == "Safetensors")),
+            "Live media listings retain source-backed tools and image artifacts without claiming installed weights or offline readiness");
         Console.WriteLine($"Live catalog: {reopened.Count} saved entries; {expected.Length} source identities from {report.Catalog.Items.Count} category results. Database: {database.DatabasePath}");
     }
 

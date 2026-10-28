@@ -44,6 +44,7 @@ internal static class Program
             ImageWorkflowChecks.RunAsync(Check).GetAwaiter().GetResult();
             WorkloadSetupChecks.RunAsync(Check).GetAwaiter().GetResult();
             OnlineDiscoveryChecks.RunAsync(Check).GetAwaiter().GetResult();
+            ImageArtifactDiscoveryChecks.RunAsync(Check).GetAwaiter().GetResult();
             DiscoveryPipelineChecks.RunAsync(Check).GetAwaiter().GetResult();
             WorkloadDiscoveryChecks.RunAsync(Check).GetAwaiter().GetResult();
             CatalogDatabaseChecks.RunAsync(Check).GetAwaiter().GetResult();
@@ -56,6 +57,12 @@ internal static class Program
             if (args.Contains("--live")) CheckLiveDiscovery().GetAwaiter().GetResult();
             if (args.Contains("--llama-live")) CheckLiveLlamaCpp().GetAwaiter().GetResult();
             if (args.Contains("--discovery-live")) OnlineDiscoveryChecks.RunLiveAsync(Check).GetAwaiter().GetResult();
+            var imageMetadataLive = Array.IndexOf(args, "--image-artifacts-live");
+            if (imageMetadataLive >= 0)
+            {
+                if (imageMetadataLive + 1 >= args.Length) throw new ArgumentException("--image-artifacts-live requires an explicit image repository or query.");
+                ImageArtifactDiscoveryChecks.RunLiveAsync(args[imageMetadataLive + 1], Check).GetAwaiter().GetResult();
+            }
             if (args.Contains("--discovery-live")) DiscoveryPipelineChecks.RunLiveAsync(Check).GetAwaiter().GetResult();
             if (args.Contains("--selected-workloads-live")) WorkloadDiscoveryChecks.RunLiveAsync(Check).GetAwaiter().GetResult();
             var catalogLiveIndex = Array.IndexOf(args, "--catalog-live");
@@ -207,6 +214,7 @@ internal static class Program
         ModelRecoveryUiChecks.RunNative(window, Check);
         GuidedInstallChecks.RunNative(window, Check);
         UserChoiceFlowChecks.RunNative(Check);
+        ImageDiscoveryUiChecks.RunNative(Check);
         var selectedLive = Array.IndexOf(args, "--selected-model-live");
         if (selectedLive >= 0)
         {

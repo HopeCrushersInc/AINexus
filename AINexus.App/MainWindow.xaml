@@ -326,7 +326,8 @@
                     <TextBlock x:Name="DiscoveryScopeText" TextWrapping="Wrap" Foreground="{DynamicResource NexusMutedBrush}" VerticalAlignment="Center"/>
                 </DockPanel>
                     <TextBlock x:Name="DiscoveryFitSummaryText" TextWrapping="Wrap" Foreground="{DynamicResource NexusMutedBrush}" Margin="0,8,0,4"/>
-                    <CheckBox x:Name="DiscoveryShowUnassessedCheck" Content="Show results needing review or more resources" IsChecked="False" Checked="DiscoveryShowUnassessedCheck_Changed" Unchecked="DiscoveryShowUnassessedCheck_Changed" Foreground="{DynamicResource NexusMutedBrush}"/>
+                    <TextBlock x:Name="DiscoveryImageCandidatesNoticeText" Text="Image file candidates — hardware fit and complete checkpoint contents are unverified." Visibility="Collapsed" TextWrapping="Wrap" Foreground="{DynamicResource NexusSecondaryBrush}" Margin="0,0,0,8"/>
+                    <CheckBox x:Name="DiscoveryShowUnassessedCheck" Content="Show other results needing review or more resources" IsChecked="False" Checked="DiscoveryShowUnassessedCheck_Changed" Unchecked="DiscoveryShowUnassessedCheck_Changed" Foreground="{DynamicResource NexusMutedBrush}"/>
                 </StackPanel>
                 <DataGrid Grid.Row="4" x:Name="DiscoveryResultsGrid" IsReadOnly="True" AutoGenerateColumns="False" CanUserAddRows="False" SelectionMode="Single" SelectionChanged="DiscoveryResultsGrid_SelectionChanged" Background="{DynamicResource NexusPanelBrush}" Foreground="{DynamicResource NexusTextBrush}" HeadersVisibility="Column" EnableRowVirtualization="True" Margin="0,0,0,12">
                     <DataGrid.Columns>

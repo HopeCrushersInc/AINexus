@@ -1,12 +1,13 @@
 # Current project status
 
-Release: **0.2.0-preview.7**, Windows x64 development preview, 2026-10-27.
+Release: **0.2.0-preview.8**, Windows x64 development preview, 2026-10-27.
 
 ## Working within tested limits
 
 - Simpler task/action buttons and a static black-hole backdrop. Standard starts each session; LCARS is optional and Shift-clicking LCARS opens hidden Retro. Shift-wheel or the Size menu scales text/buttons from 75% to 175%, with reset to 100%. Native title-bar dragging and all-edge/corner resizing remain available.
 - Actual CPU, RAM, GPU/driver and fixed-volume scans. Workload choices start unchecked and are not remembered.
 - Confirmed workloads initiate source searches. GGUF text-model artifacts have source links, pinned revisions, available sizes/hashes/licenses and local resource estimates. User selection is required; no model is selected automatically.
+- Image discovery retrieves bounded public text-to-image Safetensors artifact metadata and separate tool repositories. Exact repository queries inspect that source directly. Pinned identity and available bytes/hashes/licenses are preserved; missing facts stay unknown. Candidates are visible as unverified, with no fabricated hardware-fit or complete-checkpoint claim.
 - Supported GGUF acquisition: exact-plan approval, bounded transfer, byte/SHA-256 verification, matching existing-file reuse, receipts and no overwrite of a different file.
 - Existing llama.cpp configuration, model loading, smoke generation and local multi-turn chat. The runtime runs with its offline-mode flag; OS-enforced network isolation is not claimed.
 - New native CPU-runtime ZIP review/download/inspection/extraction with separate approvals. Existing approved GPU-capable runtimes can be selected; automatic GPU runtime/dependency setup remains incomplete.
@@ -19,9 +20,9 @@ Release: **0.2.0-preview.7**, Windows x64 development preview, 2026-10-27.
 
 ## Partial, unfinished or unverified
 
-- Images/video/music and other non-text categories currently search tool-repository metadata. Complete offline-model inventory, dependencies, hardware requirements and automated installation recipes are not implemented for those categories.
+- Image artifact discovery is metadata only: automatic acquisition/configuration, complete checkpoint/companion-asset proof and evidence-backed hardware requirements remain unfinished. Video/music and other non-text categories still search tool repositories.
 - No general multi-item installation queue, automatic text/image server switching or model updates/repair/rollback. The installed-Library flow covers supported GGUF text models and existing engines; other model/tool launch adapters remain incomplete.
-- Image dimension requests have mock workflow validation; a new actual 1024-pixel generation and a second image checkpoint remain unverified. Size bounds do not establish that every checkpoint supports every size or fits available memory.
+- Actual SD1.5 generation at 1024×768 is verified. A second image checkpoint remains unverified. Size bounds do not establish that every checkpoint supports every size or fits available memory.
 - Four-GPU identity/control fixtures pass, but actual four-GPU execution and arbitrary model splitting are unverified. Available VRAM is not silently pooled. Scaling beyond the immediate 1–4 local GPU scope is deferred.
 - No implemented automatic fan control, thermal shutdown policy, training pipeline, persistent worker services or finished dockable/popout workflows.
 - Linux, macOS and ARM64 portal releases remain planned. Current packages are Windows x64 only.
@@ -30,8 +31,9 @@ Release: **0.2.0-preview.7**, Windows x64 development preview, 2026-10-27.
 
 ## Validation and release identity
 
-- **893 default regression/native checks** passed on the development PC, including exact-copy binding, same-size corruption, changed receipts, write protection during hardware admission, insufficient capacity and image-dimension payloads/validation.
+- **919 default regression/native checks** passed on the development PC, including exact-copy binding, same-size corruption, changed receipts, write protection during hardware admission, insufficient capacity and image-dimension payloads/validation.
 - **Six additional live Library checks per model passed for two existing models:** Qwen2.5-Coder-7B-Instruct and Qwen2.5-32B-Instruct. Each required explicit model/copy selection and review, verified its installed bytes, loaded the selected existing engine, generated an initial response and completed two chat turns. Both owned servers were closed. These Library runs used existing weights/runtime without an online source lookup or re-download; they do not establish multi-GPU execution, model quality or all-model support. Model names identify validation examples, not recommendations.
+- Two additional live image-metadata checks verified an explicit public repository query and conservative assessment against actual hardware. Three source-backed image artifacts were returned; no weights were downloaded or executed.
 - Earlier source-selected workflow checks separately verified actual online discovery, exact review/approval and installed-file hash/reuse. They are distinct from the offline Library runs.
 - Five additional live image checks verified the existing ComfyUI/SD1.5 path at an explicit 1024×768, decoded the actual PNG, checked its pixel dimensions and stopped the owned engine. One image-checkpoint combination is verified; a second remains pending.
 - Earlier live tests separately established a real model download and one ComfyUI generation path. They are specific model/runtime/hardware evidence, not all-model guarantees or recommendations.

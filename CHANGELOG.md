@@ -2,6 +2,14 @@
 
 User-visible changes are recorded here. Dates identify publication updates, not a promise that every feature was first implemented on that date.
 
+## 0.2.0-preview.8 — 2026-10-27 — Neutral image artifact discovery
+
+- Image searches now inspect public text-to-image model repositories for pinned root Safetensors candidates and retain separate GitHub tool listings. Exact repository queries inspect the named source directly; no featured/default model or silent substitute is chosen.
+- Preserve source revision/file/bytes/SHA-256/license/access evidence. Unknown facts remain unknown. Bounded metadata requests reject unsafe paths, shards, known component basenames, contradictory sizes and conflicting duplicate identities.
+- Show image file candidates by default with an explicit unverified notice and a count separate from estimated-fit text results. No GGUF memory rule or complete-checkpoint claim is applied. A candidate can still be an adapter/component and requires further recipe/content evidence.
+- Explicit image review exposes exact source/file evidence in Discover. No image download, installation, configuration or launch is granted or performed. Changing storage clears stale image results/notices; other unassessed results retain an unchecked opt-in filter.
+- Validation: 919 regression/native checks and two actual public image-metadata checks passed. The live query returned three candidates, all unassessed against actual hardware; no weights were downloaded. Existing preview.7 Library chat and 1024×768 SD1.5 execution evidence is retained without claiming a new runtime run or second image checkpoint.
+
 ## 0.2.0-preview.7 — 2026-10-27 — Installed models from Library and image size controls
 
 - Added a supported GGUF Library flow: choose a model, choose its exact installed copy, review the saved source and path, then explicitly load it with an existing engine and open chat. Neither the model nor a local copy is selected automatically.

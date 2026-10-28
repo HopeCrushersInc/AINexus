@@ -45,6 +45,7 @@ public partial class MainWindow
         _lastDiscoveryReport = null;
         InvalidateAcquisitionReview();
         DiscoveryResultsGrid.ItemsSource = null;
+        DiscoveryImageCandidatesNoticeText.Visibility = Visibility.Collapsed;
         DiscoveryFitSummaryText.Text = "Storage changed. Search again to assess the selected volume.";
         DiscoveryDetailsText.Text = "Storage selection changed. Search online or load saved evidence to evaluate this volume.";
         RefreshDiscoveryControls();
@@ -52,6 +53,8 @@ public partial class MainWindow
 
     private void RefreshDiscoveryControls()
     {
+        if (DiscoveryImageCandidatesNoticeText is not null && _lastDiscoveryReport is null)
+            DiscoveryImageCandidatesNoticeText.Visibility = Visibility.Collapsed;
         if (WorkloadContinueButton is not null) RefreshWorkloadContinue();
         if (WorkloadRescanButton is not null) WorkloadRescanButton.IsEnabled = !_discoveryBusy && !_workloadScanBusy;
         RefreshRuntimeInstallationControls();
@@ -98,6 +101,7 @@ public partial class MainWindow
             DiscoveryStatusText.Text = "Reading actual hardware, drivers, memory availability and fixed volumes...";
             _lastDiscoveryReport = null;
             InvalidateAcquisitionReview();
+            DiscoveryImageCandidatesNoticeText.Visibility = Visibility.Collapsed;
             DiscoveryFitSummaryText.Text = "Hardware evidence is being refreshed. Search again afterwards.";
             await ScanDiscoveryHardwareAsync(token);
             DiscoveryResultsGrid.ItemsSource = null;
@@ -155,6 +159,7 @@ public partial class MainWindow
         {
             DiscoveryResultsGrid.ItemsSource = null;
             _lastDiscoveryReport = null;
+            DiscoveryImageCandidatesNoticeText.Visibility = Visibility.Collapsed;
             InvalidateAcquisitionReview();
             DiscoveryFitSummaryText.Text = "Searching…";
             DiscoveryDetailsText.Text = "Reading current hardware evidence before evaluating candidates...";
@@ -185,6 +190,7 @@ public partial class MainWindow
             _lastDiscoveryReport = null;
             InvalidateAcquisitionReview();
             DiscoveryResultsGrid.ItemsSource = null;
+            DiscoveryImageCandidatesNoticeText.Visibility = Visibility.Collapsed;
             DiscoveryFitSummaryText.Text = "Searching selected workloads…";
             if (target is null || !machine.Volumes.Any(v => string.Equals(v.Path, target, StringComparison.OrdinalIgnoreCase)))
             {
@@ -327,24 +333,32 @@ public partial class MainWindow
         if (DiscoveryResultsGrid is not null) RefreshDiscoveryResults();
     }
 
+    internal static bool IsUnverifiedImageArtifact(CompatibilityRecommendation result) =>
+        result.Status == RecommendationStatus.NeedsDetails
+        && result.Item is { Interest: DiscoveryInterest.Images, Kind: "Model", Artifact.Format: "Safetensors" };
+
     private void RefreshDiscoveryResults()
     {
         if (_lastDiscoveryReport is not { } report) return;
         var showOthers = DiscoveryShowUnassessedCheck.IsChecked == true;
         DiscoveryResultsGrid.ItemsSource = report.Recommendations
-            .Where(r => showOthers || r.Status == RecommendationStatus.ResourceCandidate)
+            .Where(r => showOthers || r.Status == RecommendationStatus.ResourceCandidate || IsUnverifiedImageArtifact(r))
             .Select(r => new DiscoveryRow(r, report)).ToArray();
         DiscoveryResultsGrid.SelectedIndex = -1;
         var fit = report.Recommendations.Count(r => r.Status == RecommendationStatus.ResourceCandidate);
+        var imageFiles = report.Recommendations.Count(IsUnverifiedImageArtifact);
         var unknown = report.Recommendations.Count(r => r.Status == RecommendationStatus.NeedsDetails);
         var insufficient = report.Recommendations.Count(r => r.Status == RecommendationStatus.InsufficientResources);
         var unsupported = report.Recommendations.Count(r => r.Status == RecommendationStatus.Unsupported);
         var missingMediaRecipe = report.Catalog.Items.Any(i => i.Interest is DiscoveryInterest.Images or DiscoveryInterest.Video)
             || _workspaceProfile?.Interests.Any(i => i is DiscoveryInterest.Images or DiscoveryInterest.Video) == true;
-        DiscoveryFitSummaryText.Text = $"{fit} estimated to fit · {unknown} need compatibility evidence · {insufficient} exceed available resources · {unsupported} need a platform recipe. "
+        DiscoveryImageCandidatesNoticeText.Visibility = imageFiles > 0 ? Visibility.Visible : Visibility.Collapsed;
+        DiscoveryFitSummaryText.Text = $"{fit} estimated to fit · {imageFiles} image file candidates (fit unverified) · {unknown - imageFiles} other results need compatibility evidence · {insufficient} exceed available resources · {unsupported} need a platform recipe. "
             + (fit == 0 ? "No hardware-fit matches established. " : "")
-            + (missingMediaRecipe ? "Image/video tool listings currently need dedicated model/runtime requirements before fit can be assessed." : "")
-            + (showOthers ? " Showing all results." : " Showing estimated-fit results only; reveal the others below.");
+            + (missingMediaRecipe ? "Image/video artifacts and tools need dedicated model/runtime requirements before fit can be assessed." : "")
+            + (showOthers ? " Showing all results." : imageFiles > 0
+                ? " Showing estimated-fit results and unverified image file candidates; reveal other results below."
+                : " Showing estimated-fit results only; reveal the others below.");
     }
 
     private void DiscoveryResultsGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)

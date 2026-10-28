@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased — Explicit benchmark-evidence inspection
+
+- Added an explicit evidence action for selected GGUF source results. Opening copies only the repository; a separate public-metadata lookup shows exact benchmark/task values, evaluation dates, attribution, nullable source-verification flags and submission PR numbers. No inferred universal quality score or upstream-to-quantization inheritance.
+- Bound parsing to 32 rows and transport to one MiB/20 seconds. Reject mismatched repository identities and redirects; skip malformed rows while preserving valid ones. Source links remain attribution data and are not followed. Evidence is session-only and does not approve, download, install or start any model.
+- Changing the model, result set or repository cancels pending evidence and rejects late responses. Missing evaluations remain unknown; reported verification is distinguished from Nexus verification, and PR acceptance is not assumed.
+- Validation: 1,107 regression/native checks plus four live metadata check instances across two runs passed (1,109 each). One actual base repository returned two source-reported task results; its GGUF counterpart returned none and inherited no scores. These cases establish API/attribution behavior, not model quality or exact evaluated weights.
+
 ## Unreleased — Text search coverage and clear resource assessments
 
 - Combine popular, trending and recently updated text-generation GGUF feeds across all supported text workloads. Deduplicate repositories, interleave source lists and inspect up to 24 repositories with four concurrent reads; native text searches request up to 48 total results. Preserve source order within assessment groups instead of promoting smaller artifacts. Keep explicit single-order views and direct repository browsing available.

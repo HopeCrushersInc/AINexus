@@ -97,6 +97,9 @@ public partial class MainWindow
         if (DiscoveryBrowseVariantsButton is not null)
             DiscoveryBrowseVariantsButton.IsEnabled = !_discoveryBusy
                 && DiscoveryResultsGrid.SelectedItem is DiscoveryRow { Recommendation.Item.Artifact.Format: "GGUF" };
+        if (DiscoveryEvidenceButton is not null)
+            DiscoveryEvidenceButton.IsEnabled = !_discoveryBusy && _modelEvidenceOperation is null
+                && DiscoveryResultsGrid.SelectedItem is DiscoveryRow { Recommendation.Item.Artifact.Format: "GGUF" };
         if (RuntimeSetupReviewButton is not null)
             RuntimeSetupReviewButton.IsEnabled = !_discoveryBusy && _lastDiscoveryReport is not null
                 && DiscoveryResultsGrid.SelectedItem is DiscoveryRow { Recommendation.Item.RuntimeRelease: not null };
@@ -356,6 +359,7 @@ public partial class MainWindow
 
     internal void RenderDiscoveryReport(DiscoveryReport report)
     {
+        InvalidateModelEvidenceForSelection();
         _lastDiscoveryReport = report;
         InvalidateAcquisitionReview();
         RefreshDiscoveryResults();
@@ -402,6 +406,7 @@ public partial class MainWindow
 
     private void DiscoveryResultsGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
+        InvalidateModelEvidenceForSelection();
         InvalidateRuntimeReviewDisplay();
         InvalidateAcquisitionReview();
         if (RuntimeArchiveSelector is not null)

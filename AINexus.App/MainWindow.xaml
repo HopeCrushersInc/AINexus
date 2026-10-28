@@ -358,6 +358,7 @@
                     <TextBlock x:Name="DiscoveryFitSummaryText" TextWrapping="Wrap" Foreground="{DynamicResource NexusMutedBrush}" Margin="0,8,0,4"/>
                     <TextBlock x:Name="DiscoveryImageCandidatesNoticeText" Text="Image file candidates — hardware fit and complete checkpoint contents are unverified." Visibility="Collapsed" TextWrapping="Wrap" Foreground="{DynamicResource NexusSecondaryBrush}" Margin="0,0,0,8"/>
                     <DockPanel>
+                        <Button x:Name="DiscoveryEvidenceButton" DockPanel.Dock="Right" Content="Benchmark evidence" Click="DiscoveryEvidenceButton_Click" IsEnabled="False" Padding="12,6" Margin="8,0,0,0"/>
                         <Button x:Name="DiscoveryBrowseVariantsButton" DockPanel.Dock="Right" Content="Browse selected model's files" Click="DiscoveryBrowseVariantsButton_Click" IsEnabled="False" Padding="12,6"/>
                         <CheckBox x:Name="DiscoveryShowUnassessedCheck" Content="Also show runtime and tool results needing review" IsChecked="False" Checked="DiscoveryShowUnassessedCheck_Changed" Unchecked="DiscoveryShowUnassessedCheck_Changed" Foreground="{DynamicResource NexusMutedBrush}" VerticalAlignment="Center"/>
                     </DockPanel>
@@ -381,6 +382,18 @@
                 <StackPanel Grid.Row="5" Margin="0,8,0,0">
                     <DockPanel><Button DockPanel.Dock="Right" Content="Review selected item" Click="DiscoveryReviewSelected_Click" Margin="16,0,0,0"/><StackPanel><TextBlock x:Name="StoreSelectionTitleText" Text="Choose a result" FontSize="{DynamicResource NexusFontSize20}" FontWeight="SemiBold"/><TextBlock x:Name="StoreSelectionSummaryText" Text="Select an item to see what is known about compatibility." Foreground="{DynamicResource NexusMutedBrush}" TextWrapping="Wrap" Margin="0,6,0,10"/></StackPanel></DockPanel>
                     <Expander x:Name="DiscoveryDetailsExpander" Header="Compatibility and source details" Foreground="{DynamicResource NexusMutedBrush}" Margin="0,8,0,0"><TextBox x:Name="DiscoveryDetailsText" IsReadOnly="True" AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" Background="{DynamicResource NexusPanelBrush}" Foreground="{DynamicResource NexusTextBrush}" Padding="12" Height="220" Text="Select a result to review its source evidence, requirement estimate, assumptions, and unknowns. No software is installed by discovery."/></Expander>
+                    <Expander x:Name="ModelEvidenceExpander" Header="Reported benchmark evidence" Foreground="{DynamicResource NexusMutedBrush}" Margin="0,8,0,0">
+                        <StackPanel>
+                            <TextBlock Text="Inspect a repository explicitly. Source-reported scores are not proof of this quantized file's quality; different benchmark tasks are not directly comparable." TextWrapping="Wrap" Margin="0,6"/>
+                            <TextBlock Text="Repository (publisher/model)" Margin="0,0,0,4"/>
+                            <DockPanel>
+                                <Button x:Name="ModelEvidenceReadButton" DockPanel.Dock="Right" Content="Read public evaluations" Click="ModelEvidenceReadButton_Click" Margin="8,0,0,0"/>
+                                <Button x:Name="ModelEvidenceCancelButton" DockPanel.Dock="Right" Content="Cancel" Click="ModelEvidenceCancelButton_Click" IsEnabled="False" Margin="8,0,0,0"/>
+                                <TextBox x:Name="ModelEvidenceRepositoryText" TextChanged="ModelEvidenceRepositoryText_TextChanged" MaxLength="193" Padding="8" ToolTip="Exact publisher/model repository. Blank on startup; no upstream repository is substituted."/>
+                            </DockPanel>
+                            <TextBox x:Name="ModelEvidenceDetailsText" IsReadOnly="True" TextWrapping="Wrap" AcceptsReturn="True" VerticalScrollBarVisibility="Auto" Height="200" Padding="10" Margin="0,8,0,0" Background="{DynamicResource NexusPanelBrush}" Foreground="{DynamicResource NexusTextBrush}" Text="No benchmark source inspected. Quality remains unknown."/>
+                        </StackPanel>
+                    </Expander>
                 </StackPanel>
                 <TextBlock Grid.Row="6" x:Name="DiscoveryStatusText" Text="Online search reads public metadata only. Hardware evaluation stays on this PC. Installation, builds, and remote-server access require separate approval." Foreground="{DynamicResource NexusMutedBrush}" TextWrapping="Wrap" Margin="0,10,0,0"/>
             </Grid>

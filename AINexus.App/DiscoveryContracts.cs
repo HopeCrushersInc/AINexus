@@ -10,6 +10,8 @@ public sealed record DiscoveryWorkflow(DiscoveryInterest Interest, string Name, 
 
 public sealed record DiscoverySource(string Name, Uri Url, DateTimeOffset RetrievedAt);
 
+public sealed record DiscoverySignals(long? Downloads, long? Likes, DateTimeOffset? UpdatedAt, long? ParameterCount = null);
+
 public sealed record ModelArtifact(
     string Repository, string Revision, string FileName, long? SizeBytes, string? Sha256,
     string Format, bool Gated);
@@ -17,13 +19,17 @@ public sealed record ModelArtifact(
 public sealed record DiscoveredItem(
     string Id, string Name, string Publisher, DiscoveryInterest Interest, string Kind,
     string? License, ModelArtifact? Artifact, IReadOnlyList<DiscoverySource> Sources,
-    string Description, string? PipelineTag = null, RuntimeReleaseMetadata? RuntimeRelease = null);
+    string Description, string? PipelineTag = null, RuntimeReleaseMetadata? RuntimeRelease = null,
+    DiscoverySignals? Signals = null);
 
 public sealed record RuntimeReleaseAsset(string Name, long SizeBytes, string? Sha256, Uri DownloadUrl);
 public sealed record RuntimeReleaseMetadata(string Tag, bool Prerelease, bool Immutable,
     IReadOnlyList<RuntimeReleaseAsset> Archives, IReadOnlyList<string> Notes);
 
-public sealed record OnlineDiscoveryRequest(DiscoveryInterest Interest, string Query, int Limit = 8, string? RuntimeReleaseTag = null);
+public enum TextSearchOrder { Broad, Popular, Trending, RecentlyUpdated }
+
+public sealed record OnlineDiscoveryRequest(DiscoveryInterest Interest, string Query, int Limit = 12,
+    string? RuntimeReleaseTag = null, TextSearchOrder SearchOrder = TextSearchOrder.Broad);
 
 public sealed record OnlineDiscoverySnapshot(
     IReadOnlyList<DiscoveredItem> Items, IReadOnlyList<string> Notes,

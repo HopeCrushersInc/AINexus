@@ -44,6 +44,10 @@ internal static class Program
             ImageWorkflowChecks.RunAsync(Check).GetAwaiter().GetResult();
             WorkloadSetupChecks.RunAsync(Check).GetAwaiter().GetResult();
             OnlineDiscoveryChecks.RunAsync(Check).GetAwaiter().GetResult();
+            MultiSourceTextDiscoveryChecks.RunAsync(Check).GetAwaiter().GetResult();
+            ModelEvaluationEvidenceChecks.Run(Check);
+            ModelEvaluationUiChecks.RunAsync(Check).GetAwaiter().GetResult();
+            TextSearchUiChecks.RunAsync(Check).GetAwaiter().GetResult();
             ImageArtifactDiscoveryChecks.RunAsync(Check).GetAwaiter().GetResult();
             ImageArtifactAcquisitionChecks.RunAsync(Check).GetAwaiter().GetResult();
             ComfyCheckpointFolderChecks.RunAsync(Check).GetAwaiter().GetResult();
@@ -59,6 +63,18 @@ internal static class Program
             if (args.Contains("--live")) CheckLiveDiscovery().GetAwaiter().GetResult();
             if (args.Contains("--llama-live")) CheckLiveLlamaCpp().GetAwaiter().GetResult();
             if (args.Contains("--discovery-live")) OnlineDiscoveryChecks.RunLiveAsync(Check).GetAwaiter().GetResult();
+            var textSearchLive = Array.IndexOf(args, "--text-model-search-live");
+            var modelEvidenceLive = Array.IndexOf(args, "--model-evidence-live");
+            if (modelEvidenceLive >= 0)
+            {
+                if (modelEvidenceLive + 1 >= args.Length) throw new ArgumentException("--model-evidence-live requires an exact public model repository.");
+                ModelEvaluationLiveChecks.RunAsync(args[modelEvidenceLive + 1], Check).GetAwaiter().GetResult();
+            }
+            if (textSearchLive >= 0)
+            {
+                if (textSearchLive + 1 >= args.Length) throw new ArgumentException("--text-model-search-live requires an explicit public model query or repository.");
+                TextModelSearchLiveChecks.RunAsync(args[textSearchLive + 1], Check).GetAwaiter().GetResult();
+            }
             var imageMetadataLive = Array.IndexOf(args, "--image-artifacts-live");
             if (imageMetadataLive >= 0)
             {
@@ -196,6 +212,8 @@ internal static class Program
         Check(window.FindName("CpuText") is TextBlock, "Hardware XAML loads");
         WorkloadSetupChecks.RunNative(window, Check);
         WorkloadDiscoveryChecks.RunNative(window, Check);
+        TextSearchUiChecks.Run(Check);
+        ModelEvaluationUiChecks.RunNative(Check);
         GpuPowerUiChecks.RunNative(Check);
         AppearanceChecks.RunNative(window, Check);
         var appearancePreview = Array.IndexOf(args, "--appearance-preview");

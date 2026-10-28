@@ -4,11 +4,11 @@
 
 AI Nexus scans the computer, shows workload categories, and searches live internet sources after the user asks. It does not choose a model, promote a provider, or install software automatically.
 
-### [Download for Windows x64](https://github.com/HopeCrushersInc/AINexus/releases/download/v0.2.0-preview.10/AINexus-0.2.0-preview.10-win-x64.zip)
+### [Download for Windows x64](https://github.com/HopeCrushersInc/AINexus/releases/download/v0.2.0-preview.11/AINexus-0.2.0-preview.11-win-x64.zip)
 
-**0.2.0-preview.10 · Development preview**
+**0.2.0-preview.11 · Development preview**
 
-[Release notes & checksums](https://github.com/HopeCrushersInc/AINexus/releases/tag/v0.2.0-preview.10) · [What works / what is unfinished](docs/project-status.md) · [Changelog](CHANGELOG.md) · [Discussions](https://github.com/HopeCrushersInc/AINexus/discussions)
+[Release notes & checksums](https://github.com/HopeCrushersInc/AINexus/releases/tag/v0.2.0-preview.11) · [What works / what is unfinished](docs/project-status.md) · [Changelog](CHANGELOG.md) · [Discussions](https://github.com/HopeCrushersInc/AINexus/discussions)
 
 ![Workload-first startup with unchecked categories](docs/assets/workload-choices.png)
 
@@ -18,7 +18,7 @@ AI Nexus scans the computer, shows workload categories, and searches live intern
 
 1. **Open Nexus.** It scans local hardware; no software is installed or started.
 2. **Choose your tasks.** Coding, art/images, music/audio, video, speech, 3D, CAD, 3D printing, game development, reverse engineering, streaming, assistants and agents are visible. Nothing is checked or remembered.
-3. **Find online choices.** Confirming the checked tasks searches every selected category using the startup hardware snapshot. Estimated-fit results appear first; a separate toggle reveals unassessed or insufficient-resource results. No result is preselected or labeled “best.” A category or query can narrow a later search.
+3. **Find online choices.** Confirming the checked tasks searches every selected category using the startup hardware snapshot. All returned model files remain visible, including unknown or unmet requirements; a separate toggle reveals runtime/tool results. Estimated-fit results appear first, preserving source order within each assessment group. No result is preselected or labeled “best.” A category or query can narrow a later search.
 4. **Choose a result.** Inspect the actual source, license and available evidence. Unknown information stays unknown.
 5. **Approve a specific action.** Supported download/install recipes require review and explicit approval. Configuration and launch remain separate actions.
 
@@ -26,7 +26,8 @@ AI Nexus scans the computer, shows workload categories, and searches live intern
 
 | Area | Current behavior |
 | --- | --- |
-| Text/coding model discovery | Live public GGUF metadata with pinned source identities and resource estimates |
+| Text/coding model discovery | Popular, trending and recent GGUF sources; pinned artifacts, reported parameters/dates and separate memory/storage estimates |
+| Reported benchmark evidence | Explicit exact-repository lookup; benchmark/task scores, attribution and source-verification flags remain distinct from Nexus evaluation |
 | Image discovery | Live pinned Safetensors artifact metadata plus tool repositories; image files remain unverified candidates |
 | Other workload discovery | Live public tool-repository metadata; install adapters vary and are explicitly identified |
 | Persistent catalog and Library | SQLite source catalog, merged task categories, offline browsing and private acquisition-receipt links |
@@ -34,6 +35,14 @@ AI Nexus scans the computer, shows workload categories, and searches live intern
 | Runtime and local use | Explicit engine setup, local chat, image-engine configuration and owned-process controls |
 
 **Discovery is not installation. A search result is not a recommendation or proof of compatibility.** Automated installation is currently limited to implemented recipes; finding an art or music tool does not mean its installer is supported.
+
+Text searches combine Hugging Face **popular, trending and recently updated text-generation GGUF** listings. Broad coverage interleaves those lists and deduplicates repositories; the optional search view can request one order instead. Confirmed text workloads and the native text search request up to **48 results**, including supporting runtime metadata, from at most **24 inspected repositories** with four concurrent reads and a 60-second deadline. A failed feed preserves successful results. Source ordering is preserved within hardware-assessment groups; no combined quality score is invented.
+
+Results show source-reported repository parameters, update dates and downloads when available. These are repository facts, not proof of an artifact's architecture, release date, quality or speed. No parameter count is guessed from a filename. Use a model/publisher term or explicitly browse a selected repository's standalone files to inspect more quantizations. Named projectors, importance matrices, draft models and adapters are excluded from primary-model discovery; complete split GGUF sets and pagination are not supported yet. Search coverage remains bounded. The [official Hub API](https://huggingface.co/docs/hub/en/api) documents the metadata source; independent task evaluations remain separate unfinished work.
+
+**Benchmark evidence** opens a selected text model's exact repository without contacting the internet. **Read public evaluations** explicitly retrieves its reported benchmark/task values, dates, attribution, source-verification flags and submission PR numbers. You can also enter another exact repository to inspect it separately. Missing rows remain unknown; upstream scores are never substituted for quantized-file measurements. The response is a session-only source snapshot, limited to 32 inspected rows; evaluated weights and quantization equivalence are not established. External attribution links are displayed as data and are not fetched automatically. Changing the selected model or repository revokes stale responses. See [Hugging Face evaluation semantics](https://huggingface.co/docs/hub/eval-results). Comparable benchmark ranking, independent Nexus evaluation and persistent benchmark cataloging remain unfinished.
+
+Download size and selected-drive space are shown separately from the conservative runtime-memory estimate. A file can fit on disk and still exceed the assessed available RAM/VRAM. Text models may qualify through system RAM when full GPU offload does not fit; partial CPU/GPU offload and disk-backed execution remain unassessed, and no speed is promised.
 
 Image discovery searches public Hugging Face text-to-image repositories for bounded root Safetensors candidates and also lists GitHub tools. Pinned file sizes, hashes and licenses are shown when supplied. Image file candidates appear by default with an explicit unverified notice; a file may be a component or adapter, and its hardware fit and complete checkpoint contents are not established. Video and other non-text categories still retrieve tool repositories. Nexus does not apply text-model memory rules to these results. Explicit image-file setup can download the selected data after exact source/license/destination approval, with hash verification. It does not connect model folders, install an engine or establish a working checkpoint.
 

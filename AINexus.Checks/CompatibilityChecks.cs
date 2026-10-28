@@ -85,6 +85,37 @@ internal static class CompatibilityChecks
         check(Evaluate(model, machine with { Volumes = [new("C:\\", -1, 100 * GiB)] }).Status == RecommendationStatus.NeedsDetails,
             "Invalid selected-volume counters stay unknown");
 
+        var ampleDiskMachine = machine with
+        {
+            Hardware = machine.Hardware with { RamGb = 64 },
+            DriverEvidence = [Driver("Fixture 24 GiB adapter")],
+            Resources = machine.Resources with { RamTotalGb = 64, RamUsedGb = 8,
+                Gpus = [new("NVIDIA Fixture 24 GiB adapter", 0, 0, 24)] },
+            Volumes = [new("C:\\", 2048 * GiB, 4096 * GiB)]
+        };
+        var largeArtifact = model with { Artifact = model.Artifact! with { SizeBytes = 101 * GiB } };
+        var largeAssessment = Evaluate(largeArtifact, ampleDiskMachine);
+        check(largeAssessment.RequiredStorageGiB == 102 && largeAssessment.EstimatedMemoryGiB == 128.25,
+            "A 101 GiB artifact has separate storage and runtime-memory planning budgets");
+        check(largeAssessment.Status == RecommendationStatus.InsufficientResources
+            && largeAssessment.ExecutionPath == "Larger memory budget required"
+            && largeAssessment.Reasons.Any(reason => reason.Contains("physical RAM", StringComparison.Ordinal))
+            && !largeAssessment.Reasons.Any(reason => reason.Contains("less free space", StringComparison.Ordinal)),
+            "Two TiB of selected-drive space does not turn a 101 GiB artifact's memory shortage into a storage failure or a fit claim");
+
+        var quantized32B = model with { Artifact = model.Artifact! with { SizeBytes = 19_851_336_576 } };
+        var quantizedAssessment = Evaluate(quantized32B, ampleDiskMachine);
+        check(quantizedAssessment.Status == RecommendationStatus.ResourceCandidate
+            && quantizedAssessment.ExecutionPath.StartsWith("CPU", StringComparison.Ordinal)
+            && quantizedAssessment.EstimatedMemoryGiB is > 24 and < 56
+            && quantizedAssessment.RequiredStorageGiB is > 19 and < 20,
+            "A 32B quantized artifact can remain a RAM candidate when its conservative full-GPU estimate exceeds 24 GiB VRAM");
+        check(quantizedAssessment.Reasons.Any(reason => reason.Contains("No single", StringComparison.Ordinal)
+                && reason.Contains("full-offload estimate", StringComparison.Ordinal))
+            && quantizedAssessment.Limitations.Any(value => value.Contains("unverified", StringComparison.OrdinalIgnoreCase))
+            && quantizedAssessment.Limitations.Any(value => value.Contains("Generation speed is unmeasured", StringComparison.Ordinal)),
+            "The RAM candidate explains the full-GPU estimate failure without claiming a measured load, generation speed, or guaranteed fit");
+
         check(Evaluate(model with { Artifact = model.Artifact! with { SizeBytes = null } }, machine).Status == RecommendationStatus.NeedsDetails,
             "Missing source artifact size cannot fabricate an estimate");
         var split = model with { Artifact = model.Artifact! with { FileName = "fixture-00001-of-00002.gguf" } };

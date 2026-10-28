@@ -2,7 +2,25 @@
 
 User-visible changes are recorded here. Dates identify publication updates, not a promise that every feature was first implemented on that date.
 
-## 0.2.0-preview.10 — 2026-10-28 — Approved image checkpoint-folder connections
+## 0.2.0-preview.11 — 2026-10-28 — Broader text discovery and reported benchmark evidence
+
+- Added an explicit evidence action for selected GGUF source results. Opening copies only the repository; a separate public-metadata lookup shows exact benchmark/task values, evaluation dates, attribution, nullable source-verification flags and submission PR numbers. No inferred universal quality score or upstream-to-quantization inheritance.
+- Bound parsing to 32 rows and transport to one MiB/20 seconds. Reject mismatched repository identities and redirects; skip malformed rows while preserving valid ones. Source links remain attribution data and are not followed. Evidence is session-only and does not approve, download, install or start any model.
+- Changing the model, result set or repository cancels pending evidence and rejects late responses. Missing evaluations remain unknown; reported verification is distinguished from Nexus verification, and PR acceptance is not assumed.
+- Validation: 1,107 regression/native checks plus four live metadata check instances across two runs passed (1,109 each). One actual base repository returned two source-reported task results; its GGUF counterpart returned none and inherited no scores. These cases establish API/attribution behavior, not model quality or exact evaluated weights.
+
+- Combine popular, trending and recently updated text-generation GGUF feeds across all supported text workloads. Deduplicate repositories, interleave source lists and inspect up to 24 repositories with four concurrent reads; native text searches request up to 48 total results. Preserve source order within assessment groups instead of promoting smaller artifacts. Keep explicit single-order views and direct repository browsing available.
+- Show source-reported repository parameters, update dates and downloads separately from hardware estimates and quality judgments. Missing or invalid metadata stays unknown. Source activity does not establish quality, and a repository modification is not necessarily a model release.
+- Exclude known non-text tasks and files named as projectors, importance matrices, drafts or adapters from primary text-model results. Keep source failures partial, deadlines/cancellation bounded and saved searches isolated by ordering. Pagination and complete split-model support remain unfinished.
+- Keep all returned model files visible, including missing evidence or unmet requirements, without selecting or approving them. Display selected-drive storage, runtime-memory estimates and the actual shortage reason separately.
+- Add an explicit source-file browsing action. An exact repository lookup reads that repository directly; it does not depend on broad search ranking. Download, installation and runtime approvals remain separate.
+- Add regression cases for a 101 GiB artifact with ample storage and insufficient memory, a quantized 32B-size artifact qualifying through RAM, repository coverage beyond the first four, neutral ordering and native selection/resource displays. Add opt-in live metadata search checks; no weights are downloaded by those checks.
+- Earlier search-increment validation: 1,077 regression/native checks plus four live metadata check instances across separate general and `32B` searches passed (1,079 checks in each run). These establish metadata search behavior, not execution or quality of newly discovered models.
+- Includes the separately reviewed image checkpoint-folder connections prepared for preview.10: exact configuration approval, original YAML preservation and application on the next explicit engine start. Actual SDXL Base 1024×1024 and SD1.5 512×512 generation were verified in their earlier, separate runs; this release does not claim a new inference run or all-model compatibility.
+
+## 0.2.0-preview.10 preparation — 2026-10-28 — Approved image checkpoint-folder connections
+
+This increment was prepared and tested locally but was not published as a separate GitHub release. Its changes are included in preview.11; the last earlier published release was preview.9.
 
 - Added a separate folder-connection review for an explicitly chosen existing portable ComfyUI engine and local checkpoint folders. Engine/folder inputs begin empty; a completed image download can supply its already chosen folder only through an explicit action.
 - Display exact configuration contents, the existing configuration hash, approved folders and a unique recovery-backup path. A fresh, exact approval is required; changing inputs, stale async results, failure, cancellation or close revokes it. No model or folder is selected automatically.

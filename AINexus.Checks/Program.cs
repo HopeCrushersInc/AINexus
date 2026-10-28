@@ -218,6 +218,7 @@ internal static class Program
         UserChoiceFlowChecks.RunNative(Check);
         ImageDiscoveryUiChecks.RunNative(Check);
         ImageArtifactSetupUiChecks.RunNative(Check);
+        ComfyCheckpointFolderUiChecks.RunNative(Check);
         var imageSetupLive = Array.IndexOf(args, "--image-artifact-setup-live");
         if (imageSetupLive >= 0)
         {

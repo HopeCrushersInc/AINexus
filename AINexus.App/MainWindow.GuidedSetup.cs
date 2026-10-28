@@ -328,6 +328,7 @@ public partial class MainWindow
         RefreshGuidedRuntimeControls();
         RefreshCatalogLocalControls();
         RefreshImageArtifactSetupControls();
+        RefreshComfyCheckpointFolderControls();
     }
 
     private async Task<string> FinishGuidedLoadCleanupAsync()

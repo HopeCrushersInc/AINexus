@@ -96,6 +96,8 @@ public partial class MainWindow
         ImageArtifactDownloadButton.IsEnabled = idle && _imageArtifactPlan is { } plan
             && ImageArtifactApprovalCheck.IsChecked == true && _imageArtifactApprovedPlanId == plan.PlanId;
         ImageArtifactCancelButton.IsEnabled = _imageArtifactSetupBusy;
+        if (ImageArtifactConnectFolderButton is not null)
+            ImageArtifactConnectFolderButton.IsEnabled = idle && ImageArtifactResultPath is not null && ImageArtifactReceiptPath is not null;
     }
 
     private void ImageArtifactDestinationChanged(object sender, TextChangedEventArgs e)

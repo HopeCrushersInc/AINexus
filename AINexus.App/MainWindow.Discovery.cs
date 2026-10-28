@@ -54,6 +54,7 @@ public partial class MainWindow
     private void RefreshDiscoveryControls()
     {
         RefreshImageArtifactSetupControls();
+        RefreshComfyCheckpointFolderControls();
         if (DiscoveryImageCandidatesNoticeText is not null && _lastDiscoveryReport is null)
             DiscoveryImageCandidatesNoticeText.Visibility = Visibility.Collapsed;
         if (WorkloadContinueButton is not null) RefreshWorkloadContinue();

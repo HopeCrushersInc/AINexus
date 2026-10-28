@@ -95,6 +95,13 @@ internal static class ImageArtifactSetupUiChecks
                     && window.ImageArtifactReceiptPath is { } receiptPath && File.Exists(receiptPath)
                     && approve.IsChecked != true && !download.IsEnabled && window.ImageArtifactReviewedPlanId is null,
                     "Approved native image transfer verifies actual fixture bytes, saves a separate receipt and consumes its approval");
+                var connectFolder = Find<Button>(window, "ImageArtifactConnectFolderButton");
+                check(connectFolder.IsEnabled, "Verified image data exposes only an optional explicit folder-connection review action");
+                connectFolder.RaiseEvent(new System.Windows.RoutedEventArgs(System.Windows.Controls.Primitives.ButtonBase.ClickEvent));
+                check(Find<TabItem>(window, "ComfyCheckpointFoldersTab").IsSelected
+                    && Find<TextBox>(window, "ComfyFolderEngineText").Text == "" && Find<TextBox>(window, "ComfyFolderPathsText").Text == second
+                    && Find<CheckBox>(window, "ComfyFolderApprovalCheck").IsChecked != true && window.ComfyCheckpointFolderReviewedPlanId is null,
+                    "Connecting a verified image's folder copies only its exact user-chosen location without choosing an engine, reviewing or approving configuration");
                 using (var receipt = JsonDocument.Parse(await File.ReadAllTextAsync(window.ImageArtifactReceiptPath!)))
                 {
                     check(receipt.RootElement.GetProperty("ArtifactKind").GetString() == "ImageArtifactCandidate"

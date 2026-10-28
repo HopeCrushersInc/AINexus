@@ -4,11 +4,11 @@
 
 AI Nexus scans the computer, shows workload categories, and searches live internet sources after the user asks. It does not choose a model, promote a provider, or install software automatically.
 
-### [Download for Windows x64](https://github.com/HopeCrushersInc/AINexus/releases/download/v0.2.0-preview.9/AINexus-0.2.0-preview.9-win-x64.zip)
+### [Download for Windows x64](https://github.com/HopeCrushersInc/AINexus/releases/download/v0.2.0-preview.10/AINexus-0.2.0-preview.10-win-x64.zip)
 
-**0.2.0-preview.9 · Development preview**
+**0.2.0-preview.10 · Development preview**
 
-[Release notes & checksums](https://github.com/HopeCrushersInc/AINexus/releases/tag/v0.2.0-preview.9) · [What works / what is unfinished](docs/project-status.md) · [Changelog](CHANGELOG.md) · [Discussions](https://github.com/HopeCrushersInc/AINexus/discussions)
+[Release notes & checksums](https://github.com/HopeCrushersInc/AINexus/releases/tag/v0.2.0-preview.10) · [What works / what is unfinished](docs/project-status.md) · [Changelog](CHANGELOG.md) · [Discussions](https://github.com/HopeCrushersInc/AINexus/discussions)
 
 ![Workload-first startup with unchecked categories](docs/assets/workload-choices.png)
 
@@ -41,7 +41,9 @@ The new Library keeps saved source facts separate from private local receipts. B
 
 Supported GGUF models can also be opened from Library: choose the model, select its exact installed copy, review the saved source and local path, then explicitly load it with an existing engine. Local review starts no download or engine. Loading checks the current file hash and hardware capacity before testing generation and opening chat.
 
-Images offers session-only width and height controls from **256 to 1024 pixels**, in multiples of 64. A checkpoint must still be selected explicitly. Dimensions are checked before submission; supported sizes and actual memory fit depend on the selected checkpoint and engine. The new dimension payloads have mock workflow coverage; a new actual 1024-pixel generation has not been verified.
+Image folders can be connected to an existing portable ComfyUI engine through a **separate review and approval**. The review shows the exact folders, configuration contents, existing file hash and recovery backup. Applying writes only the dedicated configuration; the original engine YAML stays unchanged. It affects the **next explicit engine start**, then you refresh the checkpoint list and choose a model yourself. Installed folder configuration persists; workload/model choices and approvals are never restored.
+
+Images offers session-only width and height controls from **256 to 1024 pixels**, in multiples of 64. Explicit local generation was verified with SD1.5 at 512×512 and SDXL Base at 1024×1024 using the existing ComfyUI engine and both folder configurations. These are specific tested combinations, not default model choices or a guarantee for every checkpoint, size and computer.
 
 ## Appearance and controls
 

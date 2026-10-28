@@ -48,6 +48,7 @@ public partial class MainWindow
         ImageGenerateButton.IsEnabled = !_imageBusy && dimensionsValid && _imageConnectedEndpoint is not null && ImageModelSelector.SelectedItem is string;
         ImageCancelButton.IsEnabled = _imageBusy;
         ImageSaveButton.IsEnabled = !_imageBusy && _imageResult is not null;
+        RefreshComfyCheckpointFolderControls();
     }
     private void ImageInputsChanged(object sender, RoutedEventArgs e)
     {

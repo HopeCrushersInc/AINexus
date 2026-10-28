@@ -2,6 +2,14 @@
 
 User-visible changes are recorded here. Dates identify publication updates, not a promise that every feature was first implemented on that date.
 
+## 0.2.0-preview.10 — 2026-10-28 — Approved image checkpoint-folder connections
+
+- Added a separate folder-connection review for an explicitly chosen existing portable ComfyUI engine and local checkpoint folders. Engine/folder inputs begin empty; a completed image download can supply its already chosen folder only through an explicit action.
+- Display exact configuration contents, the existing configuration hash, approved folders and a unique recovery-backup path. A fresh, exact approval is required; changing inputs, stale async results, failure, cancellation or close revokes it. No model or folder is selected automatically.
+- Apply only the dedicated bounded JSON configuration and its recoverable backup. Preserve existing `ainexus-models.yaml` bytes. Reject malformed/foreign configs, stale identities, unsafe paths and occupied backup locations; report possible changes and actual paths if verification fails after publication.
+- Read approved folder configuration alongside existing YAML on the next explicit engine start. Applying does not start, stop or reload an engine. Installed folder paths persist as configuration; workload/model choices and approvals are not remembered.
+- Validation: 1,043 default regression/native checks plus 16 live check instances across three runs passed: six folder-configuration checks, five actual SDXL Base 1024×1024 image checks and five actual SD1.5 512×512 image checks. Folder apply started no engine; the separate image runs used explicit starts/selections, loaded both configurations, decoded actual PNGs and stopped their owned engines. These establish two specific PC/runtime/checkpoint combinations, not all-model, hardware or quality guarantees. Earlier preview.9 fresh-download/reuse and preview.7 text-chat/image evidence retain their separate provenance; acquisition receipts remain historical data-integrity records.
+
 ## 0.2.0-preview.9 — 2026-10-28 — Explicit image-file downloads
 
 - Added a neutral image-file setup page reached only from an explicitly selected source result. Destination starts empty; review and approval are separate. No preset model or automatic download, configuration or launch.

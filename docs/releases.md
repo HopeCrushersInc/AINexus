@@ -1,6 +1,6 @@
 # Releases and portable Windows packages
 
-AI Nexus releases are development previews. Published previews and their exact assets are listed on the release page; the current source packaging example is **0.2.0-preview.9**. A version number in this guide does not mean that its release has already been uploaded; use the [GitHub Releases page](https://github.com/HopeCrushersInc/AINexus/releases) for actual published assets.
+AI Nexus releases are development previews. Published previews and their exact assets are listed on the release page; the current source packaging example is **0.2.0-preview.10**. A version number in this guide does not mean that its release has already been uploaded; use the [GitHub Releases page](https://github.com/HopeCrushersInc/AINexus/releases) for actual published assets.
 
 ## Run a published package
 
@@ -19,6 +19,8 @@ No model weights, llama.cpp binaries, image engine, or other AI applications are
 
 “Portable” describes the application directory. Preferences, logs and embedded-browser data use `%LOCALAPPDATA%\AINexus`. The catalog defaults to local application data; its folder can be selected explicitly or supplied by a local portable catalog-root.txt configuration file. Private machine-specific configuration is not included in public ZIPs. Existing settings may be read, but workload selections are session-only and start unchecked. Replacing a package does not delete models, runtimes or user settings. Keep a previous working package until the new one has been checked; do not overwrite a running application.
 
+Checkpoint-folder connections are a separate explicit configuration operation for an already installed portable ComfyUI engine. Review and approve the exact folders, contents, existing hash and backup before applying. Only `ainexus-approved-checkpoints.json` and a uniquely named recovery backup are written inside that chosen engine; existing `ainexus-models.yaml` stays unchanged. Those private files are not release assets. Installed folder mappings persist and are read on a later explicit engine start; this does not restore workload/model selections or approvals, download models, or automatically restart an engine. See [configuration details](technical-overview.md#approved-checkpoint-folder-connections).
+
 ## Build a package from source
 
 Building requires Windows, Git and the .NET 8 SDK. Run the repository's build and regression checks first; see [README](../README.md#build-and-validate). The package script publishes the application but does **not** run those checks or certify a model/runtime.
@@ -26,7 +28,7 @@ Building requires Windows, Git and the .NET 8 SDK. Run the repository's build an
 From the repository root:
 
 ```powershell
-./scripts/Publish-Portable.ps1 -Version '0.2.0-preview.9'
+./scripts/Publish-Portable.ps1 -Version '0.2.0-preview.10'
 ```
 
 Optional parameters:

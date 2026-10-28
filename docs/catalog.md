@@ -45,3 +45,7 @@ Complete model/runtime dependency recipes for media workloads; evidence-backed h
 ## Dependency sources
 
 The implementation uses [Microsoft.Data.Sqlite](https://learn.microsoft.com/en-us/dotnet/standard/data/sqlite/). Portable packages retain the actual dependency versions, package copyright/license declarations and upstream license/notice files. Vendored notice source URLs and hashes are recorded in `docs/third-party/sqlite/sources.json`; the publisher rejects unreviewed dependency-version changes.
+
+## Image artifact source facts
+
+Image searches now import pinned Safetensors candidates from public Hugging Face text-to-image repositories alongside distinct GitHub tool entries. This uses the existing artifact identity/schema. Metadata is not proof of a complete checkpoint, companion assets, runtime compatibility or hardware fit. The image candidates remain NeedsDetails, are shown with an unverified notice, and require explicit selection for source review. No acquisition or engine setup is performed from image discovery. Missing byte counts/hashes/licenses remain unknown, and conflicting duplicate source facts are rejected.

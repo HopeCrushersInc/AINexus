@@ -15,6 +15,18 @@ public partial class MainWindow
             return;
         }
         var item = row.Recommendation.Item;
+        if (item is { Interest: DiscoveryInterest.Images, Kind: "Model", Artifact: { Format: "Safetensors" } imageArtifact })
+        {
+            DiscoveryDetailsText.Text = DescribeRecommendation(row)
+                + $"\n\nIMAGE FILE CANDIDATE\nExact file bytes: {imageArtifact.SizeBytes?.ToString("N0") ?? "Unknown"}\n"
+                + "Hardware fit, complete checkpoint contents, companion assets and runtime compatibility are unverified. "
+                + "Automatic image-artifact download, installation and checkpoint configuration are not implemented. "
+                + "This review grants no download or launch approval and starts no software.";
+            DiscoveryStatusText.Text = "Image source and pinned file reviewed. Automatic installation is not supported; no file was downloaded or model loaded.";
+            DiscoveryDetailsExpander.IsExpanded = true;
+            DiscoveryTab.IsSelected = true;
+            return;
+        }
         if (item.Kind == "Model" && item.Artifact is { Format: "GGUF" })
         {
             _guidedModel = null;

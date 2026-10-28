@@ -214,6 +214,7 @@ internal static class Program
         ModelRecoveryUiChecks.RunNative(window, Check);
         GuidedInstallChecks.RunNative(window, Check);
         UserChoiceFlowChecks.RunNative(Check);
+        ImageDiscoveryUiChecks.RunNative(Check);
         var selectedLive = Array.IndexOf(args, "--selected-model-live");
         if (selectedLive >= 0)
         {

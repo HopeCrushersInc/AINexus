@@ -32,7 +32,7 @@ Six live Library checks passed for each of two existing text models, including i
 
 ## Storage and recovery
 
-The default is the current user's local application-data directory under `AINexus/Catalog/catalog.db`. A portable package may include `catalog-root.txt` containing one absolute data-directory path. The deployed development package uses the owner's stable data folder on F:. An explicit catalog folder selected in the UI takes precedence and is saved as a storage preference; it never restores workload selections or approvals.
+The default is the current user's local application-data directory under `AINexus/Catalog/catalog.db`. A portable deployment may use `catalog-root.txt` containing one absolute data-directory path to keep a separate stable local catalog. An explicit catalog folder selected in the UI takes precedence and is saved as a storage preference; it never restores workload selections or approvals.
 
 “Open catalog folder” opens a different local catalog location. It does not move, merge or delete the old database or model files. A missing database is created only when source entries are first saved. An unreadable database, unknown schema, invalid source record or conflicting pinned hash is reported rather than reset. SQLite transactions protect complete imports. Cancellation rolls back unfinished imports.
 
@@ -51,3 +51,11 @@ The implementation uses [Microsoft.Data.Sqlite](https://learn.microsoft.com/en-u
 Image searches now import pinned Safetensors candidates from public Hugging Face text-to-image repositories alongside distinct GitHub tool entries. This uses the existing artifact identity/schema. Metadata is not proof of a complete checkpoint, companion assets, runtime compatibility or hardware fit. The image candidates remain NeedsDetails, are shown with an unverified notice, and require explicit selection for source review. Selecting and reviewing an image candidate opens its separate data-download setup. A fresh exact review and approval are required before acquisition; no engine setup is performed. Missing byte counts/hashes/licenses remain unknown, and conflicting duplicate source facts are rejected.
 
 Image downloads save private receipts under the selected folder's .ainexus-image-artifact-receipts directory. These are separate from GGUF receipts and grant no text-model launch approval. The receipt records actual byte/hash verification and reuse while keeping checkpoint completeness, hardware fit and runtime execution false. Neither weights nor private receipts are included in releases or source commits.
+
+## Private image-folder configuration
+
+Connecting a checkpoint folder to an already installed portable ComfyUI engine is a separate review/apply operation. It is not granted by source discovery, an image download or a receipt. The user chooses the engine and folder, reviews exact configuration contents, existing hash and recovery-backup path, then approves that specific write. Changed inputs or stale results invalidate the review; approvals are not remembered.
+
+The dedicated `ainexus-approved-checkpoints.json` holds at most 16 explicitly approved existing local folder paths. Applying preserves original `ainexus-models.yaml` bytes and keeps a uniquely named backup when replacing the dedicated config. Only the next explicit engine start reads the installed mapping alongside existing YAML; applying never selects a model or starts/stops an engine. Folder paths persist as private installed configuration, separate from session-only workload/model choices.
+
+This mapping and its backups contain private local paths and are excluded from source/release assets and the public source-metadata catalog. A connected folder is not a complete-checkpoint, current-integrity, hardware-fit or successful-generation certificate. Unknown or malformed dedicated configuration is reported rather than overwritten. A post-publication conflict reports possible changes and both configuration/backup paths for manual review; it does not attempt a risky automatic rollback.

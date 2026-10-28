@@ -219,6 +219,12 @@ internal static class Program
         ImageDiscoveryUiChecks.RunNative(Check);
         ImageArtifactSetupUiChecks.RunNative(Check);
         ComfyCheckpointFolderUiChecks.RunNative(Check);
+        var comfyFoldersLive = Array.IndexOf(args, "--comfy-folders-live");
+        if (comfyFoldersLive >= 0)
+        {
+            if (comfyFoldersLive + 2 >= args.Length) throw new ArgumentException("--comfy-folders-live requires the explicit existing engine root and checkpoint folder; it applies an approved app-owned configuration.");
+            ComfyCheckpointFolderLiveChecks.Run(args[comfyFoldersLive + 1], args[comfyFoldersLive + 2], Check);
+        }
         var imageSetupLive = Array.IndexOf(args, "--image-artifact-setup-live");
         if (imageSetupLive >= 0)
         {

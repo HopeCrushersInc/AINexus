@@ -1,6 +1,6 @@
 # Current project status
 
-Release: **0.2.0-preview.9**, Windows x64 development preview, 2026-10-28.
+Release: **0.2.0-preview.10**, Windows x64 development preview, 2026-10-28.
 
 ## Working within tested limits
 
@@ -9,6 +9,7 @@ Release: **0.2.0-preview.9**, Windows x64 development preview, 2026-10-28.
 - Confirmed workloads initiate source searches. GGUF text-model artifacts have source links, pinned revisions, available sizes/hashes/licenses and local resource estimates. User selection is required; no model is selected automatically.
 - Image discovery retrieves bounded public text-to-image Safetensors artifact metadata and separate tool repositories. Exact repository queries inspect that source directly. Pinned identity and available bytes/hashes/licenses are preserved; missing facts stay unknown. Candidates are visible as unverified, with no fabricated hardware-fit or complete-checkpoint claim.
 - Exact image-artifact data acquisition: choose a source file and existing folder, review fresh source/storage evidence, approve its precise plan, then verify downloaded bytes/SHA-256 and save a separate private image receipt. Matching existing files are rehashed for reuse; conflicts are preserved. No engine is configured or launched by this action.
+- Separate approved checkpoint-folder connections for an existing portable ComfyUI engine. Review exact folders, config contents/hash and backup, then explicitly apply. Only the dedicated JSON and recoverable backup are written; original YAML is preserved. Changed or stale inputs revoke approval. The installed folder mapping is read on a later explicit engine start, without remembering workload/model selections or approvals.
 - Supported GGUF acquisition: exact-plan approval, bounded transfer, byte/SHA-256 verification, matching existing-file reuse, receipts and no overwrite of a different file.
 - Existing llama.cpp configuration, model loading, smoke generation and local multi-turn chat. The runtime runs with its offline-mode flag; OS-enforced network isolation is not claimed.
 - New native CPU-runtime ZIP review/download/inspection/extraction with separate approvals. Existing approved GPU-capable runtimes can be selected; automatic GPU runtime/dependency setup remains incomplete.
@@ -16,14 +17,14 @@ Release: **0.2.0-preview.9**, Windows x64 development preview, 2026-10-28.
 - Supported GGUF models can be chosen in Library with an explicit installed-copy selection and local source/path review, followed by explicit loading with an existing engine. Review starts no search, download or engine. Loading binds the receipt to that exact plan/artifact/path, verifies the current hash, checks current hardware capacity and tests generation; the model is protected against writes during those steps.
 - Explicit local integrity checks and read-only recovery reviews. Recovery review does not perform repair.
 - Optional per-card NVIDIA power inspection and user-approved changes within reported bounds. No fixed wattage, automatic restoration or power-control launch requirement.
-- Connection to an existing ComfyUI engine/checkpoint and standard image generation. One image-engine/model combination has actual validation evidence.
+- Connection to an existing ComfyUI engine/checkpoint and standard image generation. Actual SD1.5 and SDXL Base generation has been validated for the specific tested PC/runtime/checkpoint combinations, using explicit checkpoint choices and both folder configurations.
 - Session-only image width/height inputs from 256 to 1024 pixels, in multiples of 64. Invalid inputs stop before resource admission or HTTP. The actual workflow payload carries the explicitly requested dimensions and checkpoint; no checkpoint is chosen automatically.
 
 ## Partial, unfinished or unverified
 
-- Image file acquisition is supported, but engine-folder connection/configuration, complete checkpoint/companion-asset proof and evidence-backed hardware requirements remain unfinished. A downloaded file may be an adapter or component. Video/music and other non-text categories still search tool repositories.
+- Image-file acquisition and the narrow existing-engine folder connection are supported. Complete checkpoint/companion-asset proof, general engine/dependency installation and evidence-backed hardware requirements remain unfinished. A downloaded file may be an adapter or component. Video/music and other non-text categories still search tool repositories.
 - No general multi-item installation queue, automatic text/image server switching or model updates/repair/rollback. The installed-Library flow covers supported GGUF text models and existing engines; other model/tool launch adapters remain incomplete.
-- Actual SD1.5 generation at 1024×768 is verified. A second image checkpoint remains unverified. Size bounds do not establish that every checkpoint supports every size or fits available memory.
+- Actual image validation covers SD1.5 at 512×512 and SDXL Base at 1024×1024; earlier SD1.5 1024×768 evidence is retained. Other architectures, resolutions and PC/runtime combinations remain unverified. Size bounds do not establish that every checkpoint supports every size or fits available memory.
 - Four-GPU identity/control fixtures pass, but actual four-GPU execution and arbitrary model splitting are unverified. Available VRAM is not silently pooled. Scaling beyond the immediate 1–4 local GPU scope is deferred.
 - No implemented automatic fan control, thermal shutdown policy, training pipeline, persistent worker services or finished dockable/popout workflows.
 - Linux, macOS and ARM64 portal releases remain planned. Current packages are Windows x64 only.
@@ -32,12 +33,14 @@ Release: **0.2.0-preview.9**, Windows x64 development preview, 2026-10-28.
 
 ## Validation and release identity
 
-- **988 default regression/native checks** passed on the development PC, including exact-copy binding, same-size corruption, changed receipts, write protection during hardware admission, insufficient capacity and image-dimension payloads/validation.
+- **1,043 default regression/native checks** passed on the development PC, including exact-copy binding, same-size corruption, changed receipts, write protection during hardware admission, insufficient capacity, image dimensions, approved folder-config updates/backups and stale/cancelled configuration operations.
+- **Six additional actual folder-configuration checks** verified explicit UI review/approval/apply for an existing portable engine and chosen folder, original YAML preservation and no engine launch. These establish the configuration step, not checkpoint loading, image generation or hardware fit.
+- **Five actual SDXL Base image checks and five actual SD1.5 image checks** passed in separate preview.10 runs at 1024×1024 and 512×512 respectively. Both configurations were loaded; each checkpoint was explicitly chosen, the returned PNG was decoded and its dimensions verified, and the owned engine stopped. These are two tested PC/runtime/checkpoint combinations, not general architecture, hardware, quality or performance guarantees.
 - **Six additional live Library checks per model passed for two existing models:** Qwen2.5-Coder-7B-Instruct and Qwen2.5-32B-Instruct. Each required explicit model/copy selection and review, verified its installed bytes, loaded the selected existing engine, generated an initial response and completed two chat turns. Both owned servers were closed. These Library runs used existing weights/runtime without an online source lookup or re-download; they do not establish multi-GPU execution, model quality or all-model support. Model names identify validation examples, not recommendations.
 - Six additional live image-acquisition checks verified a fresh 6,938,078,334-byte SDXL base download with published hash and a separately approved reuse without another transfer. The destination was initially unoccupied; the first receipt records no reuse. No engine configuration or generation was performed by that run; image receipts leave completeness, hardware fit and runtime execution unverified.
 - Two additional live image-metadata checks verified an explicit public repository query and conservative assessment against actual hardware. Three source-backed image artifacts were returned; no weights were downloaded or executed.
 - Earlier source-selected workflow checks separately verified actual online discovery, exact review/approval and installed-file hash/reuse. They are distinct from the offline Library runs.
-- Five additional live image checks verified the existing ComfyUI/SD1.5 path at an explicit 1024×768, decoded the actual PNG, checked its pixel dimensions and stopped the owned engine. One image-checkpoint combination is verified; a second remains pending.
+- Earlier preview.7 live image checks verified the existing ComfyUI/SD1.5 path at an explicit 1024×768, decoded the actual PNG, checked its pixel dimensions and stopped the owned engine. That evidence remains separate from the preview.10 image runs.
 - Earlier live tests separately established a real model download and one ComfyUI generation path. They are specific model/runtime/hardware evidence, not all-model guarantees or recommendations.
 - Appearance checks cover palettes, hidden Retro selection, scaling/reset, native window settings and unchanged workload/approval state. Rendered previews were inspected at 100% and 150%; physical mouse/keyboard interaction is not established by those checks.
 - GitHub Windows CI is required for publication; its actual result is linked in release notes.

@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.2.0-preview.15 — 2026-10-29 — No default or preinstalled AI tools
+
+- Remove the direct ComfyUI download shortcut from Images. Start with neutral tool discovery and blank engine, path, endpoint and checkpoint choices. Selecting an image workload does not choose a tool.
+- Review each selected image tool on its own source-details page. Optional managed actions appear only for the exact supported source selected by the user. Unsupported tools retain their own identity and manual setup information; no other engine is substituted.
+- Require a separate explicit existing-installation action before exposing its image adapter. Archive lookup requires an explicit matching tool choice. Acquiring image data does not choose an engine or open a ComfyUI configuration page automatically.
+- Stop restoring saved image-engine, text-engine, model and verification-runtime paths as startup selections. Preserve saved configuration and prior user-approved files on disk. Reset tool context and approvals when workloads/tools change; active owned work must finish or stop first.
+- Add a publishing guard against AI model weights, engine archives and known engine executables. The portal ships its application dependencies, not preinstalled AI engines or models.
+- Validation: 1,305 regression/native checks passed. Inspected the rendered neutral Images screen; tests cover alternatives, no default lookup, explicit tool actions, category changes, approval neutrality and no server queries or starts. No AI engine/model was installed, removed or run in this increment.
+
 ## 0.2.0-preview.14 — 2026-10-29 — Shorter project page and approved ComfyUI archives
 
 - Shorten the README to a quick overview, download link and clear working/unfinished features. Move the detailed guide to `docs/start-here.md`; keep its instructions and links available. Shorten GitHub About and retain its Releases link.

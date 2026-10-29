@@ -74,7 +74,10 @@ public partial class MainWindow
 
     internal void ApplyWorkloadSelection(IEnumerable<DiscoveryInterest> interests)
     {
+        if (_imageBusy || _imageServer.IsRunning || _comfyPortableBusy || _comfyFolderBusy)
+            throw new InvalidOperationException("Finish active tool operations and stop the owned image engine before changing workloads.");
         var profile = WorkspaceProfile.Create(_workloadMachine, interests);
+        ResetToolSelection();
         _workspaceProfile = profile;
         _workspaceConfigured = true;
         ImageWorkspaceNav.Visibility = profile.HasImages ? Visibility.Visible : Visibility.Collapsed;
@@ -117,7 +120,7 @@ public partial class MainWindow
     private async void WorkloadRescanButton_Click(object sender, RoutedEventArgs e) => await RunWorkloadScanAsync();
     private async void ChangeWorkloadsButton_Click(object sender, RoutedEventArgs e)
     {
-        if (_imageBusy || _imageServer.IsRunning || _llamaServer.IsRunning || _llamaLifecycleBusy || _discoveryBusy || _packageBusy || _offlineBusy
+        if (_imageBusy || _imageServer.IsRunning || _comfyPortableBusy || _comfyFolderBusy || _llamaServer.IsRunning || _llamaLifecycleBusy || _discoveryBusy || _packageBusy || _offlineBusy
             || _agentRows.Any(row => row.Status is "Queued" or "Checking resources" or "Running"))
         {
             StoreSetupNoticeText.Text = "Finish active tasks/downloads and stop owned engines before changing workloads. Your current workspace and running work have been preserved.";

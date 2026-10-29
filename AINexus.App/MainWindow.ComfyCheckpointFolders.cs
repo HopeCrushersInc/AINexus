@@ -35,7 +35,7 @@ public partial class MainWindow
 
     internal bool OpenComfyCheckpointFolderSetup(string? explicitCheckpointFolder = null)
     {
-        if (!_workspaceConfigured || _workloadMachine is null || _guidedBusy || _discoveryBusy || _imageBusy
+        if (_selectedImageTool is null || !_workspaceConfigured || _workloadMachine is null || _guidedBusy || _discoveryBusy || _imageBusy
             || _comfyFolderBusy || _lifetime.IsCancellationRequested) return false;
         InvalidateComfyCheckpointFolderReview();
         ComfyFolderEngineText.Text = "";
@@ -56,6 +56,11 @@ public partial class MainWindow
     private void ImageArtifactConnectFolderButton_Click(object sender, RoutedEventArgs e)
     {
         if (ImageArtifactResultPath is not { } path || ImageArtifactReceiptPath is null) return;
+        if (_selectedImageTool is null)
+        {
+            ImageFindTools_Click(sender, e);
+            return;
+        }
         OpenComfyCheckpointFolderSetup(Path.GetDirectoryName(path));
     }
 
@@ -81,7 +86,7 @@ public partial class MainWindow
             && ComfyFolderApprovalCheck.IsChecked == true && _comfyFolderApprovedPlanId == plan.PlanId;
         ComfyFolderCancelButton.IsEnabled = _comfyFolderBusy;
         ComfyFolderOpenImagesButton.IsEnabled = idle && _comfyFolderResult is not null && _workspaceProfile?.HasImages == true;
-        if (ImageConnectFolderButton is not null) ImageConnectFolderButton.IsEnabled = idle;
+        if (ImageConnectFolderButton is not null) ImageConnectFolderButton.IsEnabled = idle && _selectedImageTool is not null;
     }
 
     private void ComfyFolderInputsChanged(object sender, TextChangedEventArgs e)

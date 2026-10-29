@@ -24,13 +24,9 @@ public partial class MainWindow
                 _settings = loaded.Settings;
                 OllamaEndpointText.Text = _settings.OllamaEndpoint;
                 LlamaCppEndpointText.Text = _settings.LlamaCppEndpoint;
-                LlamaCppExecutableText.Text = _settings.LlamaCppExecutablePath;
-                LlamaCppModelPathText.Text = _settings.LlamaCppModelPath;
                 LlamaCppContextText.Text = _settings.LlamaCppContextSize.ToString();
                 LlamaCppPortText.Text = new Uri(_settings.LlamaCppEndpoint).Port.ToString();
-                OfflineRuntimeText.Text = _settings.LlamaCppExecutablePath;
                 OfflineContextText.Text = _settings.LlamaCppContextSize.ToString();
-                ImageEnginePathText.Text = _settings.ComfyUIRoot;
                 _preferencesReady.TrySetResult();
                 RefreshLibraryRoots();
                 if (loaded.Warning is not null) LibraryNoticeText.Text = loaded.Warning;

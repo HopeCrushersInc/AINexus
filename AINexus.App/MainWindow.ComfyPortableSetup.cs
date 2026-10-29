@@ -32,7 +32,7 @@ public partial class MainWindow
 
     private void ComfyPortableOpen_Click(object sender, RoutedEventArgs e)
     {
-        if (_comfyPortableBusy) return;
+        if (_comfyPortableBusy || _reviewedTool is null || !IsComfyPortableTool(_reviewedTool)) return;
         _comfyPortableRelease = null;
         ComfyPortableAssetSelector.ItemsSource = null;
         ComfyPortableTagText.Text = ComfyPortableDestinationText.Text = "";
@@ -110,7 +110,7 @@ public partial class MainWindow
     private async void ComfyPortableLookup_Click(object sender, RoutedEventArgs e) => await LookupComfyPortableReleaseAsync();
     internal async Task LookupComfyPortableReleaseAsync()
     {
-        if (_comfyPortableBusy) return;
+        if (_comfyPortableBusy || _reviewedTool is null || !IsComfyPortableTool(_reviewedTool)) return;
         _comfyPortableRelease = null;
         ComfyPortableAssetSelector.ItemsSource = null;
         InvalidateComfyPortablePlan();

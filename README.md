@@ -4,9 +4,9 @@
 
 A local AI library and launcher inspired by Steam, Playnite and Ninite. Find models and tools for your computer, approve their setup, and use supported models offline.
 
-### [Download for Windows x64](https://github.com/HopeCrushersInc/AINexus/releases/download/v0.2.0-preview.14/AINexus-0.2.0-preview.14-win-x64.zip)
+### [Download for Windows x64](https://github.com/HopeCrushersInc/AINexus/releases/download/v0.2.0-preview.15/AINexus-0.2.0-preview.15-win-x64.zip)
 
-**0.2.0-preview.14 · Development preview** · [Release notes & checksums](https://github.com/HopeCrushersInc/AINexus/releases/tag/v0.2.0-preview.14)
+**0.2.0-preview.15 · Development preview** · [Release notes & checksums](https://github.com/HopeCrushersInc/AINexus/releases/tag/v0.2.0-preview.15)
 
 ## How it works
 
@@ -14,14 +14,14 @@ A local AI library and launcher inspired by Steam, Playnite and Ninite. Find mod
 2. **Choose** your tasks, then browse online models and tools.
 3. **Review and approve** each supported download, setup and launch.
 
-No model is preselected. Nothing installs automatically.
+No AI engines, tools or models are bundled or preinstalled. Nothing is selected or installed automatically.
 
 ![Workload choices start unchecked; fixture hardware shown](docs/assets/workload-choices.png)
 
 ## What works today
 
 - **Text and coding:** online model discovery, approved GGUF downloads and local chat.
-- **Images:** approved model and ComfyUI archive downloads; use an existing engine to generate images.
+- **Images:** discover models and tools, choose your engine, then review available setup or local-use actions.
 - **Library:** save source details and local download records; browse them offline.
 - **Appearance:** ten visible styles, adjustable text/buttons and resizable windows.
 

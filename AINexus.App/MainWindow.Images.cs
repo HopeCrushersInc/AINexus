@@ -39,13 +39,16 @@ public partial class MainWindow
     }
     private void RefreshImageControls()
     {
-        ImageConnectButton.IsEnabled = ImageStartButton.IsEnabled = ImageEndpointText.IsEnabled = ImageEnginePathText.IsEnabled = !_imageBusy;
+        var selected = _selectedImageTool is not null;
+        ImageToolLanding.Visibility = selected ? Visibility.Collapsed : Visibility.Visible;
+        ImageAdapterPanel.Visibility = selected ? Visibility.Visible : Visibility.Collapsed;
+        ImageConnectButton.IsEnabled = ImageStartButton.IsEnabled = ImageEndpointText.IsEnabled = ImageEnginePathText.IsEnabled = !_imageBusy && selected;
         ImageStopButton.IsEnabled = !_imageBusy && _imageServer.IsRunning;
         ImageModelSelector.IsEnabled = !_imageBusy && _imageInventory is not null;
         var dimensionsValid = TryReadImageDimensions(out _, out _, out var dimensionMessage);
         ImageWidthText.IsEnabled = ImageHeightText.IsEnabled = !_imageBusy;
         ImageDimensionHintText.Text = dimensionMessage;
-        ImageGenerateButton.IsEnabled = !_imageBusy && dimensionsValid && _imageConnectedEndpoint is not null && ImageModelSelector.SelectedItem is string;
+        ImageGenerateButton.IsEnabled = selected && !_imageBusy && dimensionsValid && _imageConnectedEndpoint is not null && ImageModelSelector.SelectedItem is string;
         ImageCancelButton.IsEnabled = _imageBusy;
         ImageSaveButton.IsEnabled = !_imageBusy && _imageResult is not null;
         RefreshComfyCheckpointFolderControls();
@@ -77,6 +80,7 @@ public partial class MainWindow
     }
     private async Task ConnectImageEngineAsync(CancellationToken token)
     {
+        if (_selectedImageTool is null) throw new InvalidOperationException("Choose an image tool before connecting an engine.");
         _imageInventory = null; _imageConnectedEndpoint = null; ImageModelSelector.ItemsSource = null;
         var endpoint = new Uri(ImageEndpointText.Text.Trim());
         ComfyImageClient.ValidateEndpoint(endpoint);
@@ -92,7 +96,7 @@ public partial class MainWindow
     { ImageStatusText.Text = "Checking the local engine and its installed checkpoints..."; await ConnectImageEngineAsync(token); });
     private async void ImageStartButton_Click(object sender, RoutedEventArgs e)
     {
-        if (_imageBusy) return;
+        if (_imageBusy || _selectedImageTool is null) return;
         if (string.IsNullOrWhiteSpace(ImageEnginePathText.Text))
         {
             var dialog = new OpenFolderDialog { Title = "Choose an already installed ComfyUI portable folder", Multiselect = false };
@@ -125,7 +129,7 @@ public partial class MainWindow
     private async void ImageGenerateButton_Click(object sender, RoutedEventArgs e) => await GenerateSelectedImageAsync();
     internal async Task GenerateSelectedImageAsync()
     {
-        if (_imageBusy || _lifetime.IsCancellationRequested) return;
+        if (_imageBusy || _selectedImageTool is null || _lifetime.IsCancellationRequested) return;
         if (!TryReadImageDimensions(out var width, out var height, out var dimensionMessage))
         {
             ImageStatusText.Text = dimensionMessage;

@@ -39,9 +39,9 @@ public partial class MainWindow
             return;
         }
         var item = row.Recommendation.Item;
-        if (IsComfyPortableTool(item))
+        if (item.Kind == "Tool" && item.Interest == DiscoveryInterest.Images)
         {
-            ComfyPortableOpen_Click(this, new RoutedEventArgs());
+            if (!SelectDiscoveredTool(item)) DiscoveryStatusText.Text = "Finish or stop the active tool operation before choosing another tool.";
             return;
         }
         if (item is { Interest: DiscoveryInterest.Images, Kind: "Model", Artifact: { Format: "Safetensors" } })

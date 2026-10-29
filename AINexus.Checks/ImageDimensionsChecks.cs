@@ -45,6 +45,11 @@ internal static class ImageDimensionsChecks
                 check(admissions == 0 && requests == 0 && factories == 0,
                     "Image size defaults do not connect, enqueue or generate without an explicit checkpoint choice");
 
+                window.CompleteWorkloadScan(DiscoveryPipelineChecks.FixtureMachine());
+                window.ApplyWorkloadSelection([DiscoveryInterest.Images]);
+                window.SelectDiscoveredTool(ToolSelectionChecks.OfficialComfyFixture());
+                window.UseSelectedImageTool();
+
                 typeof(MainWindow).GetField("_imageConnectedEndpoint", BindingFlags.Instance | BindingFlags.NonPublic)!.SetValue(window, new Uri("http://127.0.0.1:8188"));
                 typeof(MainWindow).GetField("_imageInventory", BindingFlags.Instance | BindingFlags.NonPublic)!.SetValue(window, new ComfyInventory("fixture", [Checkpoint], DateTimeOffset.UtcNow));
                 selector.ItemsSource = new[] { Checkpoint };

@@ -2,7 +2,7 @@
 param(
     [ValidateLength(1, 128)]
     [ValidatePattern('^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(?:-(?:(?:0|[1-9][0-9]*|[0-9]*[A-Za-z-][0-9A-Za-z-]*)(?:\.(?:0|[1-9][0-9]*|[0-9]*[A-Za-z-][0-9A-Za-z-]*))*))?$')]
-    [string]$Version = '0.2.0-preview.14',
+    [string]$Version = '0.2.0-preview.15',
     [string]$OutputRoot,
     [string]$SourceCommit
 )
@@ -199,6 +199,13 @@ Project instructions and changelog:
 https://github.com/HopeCrushersInc/AINexus
 "@
 [IO.File]::WriteAllText((Join-Path $publishDirectory 'README-FIRST.txt'), $readme, [Text.UTF8Encoding]::new($false))
+
+# The portal ships adapters, never preinstalled AI engines, model weights or engine archives.
+$forbiddenPayload = @(Get-ChildItem -LiteralPath $publishDirectory -File -Recurse | Where-Object {
+    $_.Extension.ToLowerInvariant() -in @('.gguf', '.safetensors', '.onnx', '.pt', '.pth', '.ckpt', '.7z') -or
+    $_.Name.ToLowerInvariant() -in @('llama-server.exe', 'ollama.exe', 'python.exe', 'main.py', 'run_nvidia_gpu.bat')
+})
+if ($forbiddenPayload.Count -gt 0) { throw 'The portal package contains an external engine/model payload. Publish tools separately; no AI tool may be preinstalled.' }
 
 $inventory = @(Get-ChildItem -LiteralPath $publishDirectory -File -Recurse | Sort-Object FullName | ForEach-Object {
     [ordered]@{

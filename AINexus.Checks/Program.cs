@@ -230,6 +230,7 @@ internal static class Program
         GpuPowerUiChecks.RunNative(Check);
         AppearanceChecks.RunNative(window, Check);
         ComfyPortableUiChecks.RunNative(Check);
+        ToolSelectionChecks.RunNative(Check);
         var appearancePreview = Array.IndexOf(args, "--appearance-preview");
         if (appearancePreview >= 0)
         {

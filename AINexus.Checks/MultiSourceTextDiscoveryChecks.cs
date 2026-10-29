@@ -46,7 +46,7 @@ internal static class MultiSourceTextDiscoveryChecks
                 "Broad text discovery interleaves popular, trending and recently modified source lists instead of hiding new sources behind a single ranking");
             check(models.Length == 10 && models.Select(item => item.Id).Distinct().Count() == models.Length
                 && requests.Count(uri => uri.AbsolutePath == "/api/models/Fixture/Shared") == 1,
-                "Cross-feed repository deduplication avoids repeat metadata reads while preserving two distinct file variants per source");
+                "Cross-feed repository deduplication avoids repeat metadata reads while preserving distinct file variants per source");
             check(requests.Where(uri => uri.AbsolutePath == "/api/models").All(uri =>
                 uri.Query.Contains("filter=gguf") && uri.Query.Contains("pipeline_tag=text-generation"))
                 && maximumInFlight is >= 2 and <= 4,
@@ -106,6 +106,50 @@ internal static class MultiSourceTextDiscoveryChecks
                 && result.Items.Where(item => item.Artifact is not null).All(item => item.Signals is
                     { Downloads: null, Likes: null, UpdatedAt: null, ParameterCount: null }),
                 "Invalid source counts, dates and parameter totals remain unknown instead of being guessed from model names");
+        }
+
+        var variantRequests = 0;
+        using (var http = new HttpClient(new Handler((request, _) =>
+        {
+            Interlocked.Increment(ref variantRequests);
+            var uri = request.RequestUri!;
+            if (uri.AbsolutePath == "/api/models")
+                return Task.FromResult(Json("[{\"id\":\"Fixture/ManyA\"},{\"id\":\"Fixture/Few\"},{\"id\":\"Fixture/ManyC\"}]"));
+            if (!uri.AbsolutePath.Contains("/tree/")) return Task.FromResult(Reply(uri));
+            var count = uri.AbsolutePath.Contains("/Few/") ? 2 : 8;
+            return Task.FromResult(Json(JsonSerializer.Serialize(Enumerable.Range(0, count).Reverse().Select(index => new
+            {
+                type = "file", path = $"variant-{index:000}.gguf",
+                size = index == 0 ? 101L * 1_073_741_824 : (index + 1) * 1_073_741_824L,
+                lfs = new { oid = Hash }
+            }))));
+        })))
+        {
+            var result = await new VerifiedOnlineDiscoveryProvider(http).SearchAsync(new(DiscoveryInterest.LocalAssistants, "", 12));
+            var expected = new[] { "ManyA", "Few", "ManyC", "ManyA", "Few", "ManyC", "ManyA", "ManyC", "ManyA", "ManyC", "ManyA", "ManyC" };
+            check(result.Items.Count == 12 && result.Items.Select(item => item.Artifact!.Repository.Split('/')[1]).SequenceEqual(expected)
+                && result.Items.Where(item => item.Artifact!.Repository == "Fixture/ManyA")
+                    .Select(item => item.Artifact!.FileName).SequenceEqual(Enumerable.Range(0, 5).Select(index => $"variant-{index:000}.gguf")),
+                "Sparse broad searches expose more than two variants and distribute extra slots fairly without exhausting one repository first");
+            check(variantRequests == 9 && result.Items.Select(item => item.Id).Distinct().Count() == 12
+                && result.Items.Any(item => item.Artifact!.SizeBytes == 101L * 1_073_741_824)
+                && result.Items.All(item => item.Signals?.ParameterCount == 32_000_000_000)
+                && result.Notes.Any(note => note.Contains("up to the result limit")),
+                "Expanded variants reuse the same bounded metadata reads and preserve large file sizes and source parameter counts for separate local fit assessment");
+        }
+
+        using (var http = new HttpClient(new Handler((request, _) =>
+        {
+            var uri = request.RequestUri!;
+            if (uri.AbsolutePath == "/api/models") return Task.FromResult(Json("[{\"id\":\"Fixture/Many\"}]"));
+            if (!uri.AbsolutePath.Contains("/tree/")) return Task.FromResult(Reply(uri));
+            return Task.FromResult(Json(JsonSerializer.Serialize(Enumerable.Range(0, 60).Select(index => new
+                { type = "file", path = $"variant-{index:000}.gguf", size = index + 1L, lfs = new { oid = Hash } }))));
+        })))
+        {
+            var result = await new VerifiedOnlineDiscoveryProvider(http).SearchAsync(new(DiscoveryInterest.LocalAssistants, "", 48));
+            check(result.Items.Count == 48 && result.Items[^1].Artifact?.FileName == "variant-047.gguf",
+                "A single matching repository can fill forty-eight broad-search slots without exceeding the configured result bound");
         }
     }
 

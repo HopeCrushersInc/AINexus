@@ -87,7 +87,7 @@ public sealed class DiscoveryCacheStore(string directory)
     {
         var purposeScoped = request.Interest is DiscoveryInterest.Coding or DiscoveryInterest.Agents;
         var semantics = request.RuntimeReleaseTag is not null ? "text-search-v2"
-            : ModelOnlyQuery(request) ? (purposeScoped ? "task-purpose-text-models-v4" : "text-model-search-v3")
+            : ModelOnlyQuery(request) ? (purposeScoped ? "task-purpose-text-models-v5" : "text-model-search-v4")
             : "workflow-task-metadata-v3";
         var key = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(
             $"{request.Interest}\n{request.Query}\n{request.Limit}\n{semantics}\n{request.SearchOrder}" +

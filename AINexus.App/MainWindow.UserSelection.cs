@@ -4,6 +4,10 @@ namespace AINexus.App;
 
 public partial class MainWindow
 {
+    internal static bool IsComfyPortableTool(DiscoveredItem item) => item.Kind == "Tool"
+        && item.Sources.Any(source => source.Url is { IsAbsoluteUri: true, Scheme: "https", Host: "github.com", Port: 443 }
+            && source.Url.UserInfo.Length == 0 && source.Url.Query.Length == 0 && source.Url.Fragment.Length == 0
+            && source.Url.AbsolutePath.TrimEnd('/').Equals("/Comfy-Org/ComfyUI", StringComparison.OrdinalIgnoreCase));
     internal Action<Uri>? DiscoverySourceOpenOverride { get; set; }
     private static Uri? DiscoverySourceUri(DiscoveredItem item) => item.Sources.Select(source => source.Url)
         .FirstOrDefault(url => url is { IsAbsoluteUri: true, Scheme: "https", Port: 443 }
@@ -35,6 +39,11 @@ public partial class MainWindow
             return;
         }
         var item = row.Recommendation.Item;
+        if (IsComfyPortableTool(item))
+        {
+            ComfyPortableOpen_Click(this, new RoutedEventArgs());
+            return;
+        }
         if (item is { Interest: DiscoveryInterest.Images, Kind: "Model", Artifact: { Format: "Safetensors" } })
         {
             if (!TrySelectImageArtifactSetup(item, row.Report.Catalog))

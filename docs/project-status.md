@@ -1,9 +1,10 @@
 # Current project status
 
-Release: **0.2.0-preview.13**, Windows x64 development preview, 2026-10-28. This adds ten visible appearances and preserves hidden Retro, native resizing and text/button zoom. Preview.12 media discovery and saved-evidence changes remain included. Historical inference evidence remains separate; this update does not claim new image/video generation runs.
+Release: **0.2.0-preview.14**, Windows x64 development preview, 2026-10-29. This adds approved official ComfyUI archive downloads and a shorter project front page. Archive download is not engine installation: extraction, bundled-terms inspection and engine verification remain unfinished. Earlier text/image execution evidence remains historical; no new inference run is claimed.
 
 ## Working within tested limits
 
+- Official ComfyUI archive acquisition: **Images → Get ComfyUI archive**, check releases, select an archive, choose an existing folder, review exact source/bytes/hash/terms/destination, approve, then download. Files are SHA-256 verified; conflicts preserved and owned partials cleaned. Receipts explicitly record no extraction, installation or execution. Source names do not prove GPU/driver compatibility.
 - Simpler task/action buttons and a static black-hole backdrop. Standard starts each session; choose among ten visible styles (Standard, LCARS, Cyberpunk, Midnight, Ocean, Forest, Ember, Graphite, Paper, Terminal). Paper and Graphite use quiet plain backgrounds; Terminal uses a static grid. Shift-clicking LCARS still opens hidden Retro. Shift-wheel or the Size menu scales text/buttons from 75% to 175%, with reset to 100%. Native title-bar dragging and all-edge/corner resizing remain available.
 - Actual CPU, RAM, GPU/driver and fixed-volume scans. Workload choices start unchecked and are not remembered.
 - Confirmed workloads initiate source searches. GGUF text-model artifacts have source links, pinned revisions, available sizes/hashes/licenses and local resource estimates. User selection is required; no model is selected automatically.

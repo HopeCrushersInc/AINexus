@@ -56,6 +56,10 @@ internal static class AppearancePreview
             host.FontFamily = subject.FontFamily; host.FontSize = subject.FontSize;
             await Dispatcher.Yield(DispatcherPriority.ApplicationIdle); host.UpdateLayout();
             Save(host, Path.Combine(directory, "startup.png"));
+            typeof(MainWindow).GetField("_workspaceConfigured", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!.SetValue(subject, true);
+            ((TabItem)subject.FindName("ComfyPortableSetupTab")).IsSelected = true;
+            await Dispatcher.Yield(DispatcherPriority.ApplicationIdle); host.UpdateLayout();
+            Save(host, Path.Combine(directory, "comfy-archive.png"));
         }
         finally { host.Content = null; host.Close(); subject.Content = content; subject.Close(); }
     });

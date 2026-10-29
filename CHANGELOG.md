@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.2.0-preview.14 — 2026-10-29 — Shorter project page and approved ComfyUI archives
+
+- Shorten the README to a quick overview, download link and clear working/unfinished features. Move the detailed guide to `docs/start-here.md`; keep its instructions and links available. Shorten GitHub About and retain its Releases link.
+- Add explicit official ComfyUI current/tag release lookup. No lookup runs on opening the pane; no archive, destination or approval is selected automatically. Show only supported canonical archive names with exact published size and SHA-256, without asserting GPU/driver compatibility.
+- Review and approve the exact archive and local destination before transfer. Validate fresh metadata, storage and paths; verify complete bytes/hash, preserve conflicts, rehash existing matching files, clean owned partials on failure/cancel and write private acquisition receipts. Closing waits for owned-operation cleanup.
+- Add source-terms access and route the exact official ComfyUI tool to this supported archive review. Other tools retain manual setup. Download approval is consumed and changing inputs revokes it.
+- This acquires an archive only. Safe extraction, bundled dependency terms review, engine verification and installed-engine registration are separate unfinished steps. No engine or model starts after downloading.
+- Validation: 1,290 deterministic regression/native checks and one live official-release metadata check passed (1,291 total). The archive page was rendered and inspected. Binary-transfer behavior used inert fixtures; no real ComfyUI archive download, extraction or inference run is claimed.
+
 ## 0.2.0-preview.13 — 2026-10-28 — More appearances, same user control
 
 - Expand Appearance to ten visible choices: Standard, LCARS, Cyberpunk, Midnight, Ocean, Forest, Ember, Graphite, Paper and Terminal. Preserve the hidden Retro style through Shift-clicking LCARS; it has no separate visible menu entry.

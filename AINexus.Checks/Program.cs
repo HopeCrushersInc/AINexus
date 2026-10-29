@@ -41,6 +41,8 @@ internal static class Program
             RuntimeArchiveChecks.RunAsync(Check).GetAwaiter().GetResult();
             RuntimeInstallationChecks.RunAsync(Check).GetAwaiter().GetResult();
             RuntimeDownloadChecks.RunAsync(Check).GetAwaiter().GetResult();
+            ComfyPortableChecks.RunAsync(Check).GetAwaiter().GetResult();
+            if (args.Contains("--comfy-portable-live")) ComfyPortableChecks.RunLiveAsync(Check).GetAwaiter().GetResult();
             ImageWorkflowChecks.RunAsync(Check).GetAwaiter().GetResult();
             WorkloadSetupChecks.RunAsync(Check).GetAwaiter().GetResult();
             OnlineDiscoveryChecks.RunAsync(Check).GetAwaiter().GetResult();
@@ -227,6 +229,7 @@ internal static class Program
         ModelEvaluationCacheChecks.RunNative(Check);
         GpuPowerUiChecks.RunNative(Check);
         AppearanceChecks.RunNative(window, Check);
+        ComfyPortableUiChecks.RunNative(Check);
         var appearancePreview = Array.IndexOf(args, "--appearance-preview");
         if (appearancePreview >= 0)
         {

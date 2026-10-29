@@ -886,7 +886,7 @@
                 <Expander Grid.Row="1" Header="Image engine" IsExpanded="True" Foreground="{DynamicResource NexusMutedBrush}" Margin="0,0,0,18"><StackPanel>
                     <Button x:Name="ImageConnectFolderButton" Content="Connect model folder" Click="ComfyFolderOpenButton_Click" HorizontalAlignment="Left" Margin="0,8,0,8" ToolTip="Open a separate explicit review for existing engine and checkpoint folders; no engine is started"/>
                     <DockPanel Margin="0,10,0,8"><Button x:Name="ImageConnectButton" DockPanel.Dock="Right" Content="Check connection" Click="ImageConnectButton_Click" Margin="8,0,0,0"/><TextBox x:Name="ImageEndpointText" Text="http://127.0.0.1:8188" TextChanged="ImageInputsChanged" ToolTip="Only a local loopback image engine is supported"/></DockPanel>
-                    <DockPanel><StackPanel DockPanel.Dock="Right" Orientation="Horizontal"><Button x:Name="ImageStartButton" Content="Start engine" Click="ImageStartButton_Click" Margin="8,0,0,0"/><Button x:Name="ImageStopButton" Content="Stop engine" Click="ImageStopButton_Click" IsEnabled="False" Margin="8,0,0,0"/></StackPanel><TextBox x:Name="ImageEnginePathText" ToolTip="Existing ComfyUI portable folder. Start engine lets you choose it. No software is installed automatically."/></DockPanel>
+                    <DockPanel><StackPanel DockPanel.Dock="Right" Orientation="Horizontal"><Button Content="Get ComfyUI archive" Click="ComfyPortableOpen_Click" Margin="0,0,8,0"/><Button x:Name="ImageStartButton" Content="Start engine" Click="ImageStartButton_Click" Margin="8,0,0,0"/><Button x:Name="ImageStopButton" Content="Stop engine" Click="ImageStopButton_Click" IsEnabled="False" Margin="8,0,0,0"/></StackPanel><TextBox x:Name="ImageEnginePathText" ToolTip="Existing ComfyUI portable folder. Start engine lets you choose it. No software is installed automatically."/></DockPanel>
                 </StackPanel></Expander>
                 <Grid Grid.Row="2"><Grid.ColumnDefinitions><ColumnDefinition Width="330"/><ColumnDefinition Width="20"/><ColumnDefinition/></Grid.ColumnDefinitions>
                     <ScrollViewer VerticalScrollBarVisibility="Auto"><StackPanel>
@@ -912,6 +912,30 @@
                 <TextBlock Grid.Row="3" x:Name="ImageStatusText" Text="No image engine has been checked. Connect an installed ComfyUI engine to discover its actual checkpoints. Nothing loads until you ask." Foreground="{DynamicResource NexusMutedBrush}" TextWrapping="Wrap" Margin="0,18,0,0"/>
             </Grid>
         </TabItem>
+        <TabItem x:Name="ComfyPortableSetupTab" Header="Get image engine archive"><ScrollViewer VerticalScrollBarVisibility="Auto"><StackPanel Margin="28">
+            <TextBlock Text="Get a portable image engine" FontSize="{DynamicResource NexusFontSize28}" FontWeight="SemiBold"/>
+            <TextBlock Text="Choose an official ComfyUI archive, review it, then approve its download. This step does not extract, install or start an engine." TextWrapping="Wrap" Foreground="{DynamicResource NexusMutedBrush}" Margin="0,10,0,20"/>
+            <Border Style="{StaticResource PanelStyle}"><StackPanel>
+                <TextBlock Text="1. Check the official release" FontSize="{DynamicResource NexusFontSize20}"/>
+                <TextBlock Text="Optional release tag (leave blank to check the current release)" Margin="0,12,0,5"/>
+                <TextBox x:Name="ComfyPortableTagText" TextChanged="ComfyPortableInputChanged"/>
+                <Button x:Name="ComfyPortableLookupButton" Content="Check releases" Click="ComfyPortableLookup_Click" HorizontalAlignment="Left" Margin="0,10,0,12"/>
+                <TextBlock Text="2. Choose an archive yourself"/>
+                <ComboBox x:Name="ComfyPortableAssetSelector" DisplayMemberPath="Name" SelectionChanged="ComfyPortableAssetChanged" Margin="0,6,0,12"/>
+                <TextBlock Text="Archive names describe publisher builds; they do not prove compatibility with your GPU or driver." TextWrapping="Wrap" Foreground="{DynamicResource NexusMutedBrush}"/>
+                <TextBlock Text="3. Choose an existing download folder" Margin="0,16,0,6"/>
+                <DockPanel><Button x:Name="ComfyPortableBrowseButton" DockPanel.Dock="Right" Content="Choose folder" Click="ComfyPortableBrowse_Click" Margin="10,0,0,0"/><TextBox x:Name="ComfyPortableDestinationText" TextChanged="ComfyPortableInputChanged"/></DockPanel>
+                <Button x:Name="ComfyPortableReviewButton" Content="Review archive download" Click="ComfyPortableReview_Click" HorizontalAlignment="Left" Margin="0,12,0,0"/>
+            </StackPanel></Border>
+            <Border Style="{StaticResource PanelStyle}"><StackPanel>
+                <TextBox x:Name="ComfyPortableDetailsText" Text="No release, archive or destination selected." TextWrapping="Wrap" IsReadOnly="True" MaxHeight="240" VerticalScrollBarVisibility="Auto"/>
+                <Button x:Name="ComfyPortableTermsButton" Content="Read source terms" Click="ComfyPortableTerms_Click" HorizontalAlignment="Left" Margin="0,10,0,0"/>
+                <CheckBox x:Name="ComfyPortableApprovalCheck" Foreground="{DynamicResource NexusTextBrush}" Margin="0,16,0,10" Checked="ComfyPortableApprovalChanged" Unchecked="ComfyPortableApprovalChanged"><TextBlock Text="I accept the displayed ComfyUI source terms and approve this exact archive download and destination. Bundled components need separate terms review before installation. This download does not install an engine." TextWrapping="Wrap"/></CheckBox>
+                <WrapPanel><Button x:Name="ComfyPortableDownloadButton" Content="Download approved archive" Click="ComfyPortableDownload_Click"/><Button x:Name="ComfyPortableCancelButton" Content="Cancel" Click="ComfyPortableCancel_Click" Margin="12,0,0,0"/></WrapPanel>
+                <ProgressBar x:Name="ComfyPortableProgress" Height="5" Minimum="0" Maximum="100" Margin="0,14,0,0"/>
+            </StackPanel></Border>
+            <TextBlock x:Name="ComfyPortableStatusText" Text="Nothing has been checked or downloaded." TextWrapping="Wrap" Foreground="{DynamicResource NexusMutedBrush}"/>
+        </StackPanel></ScrollViewer></TabItem>
             </TabControl>
         </Grid>
     </Grid>

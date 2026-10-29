@@ -2,76 +2,36 @@
 
 **Your hardware. Your workflow. Your choice.**
 
-AI Nexus scans the computer, shows workload categories, and searches live internet sources after the user asks. It does not choose a model, promote a provider, or install software automatically.
+A local AI library and launcher inspired by Steam, Playnite and Ninite. Find models and tools for your computer, approve their setup, and use supported models offline.
 
-### [Download for Windows x64](https://github.com/HopeCrushersInc/AINexus/releases/download/v0.2.0-preview.13/AINexus-0.2.0-preview.13-win-x64.zip)
+### [Download for Windows x64](https://github.com/HopeCrushersInc/AINexus/releases/download/v0.2.0-preview.14/AINexus-0.2.0-preview.14-win-x64.zip)
 
-**0.2.0-preview.13 · Development preview**
+**0.2.0-preview.14 · Development preview** · [Release notes & checksums](https://github.com/HopeCrushersInc/AINexus/releases/tag/v0.2.0-preview.14)
 
-[Release notes & checksums](https://github.com/HopeCrushersInc/AINexus/releases/tag/v0.2.0-preview.13) · [What works / what is unfinished](docs/project-status.md) · [Changelog](CHANGELOG.md) · [Discussions](https://github.com/HopeCrushersInc/AINexus/discussions)
+## How it works
 
-![Workload-first startup with unchecked categories](docs/assets/workload-choices.png)
+1. **Scan** your hardware.
+2. **Choose** your tasks, then browse online models and tools.
+3. **Review and approve** each supported download, setup and launch.
 
-*Startup regression-check capture using fixture hardware. Categories are visible and unchecked; no model is selected.*
+No model is preselected. Nothing installs automatically.
 
-## The workflow
+![Workload choices start unchecked; fixture hardware shown](docs/assets/workload-choices.png)
 
-1. **Open Nexus.** It scans local hardware; no software is installed or started.
-2. **Choose your tasks.** Coding, art/images, music/audio, video, speech, 3D, CAD, 3D printing, game development, reverse engineering, streaming, assistants and agents are visible. Nothing is checked or remembered.
-3. **Find online choices.** Confirming the checked tasks searches every selected category using the startup hardware snapshot. All returned models, tools and runtimes are visible by default, including unknown or unmet requirements and missing installation recipes. The optional **Show only estimated-fit results** filter narrows the list; it starts unchecked. Estimated-fit results appear first, preserving source order within each assessment group. No result is preselected or labeled “best.” A category or query can narrow a later search.
-4. **Choose a result.** Inspect the actual source, license and available evidence. Unknown information stays unknown.
-5. **Approve a specific action.** Supported download/install recipes require review and explicit approval. Configuration and launch remain separate actions.
+## What works today
 
-## What is available
+- **Text and coding:** online model discovery, approved GGUF downloads and local chat.
+- **Images:** approved model and ComfyUI archive downloads; use an existing engine to generate images.
+- **Library:** save source details and local download records; browse them offline.
+- **Appearance:** ten visible styles, adjustable text/buttons and resizable windows.
 
-| Area | Current behavior |
-| --- | --- |
-| Text/coding model discovery | Popular, trending and recent GGUF sources; pinned artifacts, reported parameters/dates and separate memory/storage estimates |
-| Reported benchmark evidence | Explicit exact-repository lookup, private saved snapshots and offline loading; reported scores and source-verification flags remain distinct from Nexus evaluation |
-| Image discovery | Live pinned Safetensors artifact metadata plus tool repositories; image files remain unverified candidates |
-| Video discovery | Live pinned text-to-video and image-to-video repository candidates plus tools; complete model files, runtime setup and hardware fit are unverified |
-| Other workload discovery | Live public tool-repository metadata; install adapters vary and are explicitly identified |
-| Persistent catalog and Library | SQLite source catalog, merged task categories, offline browsing and private acquisition-receipt links |
-| Supported data acquisition | Explicit GGUF and image-Safetensors file reviews, exact approval, size/SHA-256 verification, private receipts and no conflicting overwrite |
-| Runtime and local use | Explicit engine setup, local chat, image-engine configuration and owned-process controls |
+**Still being built:** generator-engine installation, complete video setup/generation, automatic server switching, and releases for other platforms. A search result does not guarantee compatibility or an available installer.
 
-**Discovery is not installation. A search result is not a recommendation or proof of compatibility.** Automated installation is currently limited to implemented recipes; finding an art or music tool does not mean its installer is supported.
+Windows x64 only for now. The app includes .NET; models and AI engines are separate. No purchase or Microsoft sign-in is required.
 
-Text searches combine Hugging Face **popular, trending and recently updated text-generation GGUF** listings. Broad coverage interleaves those lists and deduplicates repositories; the optional search view can request one order instead. Confirmed text workloads and the native text search request up to **48 results**, including supporting runtime metadata, from at most **24 inspected repositories** with four concurrent reads and a 60-second deadline. A failed feed preserves successful results. Source ordering is preserved within hardware-assessment groups; no combined quality score is invented.
+[Start here](docs/start-here.md) · [What works / what is unfinished](docs/project-status.md) · [Changelog](CHANGELOG.md) · [Roadmap](docs/development-roadmap.md)
 
-Results show source-reported repository parameters, update dates and downloads when available. These are repository facts, not proof of an artifact's architecture, release date, quality or speed. No parameter count is guessed from a filename. Use a model/publisher term or explicitly browse a selected repository's standalone files to inspect more quantizations. Named projectors, importance matrices, draft models and adapters are excluded from primary-model discovery; complete split GGUF sets and pagination are not supported yet. Search coverage remains bounded. The [official Hub API](https://huggingface.co/docs/hub/en/api) documents the metadata source; independent task evaluations remain separate unfinished work.
-
-**Benchmark evidence** opens a selected text model's exact repository without contacting the internet. **Read public evaluations** explicitly retrieves its reported benchmark/task values, dates, attribution, source-verification flags and submission PR numbers. When a catalog folder is configured, the original source snapshot is saved privately beside it for offline review. **Load saved evidence** reads that repository's saved snapshot without contacting the internet or falling back to an online lookup. Original retrieval dates remain visible; saved evidence may be stale. A save failure preserves usable live results with a warning. Corrupt saved files are preserved and reported, rather than silently refreshed.
-
-You can also enter another exact repository to inspect it separately. Missing rows remain unknown; upstream scores are never substituted for quantized-file measurements. Parsing is limited to 32 inspected rows; evaluated weights and quantization equivalence are not established. External attribution links are displayed as data and are not fetched automatically. Changing the selected model or repository revokes stale responses. Model choices and approvals are not saved. See [Hugging Face evaluation semantics](https://huggingface.co/docs/hub/eval-results). Comparable benchmark ranking, independent Nexus evaluation and a normalized benchmark catalog remain unfinished.
-
-Download size and selected-drive space are shown separately from the conservative runtime-memory estimate. A file can fit on disk and still exceed the assessed available RAM/VRAM. Text models may qualify through system RAM when full GPU offload does not fit; partial CPU/GPU offload and disk-backed execution remain unassessed, and no speed is promised.
-
-Image discovery searches public Hugging Face text-to-image repositories for bounded root Safetensors candidates and also lists GitHub tools. Pinned file sizes, hashes and licenses are shown when supplied. Image file candidates appear with an explicit unverified notice; a file may be a component or adapter, and its hardware fit and complete checkpoint contents are not established. The **Available action** column distinguishes **Review image file download** from **View source / manual setup**. A generator application listed as a tool has no automatic installation recipe yet; inspecting it keeps its source details visible in Discover. **Open source page** opens the selected public page only when clicked and approves no download or installation.
-
-To acquire a supported image file, select its result and **Review selected item**, then **Choose existing folder → Review exact file download → approve the displayed source/license/plan → Download approved file**. The destination starts blank. Transfer verifies exact bytes and SHA-256, or rehashes a matching existing file when the review permits reuse. This acquires model data; it does not install a generator or prove that the checkpoint runs. After completion, **Connect this folder** opens a separate review for an existing portable ComfyUI engine; applying that configuration still requires its own approval.
-
-Video searches both Hugging Face **text-to-video** and **image-to-video** feeds, interleaves and deduplicates their repositories, and adds a separate GitHub tool search. It inspects at most four repositories per task and eight repositories total, with at most eleven metadata requests and no pagination. Exact publisher/repository queries inspect that source directly. A video candidate has a pinned repository/model-card source, task and available license metadata, **not a fabricated complete-file inventory or download size**. Video models may require multiple components and dedicated runtimes; video download, installation and generation recipes are not integrated. **Inspect video pipeline / manual setup** exposes those limits without assigning video GGUF files to the text runtime. Nexus does not apply text-model memory estimates to image or video candidates.
-
-The new Library keeps saved source facts separate from private local receipts. Browsing and filtering do not contact the internet, rehash large models, install software or start engines. A receipt means an acquisition was recorded; current integrity and successful offline execution need their own checks. See [catalog design and storage](docs/catalog.md).
-
-Supported GGUF models can also be opened from Library: choose the model, select its exact installed copy, review the saved source and local path, then explicitly load it with an existing engine. Local review starts no download or engine. Loading checks the current file hash and hardware capacity before testing generation and opening chat.
-
-Image folders can be connected to an existing portable ComfyUI engine through a **separate review and approval**. The review shows the exact folders, configuration contents, existing file hash and recovery backup. Applying writes only the dedicated configuration; the original engine YAML stays unchanged. It affects the **next explicit engine start**, then you refresh the checkpoint list and choose a model yourself. Installed folder configuration persists; workload/model choices and approvals are never restored.
-
-Images offers session-only width and height controls from **256 to 1024 pixels**, in multiples of 64. Explicit local generation was verified with SD1.5 at 512×512 and SDXL Base at 1024×1024 using the existing ComfyUI engine and both folder configurations. These are specific tested combinations, not default model choices or a guarantee for every checkpoint, size and computer.
-
-## Appearance and controls
-
-The simpler Home screen uses task and action buttons over a black-hole backdrop. Standard is the startup appearance. The **Appearance** menu offers Standard, LCARS, Cyberpunk, Midnight, Ocean, Forest, Ember, Graphite, Paper and Terminal. Paper provides a light reading surface, Graphite a quiet neutral surface and Terminal a monospace grid; the space styles keep the black-hole backdrop. Hold **Shift** while clicking LCARS to reveal the hidden Retro style. Appearance is session-only.
-
-Hold **Shift** and scroll the mouse wheel to resize text and buttons from **75% to 175%**. The **Size** menu also offers smaller, larger and reset to 100%. Ordinary scrolling still scrolls. Use the native title bar to drag the window and any edge or corner to resize it.
-
-## Preview limits
-
-Windows x64 only. .NET is bundled; models and external engines are separate. Embedded web interfaces need WebView2. Nexus leaves GPU power settings unchanged unless the user explicitly applies a supported per-card limit in Performance. There is no universal wattage or NVIDIA power-control requirement for model launch. Other platforms, broader image installation, automatic server switching, thermal/fan controls and iCUE investigation remain unfinished.
-
-Windows stays on its local account. No purchase or Microsoft sign-in is required. Existing model chat tests are recorded as validation examples, not promoted or preferred choices.
+[Discussions](https://github.com/HopeCrushersInc/AINexus/discussions) · [Report a bug](https://github.com/HopeCrushersInc/AINexus/issues)
 
 ## Build and validate
 
@@ -80,4 +40,4 @@ dotnet build AINexus.App/AINexus.App.csproj -c Release
 dotnet run --project AINexus.Checks/AINexus.Checks.csproj -c Release
 ```
 
-[Installation guide](docs/releases.md) · [Technical details](docs/technical-overview.md) · [Roadmap](docs/development-roadmap.md) · [Community](docs/community.md) · [Report a bug](https://github.com/HopeCrushersInc/AINexus/issues)
+[Packaging](docs/releases.md) · [Technical details](docs/technical-overview.md) · [Community](docs/community.md)

@@ -1,10 +1,10 @@
 # Current project status
 
-Release: **0.2.0-preview.12**, Windows x64 development preview, 2026-10-28. This adds visible media/tool choices, video repository discovery, explicit setup availability and saved benchmark evidence. Historical preview.11 text/image/configuration evidence remains separate; this update does not claim new image/video generation runs.
+Release: **0.2.0-preview.13**, Windows x64 development preview, 2026-10-28. This adds ten visible appearances and preserves hidden Retro, native resizing and text/button zoom. Preview.12 media discovery and saved-evidence changes remain included. Historical inference evidence remains separate; this update does not claim new image/video generation runs.
 
 ## Working within tested limits
 
-- Simpler task/action buttons and a static black-hole backdrop. Standard starts each session; LCARS is optional and Shift-clicking LCARS opens hidden Retro. Shift-wheel or the Size menu scales text/buttons from 75% to 175%, with reset to 100%. Native title-bar dragging and all-edge/corner resizing remain available.
+- Simpler task/action buttons and a static black-hole backdrop. Standard starts each session; choose among ten visible styles (Standard, LCARS, Cyberpunk, Midnight, Ocean, Forest, Ember, Graphite, Paper, Terminal). Paper and Graphite use quiet plain backgrounds; Terminal uses a static grid. Shift-clicking LCARS still opens hidden Retro. Shift-wheel or the Size menu scales text/buttons from 75% to 175%, with reset to 100%. Native title-bar dragging and all-edge/corner resizing remain available.
 - Actual CPU, RAM, GPU/driver and fixed-volume scans. Workload choices start unchecked and are not remembered.
 - Confirmed workloads initiate source searches. GGUF text-model artifacts have source links, pinned revisions, available sizes/hashes/licenses and local resource estimates. User selection is required; no model is selected automatically.
 - Text discovery combines popular, trending and recently updated text-generation GGUF feeds. Broad searches interleave and deduplicate repository IDs, inspect at most 24 repositories with four concurrent reads and return up to 48 results including supporting runtime metadata. Users can choose a single source order or explicitly browse an exact repository's standalone files. Failed feeds retain successful results; coverage is bounded.
@@ -53,7 +53,7 @@ Release: **0.2.0-preview.12**, Windows x64 development preview, 2026-10-28. This
 - Earlier source-selected workflow checks separately verified actual online discovery, exact review/approval and installed-file hash/reuse. They are distinct from the offline Library runs.
 - Earlier preview.7 live image checks verified the existing ComfyUI/SD1.5 path at an explicit 1024×768, decoded the actual PNG, checked its pixel dimensions and stopped the owned engine. That evidence remains separate from the preview.10 image runs.
 - Earlier live tests separately established a real model download and one ComfyUI generation path. They are specific model/runtime/hardware evidence, not all-model guarantees or recommendations.
-- Appearance checks cover palettes, hidden Retro selection, scaling/reset, native window settings and unchanged workload/approval state. Rendered previews were inspected at 100% and 150%; physical mouse/keyboard interaction is not established by those checks.
+- Appearance validation passed within 1,247 regression/native checks: primary-text contrast on five surfaces in every palette, exclusive menu selection, hidden Retro, scaling/reset, native window settings and unchanged workload/approval state. All eleven styles were rendered; enlarged Retro was inspected too. Physical mouse/keyboard interaction is not established by those checks.
 - GitHub Windows CI is required for publication; its actual result is linked in release notes.
 
 The published ZIP's `PACKAGE-INFO.json` records the exact source commit and file hashes. The release tag and local active package must match that source commit and archive checksum. Historical packages and working branches are preserved rather than relabeled as current. Local paths, settings, machine logs, receipts and model weights are excluded from release assets.

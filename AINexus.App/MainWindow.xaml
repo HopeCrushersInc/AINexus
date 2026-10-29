@@ -8,13 +8,13 @@
         ResizeMode="CanResize" WindowStyle="SingleBorderWindow" PreviewMouseWheel="Window_PreviewMouseWheel">
     <Window.Resources>
         <DataTemplate x:Key="FeaturedModelCard">
-            <Border Background="#152538" BorderBrush="#31506B" BorderThickness="1" CornerRadius="12" Padding="22" Margin="0,0,12,12">
+            <Border Background="{DynamicResource NexusPanelBrush}" BorderBrush="{DynamicResource NexusBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="22" Margin="0,0,12,12">
                 <StackPanel>
                     <TextBlock Text="{Binding NsfwLabel}" Foreground="{DynamicResource NexusSecondaryBrush}" FontWeight="SemiBold" TextWrapping="Wrap"/>
                     <TextBlock Text="{Binding Name}" FontSize="{DynamicResource NexusFontSize24}" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,6,0,8"/>
-                    <TextBlock Text="{Binding Description}" Foreground="#B3C5D6" TextWrapping="Wrap" MinHeight="56"/>
+                    <TextBlock Text="{Binding Description}" Foreground="{DynamicResource NexusMutedBrush}" TextWrapping="Wrap" MinHeight="56"/>
                     <TextBlock Text="{Binding LicenseNote}" Foreground="{DynamicResource NexusMutedBrush}" TextWrapping="Wrap" Margin="0,12,0,14"/>
-                    <Button Content="Install and chat" Tag="{Binding}" Click="FeaturedModelInstall_Click" HorizontalAlignment="Left" Background="#246C94"/>
+                    <Button Content="Install and chat" Tag="{Binding}" Click="FeaturedModelInstall_Click" HorizontalAlignment="Left" Background="{DynamicResource NexusButtonBrush}"/>
                 </StackPanel>
             </Border>
         </DataTemplate>
@@ -51,10 +51,10 @@
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsSelected" Value="True">
                                 <Setter Property="Foreground" Value="{DynamicResource NexusAccentBrush}"/>
-                                <Setter Property="Background" Value="#153443"/>
+                                <Setter Property="Background" Value="{DynamicResource NexusSelectedBrush}"/>
                             </Trigger>
                             <Trigger Property="IsKeyboardFocused" Value="True">
-                                <Setter Property="Foreground" Value="White"/>
+                                <Setter Property="Foreground" Value="{DynamicResource NexusTextBrush}"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -72,12 +72,12 @@
                 <ControlTemplate.Triggers><Trigger Property="IsMouseOver" Value="True"><Setter TargetName="ButtonSurface" Property="Background" Value="{DynamicResource NexusHoverBrush}"/></Trigger><Trigger Property="IsEnabled" Value="False"><Setter Property="Opacity" Value="0.42"/></Trigger><Trigger Property="IsKeyboardFocused" Value="True"><Setter TargetName="ButtonSurface" Property="BorderBrush" Value="{DynamicResource NexusAccentBrush}"/><Setter TargetName="ButtonSurface" Property="BorderThickness" Value="2"/></Trigger></ControlTemplate.Triggers>
             </ControlTemplate></Setter.Value></Setter>
         </Style>
-        <Style TargetType="TextBox"><Setter Property="FontSize" Value="{DynamicResource NexusBaseFontSize}"/><Setter Property="Background" Value="#101C2A"/><Setter Property="Foreground" Value="{DynamicResource NexusTextBrush}"/><Setter Property="BorderBrush" Value="#3A5068"/><Setter Property="CaretBrush" Value="White"/><Setter Property="Padding" Value="10"/><Setter Property="VerticalContentAlignment" Value="Center"/></Style>
+        <Style TargetType="TextBox"><Setter Property="FontSize" Value="{DynamicResource NexusBaseFontSize}"/><Setter Property="Background" Value="{DynamicResource NexusBackgroundBrush}"/><Setter Property="Foreground" Value="{DynamicResource NexusTextBrush}"/><Setter Property="BorderBrush" Value="{DynamicResource NexusBorderBrush}"/><Setter Property="CaretBrush" Value="{DynamicResource NexusTextBrush}"/><Setter Property="Padding" Value="10"/><Setter Property="VerticalContentAlignment" Value="Center"/></Style>
         <Style TargetType="ComboBox"><Setter Property="FontSize" Value="{DynamicResource NexusBaseFontSize}"/><Setter Property="Foreground" Value="#172536"/><Setter Property="Background" Value="#DCE7F2"/><Setter Property="MinHeight" Value="38"/><Setter Property="VerticalContentAlignment" Value="Center"/></Style>
-        <Style TargetType="DataGrid"><Setter Property="FontSize" Value="{DynamicResource NexusBaseFontSize}"/><Setter Property="RowBackground" Value="#19283A"/><Setter Property="AlternatingRowBackground" Value="#1C2E41"/><Setter Property="Foreground" Value="{DynamicResource NexusTextBrush}"/><Setter Property="GridLinesVisibility" Value="None"/><Setter Property="RowHeight" Value="{DynamicResource NexusRowHeight}"/><Setter Property="BorderThickness" Value="0"/></Style>
+        <Style TargetType="DataGrid"><Setter Property="FontSize" Value="{DynamicResource NexusBaseFontSize}"/><Setter Property="RowBackground" Value="{DynamicResource NexusPanelBrush}"/><Setter Property="AlternatingRowBackground" Value="{DynamicResource NexusButtonBrush}"/><Setter Property="Foreground" Value="{DynamicResource NexusTextBrush}"/><Setter Property="GridLinesVisibility" Value="None"/><Setter Property="RowHeight" Value="{DynamicResource NexusRowHeight}"/><Setter Property="BorderThickness" Value="0"/></Style>
         <Style TargetType="DataGridColumnHeader"><Setter Property="Background" Value="{DynamicResource NexusButtonBrush}"/><Setter Property="Foreground" Value="{DynamicResource NexusMutedBrush}"/><Setter Property="Padding" Value="12,10"/><Setter Property="BorderThickness" Value="0"/></Style>
-        <Style TargetType="DataGridCell"><Setter Property="BorderThickness" Value="0"/><Setter Property="Padding" Value="10,6"/><Setter Property="Foreground" Value="{DynamicResource NexusTextBrush}"/></Style>
-        <Style x:Key="NavStyle" TargetType="RadioButton"><Setter Property="FontSize" Value="{DynamicResource NexusBaseFontSize}"/><Setter Property="Foreground" Value="{DynamicResource NexusMutedBrush}"/><Setter Property="Margin" Value="0,2"/><Setter Property="Cursor" Value="Hand"/><Setter Property="Template"><Setter.Value><ControlTemplate TargetType="RadioButton"><Border x:Name="NavSurface" Padding="{DynamicResource NexusNavPadding}" CornerRadius="{DynamicResource NexusCornerRadius}" Background="{DynamicResource NexusButtonBrush}" BorderBrush="{DynamicResource NexusBorderBrush}" BorderThickness="1"><ContentPresenter/></Border><ControlTemplate.Triggers><Trigger Property="IsChecked" Value="True"><Setter TargetName="NavSurface" Property="Background" Value="{DynamicResource NexusSelectedBrush}"/><Setter Property="Foreground" Value="White"/></Trigger><Trigger Property="IsMouseOver" Value="True"><Setter TargetName="NavSurface" Property="Background" Value="{DynamicResource NexusHoverBrush}"/></Trigger></ControlTemplate.Triggers></ControlTemplate></Setter.Value></Setter></Style>
+        <Style TargetType="DataGridCell"><Setter Property="BorderThickness" Value="0"/><Setter Property="Padding" Value="10,6"/><Setter Property="Foreground" Value="{DynamicResource NexusTextBrush}"/><Style.Triggers><Trigger Property="IsSelected" Value="True"><Setter Property="Background" Value="{DynamicResource NexusSelectedBrush}"/><Setter Property="Foreground" Value="{DynamicResource NexusTextBrush}"/></Trigger></Style.Triggers></Style>
+        <Style x:Key="NavStyle" TargetType="RadioButton"><Setter Property="FontSize" Value="{DynamicResource NexusBaseFontSize}"/><Setter Property="Foreground" Value="{DynamicResource NexusMutedBrush}"/><Setter Property="Margin" Value="0,2"/><Setter Property="Cursor" Value="Hand"/><Setter Property="Template"><Setter.Value><ControlTemplate TargetType="RadioButton"><Border x:Name="NavSurface" Padding="{DynamicResource NexusNavPadding}" CornerRadius="{DynamicResource NexusCornerRadius}" Background="{DynamicResource NexusButtonBrush}" BorderBrush="{DynamicResource NexusBorderBrush}" BorderThickness="1"><ContentPresenter/></Border><ControlTemplate.Triggers><Trigger Property="IsChecked" Value="True"><Setter TargetName="NavSurface" Property="Background" Value="{DynamicResource NexusSelectedBrush}"/><Setter Property="Foreground" Value="{DynamicResource NexusTextBrush}"/></Trigger><Trigger Property="IsMouseOver" Value="True"><Setter TargetName="NavSurface" Property="Background" Value="{DynamicResource NexusHoverBrush}"/></Trigger></ControlTemplate.Triggers></ControlTemplate></Setter.Value></Setter></Style>
         <Style TargetType="Menu"><Setter Property="FontSize" Value="{DynamicResource NexusBaseFontSize}"/></Style>
         <Style TargetType="MenuItem"><Setter Property="FontSize" Value="{DynamicResource NexusBaseFontSize}"/><Setter Property="Foreground" Value="{DynamicResource NexusTextBrush}"/><Setter Property="Background" Value="{DynamicResource NexusPanelBrush}"/><Setter Property="Padding" Value="8,5"/></Style>
     </Window.Resources>
@@ -114,9 +114,17 @@
                 <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
                     <TextBlock x:Name="UiScaleText" Text="100%" FontSize="{DynamicResource NexusFontSize12}" VerticalAlignment="Center" Margin="0,0,12,0" ToolTip="Shift + mouse wheel changes text and button size"/>
                     <Menu Background="Transparent" Foreground="{DynamicResource NexusTextBrush}">
-                        <MenuItem Header="_Appearance">
+                        <MenuItem x:Name="AppearanceMenu" Header="_Appearance">
                             <MenuItem x:Name="AppearanceStandardMenuItem" Header="_Standard" IsCheckable="True" Click="AppearanceStandard_Click"/>
                             <MenuItem x:Name="AppearanceLcarsMenuItem" Header="_LCARS" IsCheckable="True" Click="AppearanceLcars_Click"/>
+                            <MenuItem Header="Cyberpunk" Tag="Cyberpunk" IsCheckable="True" Click="AppearanceChoice_Click"/>
+                            <MenuItem Header="Midnight" Tag="Midnight" IsCheckable="True" Click="AppearanceChoice_Click"/>
+                            <MenuItem Header="Ocean" Tag="Ocean" IsCheckable="True" Click="AppearanceChoice_Click"/>
+                            <MenuItem Header="Forest" Tag="Forest" IsCheckable="True" Click="AppearanceChoice_Click"/>
+                            <MenuItem Header="Ember" Tag="Ember" IsCheckable="True" Click="AppearanceChoice_Click"/>
+                            <MenuItem Header="Graphite" Tag="Graphite" IsCheckable="True" Click="AppearanceChoice_Click"/>
+                            <MenuItem Header="Paper" Tag="Paper" IsCheckable="True" Click="AppearanceChoice_Click"/>
+                            <MenuItem Header="Terminal" Tag="Terminal" IsCheckable="True" Click="AppearanceChoice_Click"/>
                         </MenuItem>
                         <MenuItem Header="_Size">
                             <MenuItem Header="Larger text and buttons" Click="UiScaleLarger_Click"/>
@@ -160,29 +168,29 @@
         </StackPanel></ScrollViewer></TabItem>
         <TabItem x:Name="GuidedSetupTab" Header="Install &amp; chat"><ScrollViewer VerticalScrollBarVisibility="Auto"><StackPanel Margin="28">
             <TextBlock x:Name="GuidedModelTitleText" Text="Install and chat" FontSize="{DynamicResource NexusFontSize30}" FontWeight="SemiBold"/>
-            <TextBlock x:Name="GuidedStatusText" Text="Choose a model card to begin." Foreground="#91C7E5" TextWrapping="Wrap" Margin="0,8,0,18"/>
-            <Button Content="Open chat" Click="GuidedStartChat_Click" IsEnabled="{Binding IsEnabled, ElementName=GuidedStartChatButton}" Background="#246C94" HorizontalAlignment="Left" Margin="0,0,0,16"/>
+            <TextBlock x:Name="GuidedStatusText" Text="Choose a model card to begin." Foreground="{DynamicResource NexusAccentBrush}" TextWrapping="Wrap" Margin="0,8,0,18"/>
+            <Button Content="Open chat" Click="GuidedStartChat_Click" IsEnabled="{Binding IsEnabled, ElementName=GuidedStartChatButton}" Background="{DynamicResource NexusButtonBrush}" HorizontalAlignment="Left" Margin="0,0,0,16"/>
             <ProgressBar x:Name="GuidedProgress" Height="6" Minimum="0" Maximum="100" Margin="0,0,0,16"/>
-            <Border Style="{StaticResource PanelStyle}"><Expander x:Name="GuidedModelStep" Header="1 · Model download" IsExpanded="True" Foreground="#C3D5E5"><StackPanel>
+            <Border Style="{StaticResource PanelStyle}"><Expander x:Name="GuidedModelStep" Header="1 · Model download" IsExpanded="True" Foreground="{DynamicResource NexusTextBrush}"><StackPanel>
                 <DockPanel Margin="0,12,0,10"><Button x:Name="GuidedChooseFolderButton" Content="Choose folder" Click="GuidedChooseFolder_Click" DockPanel.Dock="Right" Margin="10,0,0,0"/><TextBox x:Name="GuidedModelFolderText" ToolTip="Existing folder for model data" TextChanged="GuidedInputsChanged"/></DockPanel>
                 <Button x:Name="GuidedReviewButton" Content="Check download size and fit" Click="GuidedReview_Click" HorizontalAlignment="Left"/>
                 <Expander Header="Source, license and file details" Foreground="{DynamicResource NexusMutedBrush}" Margin="0,12,0,10"><TextBox x:Name="GuidedModelDetailsText" IsReadOnly="True" Height="145" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto"/></Expander>
                 <Button Content="Read model card and license" Click="GuidedLicense_Click" HorizontalAlignment="Left" Margin="0,0,0,10"/>
-                <CheckBox x:Name="GuidedModelApprovalCheck" Foreground="#C3D5E5" Checked="GuidedApproval_Changed" Unchecked="GuidedApproval_Changed"><TextBlock Text="I accept the displayed source license terms and approve this exact model download and destination." TextWrapping="Wrap"/></CheckBox>
+                <CheckBox x:Name="GuidedModelApprovalCheck" Foreground="{DynamicResource NexusTextBrush}" Checked="GuidedApproval_Changed" Unchecked="GuidedApproval_Changed"><TextBlock Text="I accept the displayed source license terms and approve this exact model download and destination." TextWrapping="Wrap"/></CheckBox>
                 <Button x:Name="GuidedDownloadButton" Content="Download model" Click="GuidedDownload_Click" IsEnabled="False" HorizontalAlignment="Left" Margin="0,12,0,0"/>
             </StackPanel></Expander></Border>
-            <Border Style="{StaticResource PanelStyle}"><Expander x:Name="GuidedEngineStep" Header="2 · Local engine" IsExpanded="True" Foreground="#C3D5E5"><StackPanel>
+            <Border Style="{StaticResource PanelStyle}"><Expander x:Name="GuidedEngineStep" Header="2 · Local engine" IsExpanded="True" Foreground="{DynamicResource NexusTextBrush}"><StackPanel>
                 <TextBlock Text="Use an existing llama.cpp engine, or get the portable CPU engine below. CPU inference is slower; GPU acceleration depends on your selected engine." Foreground="{DynamicResource NexusMutedBrush}" TextWrapping="Wrap" Margin="0,8,0,10"/>
                 <DockPanel><Button Content="Use existing engine" Click="GuidedRuntimeBrowse_Click" DockPanel.Dock="Right" Margin="10,0,0,0"/><TextBox x:Name="GuidedRuntimePathText" ToolTip="llama-server.exe path" TextChanged="GuidedRuntimePath_Changed"/></DockPanel>
-                <TextBlock x:Name="GuidedRuntimeStatusText" Foreground="#91C7E5" TextWrapping="Wrap" Margin="0,8,0,8"/>
+                <TextBlock x:Name="GuidedRuntimeStatusText" Foreground="{DynamicResource NexusAccentBrush}" TextWrapping="Wrap" Margin="0,8,0,8"/>
                 <Button x:Name="GuidedRuntimeReviewButton" Content="Review portable CPU engine" Click="GuidedRuntimeReview_Click" HorizontalAlignment="Left"/>
                 <TextBox x:Name="GuidedRuntimeDetailsText" IsReadOnly="True" Height="125" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" Margin="0,10,0,8"/>
-                <CheckBox x:Name="GuidedRuntimeDownloadApprovalCheck" Foreground="#C3D5E5" Checked="GuidedRuntimeApproval_Changed" Unchecked="GuidedRuntimeApproval_Changed"><TextBlock Text="I accept the displayed upstream license and approve this exact runtime archive download." TextWrapping="Wrap"/></CheckBox>
+                <CheckBox x:Name="GuidedRuntimeDownloadApprovalCheck" Foreground="{DynamicResource NexusTextBrush}" Checked="GuidedRuntimeApproval_Changed" Unchecked="GuidedRuntimeApproval_Changed"><TextBlock Text="I accept the displayed upstream license and approve this exact runtime archive download." TextWrapping="Wrap"/></CheckBox>
                 <Button x:Name="GuidedRuntimeDownloadButton" Content="Download engine archive" Click="GuidedRuntimeDownload_Click" HorizontalAlignment="Left" IsEnabled="False" Margin="0,8,0,10"/>
-                <CheckBox x:Name="GuidedRuntimeInstallApprovalCheck" Foreground="#C3D5E5" Checked="GuidedRuntimeApproval_Changed" Unchecked="GuidedRuntimeApproval_Changed"><TextBlock Text="I accept the displayed upstream and bundled license terms and approve extracting these exact files into the new folder shown." TextWrapping="Wrap"/></CheckBox>
+                <CheckBox x:Name="GuidedRuntimeInstallApprovalCheck" Foreground="{DynamicResource NexusTextBrush}" Checked="GuidedRuntimeApproval_Changed" Unchecked="GuidedRuntimeApproval_Changed"><TextBlock Text="I accept the displayed upstream and bundled license terms and approve extracting these exact files into the new folder shown." TextWrapping="Wrap"/></CheckBox>
                 <Button x:Name="GuidedRuntimeInstallButton" Content="Install portable engine" Click="GuidedRuntimeInstall_Click" HorizontalAlignment="Left" IsEnabled="False" Margin="0,8,0,0"/>
             </StackPanel></Expander></Border>
-            <WrapPanel Margin="0,10,0,12"><Button x:Name="GuidedStartChatButton" Content="3 · Load model and open chat" Click="GuidedStartChat_Click" IsEnabled="False" Background="#246C94"/><Button x:Name="GuidedCancelButton" Content="Cancel current step" Click="GuidedCancel_Click" IsEnabled="False" Margin="12,0,0,0"/></WrapPanel>
+            <WrapPanel Margin="0,10,0,12"><Button x:Name="GuidedStartChatButton" Content="3 · Load model and open chat" Click="GuidedStartChat_Click" IsEnabled="False" Background="{DynamicResource NexusButtonBrush}"/><Button x:Name="GuidedCancelButton" Content="Cancel current step" Click="GuidedCancel_Click" IsEnabled="False" Margin="12,0,0,0"/></WrapPanel>
         </StackPanel></ScrollViewer></TabItem>
         <TabItem x:Name="ImageArtifactSetupTab" Header="Image file download"><ScrollViewer VerticalScrollBarVisibility="Auto"><StackPanel Margin="28">
             <TextBlock Text="Review image file download" FontSize="{DynamicResource NexusFontSize28}" FontWeight="SemiBold"/>
@@ -425,21 +433,21 @@
                 <StackPanel>
                     <TextBlock Text="PROCESSOR" Style="{StaticResource MetricLabelStyle}"/>
                     <TextBlock x:Name="CpuText" Text="Scanning..." Style="{StaticResource MetricValueStyle}"/>
-                    <TextBlock Text="Detected via Windows CIM" Foreground="#71889B" FontSize="{DynamicResource NexusFontSize11}" Margin="0,10,0,0"/>
+                    <TextBlock Text="Detected via Windows CIM" Foreground="{DynamicResource NexusMutedBrush}" FontSize="{DynamicResource NexusFontSize11}" Margin="0,10,0,0"/>
                 </StackPanel>
             </Border>
             <Border Grid.Column="1" Style="{StaticResource PanelStyle}">
                 <StackPanel>
                     <TextBlock Text="SYSTEM MEMORY" Style="{StaticResource MetricLabelStyle}"/>
                     <TextBlock x:Name="RamText" Text="Scanning..." Style="{StaticResource MetricValueStyle}"/>
-                    <TextBlock Text="Installed physical RAM" Foreground="#71889B" FontSize="{DynamicResource NexusFontSize11}" Margin="0,10,0,0"/>
+                    <TextBlock Text="Installed physical RAM" Foreground="{DynamicResource NexusMutedBrush}" FontSize="{DynamicResource NexusFontSize11}" Margin="0,10,0,0"/>
                 </StackPanel>
             </Border>
             <Border Grid.Column="2" Style="{StaticResource PanelStyle}" Margin="0,0,0,14">
                 <StackPanel>
                     <TextBlock Text="GRAPHICS ADAPTERS" Style="{StaticResource MetricLabelStyle}"/>
                     <TextBlock x:Name="GpuCountText" Text="Scanning..." Style="{StaticResource MetricValueStyle}"/>
-                    <TextBlock Text="VRAM reported when available" Foreground="#71889B" FontSize="{DynamicResource NexusFontSize11}" Margin="0,10,0,0"/>
+                    <TextBlock Text="VRAM reported when available" Foreground="{DynamicResource NexusMutedBrush}" FontSize="{DynamicResource NexusFontSize11}" Margin="0,10,0,0"/>
                 </StackPanel>
             </Border>
         </Grid>
@@ -452,7 +460,7 @@
                         <ItemsControl x:Name="GpuList">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
-                                    <Border Background="#0B121E" BorderBrush="{DynamicResource NexusBorderBrush}" BorderThickness="1" CornerRadius="6" Padding="12" Margin="0,0,0,10">
+                                    <Border Background="{DynamicResource NexusBackgroundBrush}" BorderBrush="{DynamicResource NexusBorderBrush}" BorderThickness="1" CornerRadius="6" Padding="12" Margin="0,0,0,10">
                                         <StackPanel>
                                             <TextBlock Text="{Binding Name}" FontSize="{DynamicResource NexusFontSize14}" TextWrapping="Wrap"/>
                                             <TextBlock Text="{Binding VramDisplay}" Foreground="{DynamicResource NexusMutedBrush}" Margin="0,6,0,0" FontSize="{DynamicResource NexusFontSize12}"/>
@@ -477,7 +485,7 @@
                                             <TextBlock Text="{Binding FreeDisplay}" Foreground="{DynamicResource NexusAccentBrush}" DockPanel.Dock="Right" Margin="12,0,0,0"/>
                                         </DockPanel>
                                         <ProgressBar Height="6" Margin="0,8,0,0" Minimum="0" Maximum="100" Value="{Binding FreePercent, Mode=OneWay}" Background="{DynamicResource NexusBorderBrush}" Foreground="{DynamicResource NexusAccentBrush}" BorderThickness="0"/>
-                                        <TextBlock Text="{Binding CapacityDisplay}" Foreground="#71889B" FontSize="{DynamicResource NexusFontSize11}" Margin="0,5,0,0"/>
+                                        <TextBlock Text="{Binding CapacityDisplay}" Foreground="{DynamicResource NexusMutedBrush}" FontSize="{DynamicResource NexusFontSize11}" Margin="0,5,0,0"/>
                                     </StackPanel>
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
@@ -488,8 +496,8 @@
         </Grid>
         <Grid Grid.Row="3" Margin="0,8,0,0">
             <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-            <TextBlock x:Name="NoticeText" Text="Hardware discovery runs locally on this machine." Foreground="#71889B" TextWrapping="Wrap" VerticalAlignment="Center"/>
-            <Button x:Name="HardwareRescanButton" Grid.Column="1" Content="Rescan hardware" Click="RescanButton_Click" Padding="18,10" Margin="12,0,0,0" Background="#153443" Foreground="{DynamicResource NexusAccentBrush}" BorderBrush="{DynamicResource NexusBorderBrush}" FontFamily="Segoe UI" FontSize="{DynamicResource NexusFontSize14}" Cursor="Hand"/>
+            <TextBlock x:Name="NoticeText" Text="Hardware discovery runs locally on this machine." Foreground="{DynamicResource NexusMutedBrush}" TextWrapping="Wrap" VerticalAlignment="Center"/>
+            <Button x:Name="HardwareRescanButton" Grid.Column="1" Content="Rescan hardware" Click="RescanButton_Click" Padding="18,10" Margin="12,0,0,0" Background="{DynamicResource NexusSelectedBrush}" Foreground="{DynamicResource NexusAccentBrush}" BorderBrush="{DynamicResource NexusBorderBrush}" FontFamily="Segoe UI" FontSize="{DynamicResource NexusFontSize14}" Cursor="Hand"/>
         </Grid>
     </Grid>
         </TabItem>
@@ -502,7 +510,7 @@
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
                 <DockPanel Margin="0,0,0,16" LastChildFill="True">
-                    <Button x:Name="SoftwareRescanButton" DockPanel.Dock="Right" Content="Rescan software" Click="SoftwareRescanButton_Click" Padding="18,10" Background="#153443" Foreground="{DynamicResource NexusAccentBrush}" BorderBrush="{DynamicResource NexusBorderBrush}"/>
+                    <Button x:Name="SoftwareRescanButton" DockPanel.Dock="Right" Content="Rescan software" Click="SoftwareRescanButton_Click" Padding="18,10" Background="{DynamicResource NexusSelectedBrush}" Foreground="{DynamicResource NexusAccentBrush}" BorderBrush="{DynamicResource NexusBorderBrush}"/>
                     <StackPanel>
                         <TextBlock Text="AI SOFTWARE DISCOVERY" FontSize="{DynamicResource NexusFontSize24}" FontWeight="Bold" Foreground="{DynamicResource NexusTextBrush}"/>
                         <TextBlock x:Name="SoftwareStatusText" Text="Waiting for discovery" Foreground="{DynamicResource NexusMutedBrush}" Margin="0,8,0,0"/>
@@ -758,7 +766,7 @@
                     <TextBox x:Name="OllamaEndpointText" Text="http://127.0.0.1:11434" Padding="10" ToolTip="Loopback HTTP or HTTPS endpoint only"/>
                 </DockPanel>
                 <TextBlock Grid.Row="2" x:Name="OllamaStatusText" Text="No server queried yet. The portal does not start Ollama." Foreground="{DynamicResource NexusMutedBrush}" TextWrapping="Wrap" Margin="0,0,0,12"/>
-                <TabControl Grid.Row="3" Background="#090D16" Foreground="{DynamicResource NexusTextBrush}" BorderBrush="{DynamicResource NexusBorderBrush}">
+                <TabControl Grid.Row="3" Background="{DynamicResource NexusBackgroundBrush}" Foreground="{DynamicResource NexusTextBrush}" BorderBrush="{DynamicResource NexusBorderBrush}">
                     <TabItem Header="Available models" Padding="12,8">
                         <DataGrid x:Name="OllamaAvailableGrid" IsReadOnly="True" AutoGenerateColumns="False" CanUserAddRows="False" Background="{DynamicResource NexusPanelBrush}" Foreground="{DynamicResource NexusTextBrush}" HeadersVisibility="Column">
                             <DataGrid.Columns>
@@ -896,7 +904,7 @@
                         <Button x:Name="ImageGenerateButton" Content="Generate image" Background="{DynamicResource NexusButtonBrush}" Click="ImageGenerateButton_Click" IsEnabled="False"/>
                         <StackPanel Orientation="Horizontal" Margin="0,10,0,0"><Button x:Name="ImageCancelButton" Content="Cancel image" Click="ImageCancelButton_Click" IsEnabled="False"/><Button x:Name="ImageSaveButton" Content="Save PNG" Click="ImageSaveButton_Click" IsEnabled="False" Margin="8,0,0,0"/></StackPanel>
                     </StackPanel></ScrollViewer>
-                    <Border Grid.Column="2" Background="#152333" CornerRadius="10" Padding="20"><Grid>
+                    <Border Grid.Column="2" Background="{DynamicResource NexusPanelBrush}" CornerRadius="10" Padding="20"><Grid>
                         <TextBlock Text="Your image will appear here" Foreground="{DynamicResource NexusMutedBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"><TextBlock.Style><Style TargetType="TextBlock"><Setter Property="Visibility" Value="Collapsed"/><Style.Triggers><DataTrigger Binding="{Binding Source, ElementName=ImagePreview}" Value="{x:Null}"><Setter Property="Visibility" Value="Visible"/></DataTrigger></Style.Triggers></Style></TextBlock.Style></TextBlock>
                         <Image x:Name="ImagePreview" Stretch="Uniform"/>
                     </Grid></Border>

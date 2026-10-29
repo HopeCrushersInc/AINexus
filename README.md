@@ -4,11 +4,11 @@
 
 AI Nexus scans the computer, shows workload categories, and searches live internet sources after the user asks. It does not choose a model, promote a provider, or install software automatically.
 
-### [Download for Windows x64](https://github.com/HopeCrushersInc/AINexus/releases/download/v0.2.0-preview.12/AINexus-0.2.0-preview.12-win-x64.zip)
+### [Download for Windows x64](https://github.com/HopeCrushersInc/AINexus/releases/download/v0.2.0-preview.13/AINexus-0.2.0-preview.13-win-x64.zip)
 
-**0.2.0-preview.12 · Development preview**
+**0.2.0-preview.13 · Development preview**
 
-[Release notes & checksums](https://github.com/HopeCrushersInc/AINexus/releases/tag/v0.2.0-preview.12) · [What works / what is unfinished](docs/project-status.md) · [Changelog](CHANGELOG.md) · [Discussions](https://github.com/HopeCrushersInc/AINexus/discussions)
+[Release notes & checksums](https://github.com/HopeCrushersInc/AINexus/releases/tag/v0.2.0-preview.13) · [What works / what is unfinished](docs/project-status.md) · [Changelog](CHANGELOG.md) · [Discussions](https://github.com/HopeCrushersInc/AINexus/discussions)
 
 ![Workload-first startup with unchecked categories](docs/assets/workload-choices.png)
 
@@ -63,7 +63,7 @@ Images offers session-only width and height controls from **256 to 1024 pixels**
 
 ## Appearance and controls
 
-The simpler Home screen uses task and action buttons over a black-hole backdrop. Standard is the startup appearance. Select **Appearance → LCARS** for the alternate palette; hold **Shift** while clicking LCARS to reveal the hidden Retro style. Appearance is session-only.
+The simpler Home screen uses task and action buttons over a black-hole backdrop. Standard is the startup appearance. The **Appearance** menu offers Standard, LCARS, Cyberpunk, Midnight, Ocean, Forest, Ember, Graphite, Paper and Terminal. Paper provides a light reading surface, Graphite a quiet neutral surface and Terminal a monospace grid; the space styles keep the black-hole backdrop. Hold **Shift** while clicking LCARS to reveal the hidden Retro style. Appearance is session-only.
 
 Hold **Shift** and scroll the mouse wheel to resize text and buttons from **75% to 175%**. The **Size** menu also offers smaller, larger and reset to 100%. Ordinary scrolling still scrolls. Use the native title bar to drag the window and any edge or corner to resize it.
 

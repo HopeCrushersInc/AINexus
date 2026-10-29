@@ -516,6 +516,7 @@ public partial class MainWindow
             { Interest: DiscoveryInterest.Images, Kind: "Model", Artifact.Format: "Safetensors" } => "Review image file download",
             { Interest: DiscoveryInterest.Video, Kind: "Model" } => "Inspect video pipeline / manual setup",
             { Kind: "Model", Artifact.Format: "GGUF" } => "Review text model download",
+            { Kind: "Tool" } tool when IsComfyPortableTool(tool) => "Review ComfyUI archive download",
             { Kind: "Tool" } => "View source / manual setup",
             { Kind: "Runtime" } => "Review runtime setup",
             _ => "Inspect source requirements"

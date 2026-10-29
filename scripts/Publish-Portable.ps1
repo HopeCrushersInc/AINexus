@@ -2,7 +2,7 @@
 param(
     [ValidateLength(1, 128)]
     [ValidatePattern('^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(?:-(?:(?:0|[1-9][0-9]*|[0-9]*[A-Za-z-][0-9A-Za-z-]*)(?:\.(?:0|[1-9][0-9]*|[0-9]*[A-Za-z-][0-9A-Za-z-]*))*))?$')]
-    [string]$Version = '0.2.0-preview.13',
+    [string]$Version = '0.2.0-preview.14',
     [string]$OutputRoot,
     [string]$SourceCommit
 )

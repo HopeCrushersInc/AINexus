@@ -32,6 +32,7 @@ public partial class MainWindow : Window
         InitializeGuidedSetup();
         InitializeImageArtifactSetup();
         InitializeComfyCheckpointFolders();
+        InitializeComfyPortableSetup();
         if (acquisitionService is not null) _acquisitionService = acquisitionService;
         if (runtimeDownloadService is not null) _runtimeDownloadService = runtimeDownloadService;
         Closed += (_, _) => _lifetime.Cancel();

@@ -164,6 +164,11 @@ if ($archivePackages.Count -eq 0) { throw 'The restored archive library package 
 [xml]$archiveDeclaration = Get-Content -LiteralPath (Join-Path $archivePackages[0] 'sharpcompress.nuspec') -Raw
 if ($archiveDeclaration.package.metadata.license.InnerText -ne 'MIT') { throw 'The archive library license changed; review required.' }
 $archiveNoticeSource = Join-Path $repositoryRoot 'docs\third-party\sharpcompress'
+$archiveNoticeEvidence = Get-Content -LiteralPath (Join-Path $archiveNoticeSource 'sources.json') -Raw | ConvertFrom-Json
+if ($archiveNoticeEvidence.Version -cne '0.50.7' -or
+    (Get-FileHash -LiteralPath (Join-Path $archiveNoticeSource 'LICENSE.txt') -Algorithm SHA256).Hash.ToLowerInvariant() -cne $archiveNoticeEvidence.LicenseSha256) {
+    throw 'Pinned archive library notice bytes changed; review required.'
+}
 $archiveNoticeTarget = Join-Path $noticeDirectory 'sharpcompress\0.50.7'
 [IO.Directory]::CreateDirectory($archiveNoticeTarget) | Out-Null
 foreach ($name in @('README.md', 'sharpcompress.nuspec')) {

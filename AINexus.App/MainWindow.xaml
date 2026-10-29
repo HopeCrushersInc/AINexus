@@ -345,7 +345,7 @@
                     </StackPanel>
                     <StackPanel Grid.Column="1" Margin="0,0,12,0">
                         <TextBlock Text="Search models or publishers" Foreground="{DynamicResource NexusMutedBrush}" Margin="0,0,0,4"/>
-                        <TextBox x:Name="DiscoveryQueryText" Padding="8" MaxLength="160" ToolTip="Optional model, tool or publisher terms. Leave blank to search the selected categories."/>
+                        <TextBox x:Name="DiscoveryQueryText" Padding="8" MaxLength="160" ToolTip="Optional model, tool or publisher terms. Leave blank to search the selected categories. No parameter-count cap; fit uses exact file size, free memory and the chosen drive."/>
                     </StackPanel>
                     <StackPanel Grid.Column="2">
                         <TextBlock Text="Install location" Foreground="{DynamicResource NexusMutedBrush}" Margin="0,0,0,4"/>

@@ -15,6 +15,13 @@ internal static class CompatibilityChecks
             "GGUF CPU planning uses actual sufficient RAM and selected storage without requiring a preinstalled runtime");
         check(cpu.EstimatedMemoryGiB == 7 && cpu.RequiredStorageGiB == 5,
             "Model byte size drives explicit configurable weight/runtime/context/storage estimates");
+        foreach (var parameters in new long?[] { null, 7_000_000_000, 27_000_000_000, 32_000_000_000, 120_000_000_000, 1_200_000_000_000 })
+        {
+            var assessed = Evaluate(model with { Signals = new(null, null, null, parameters) }, machine);
+            check(assessed.Status == cpu.Status && assessed.ExecutionPath == cpu.ExecutionPath
+                && assessed.EstimatedMemoryGiB == cpu.EstimatedMemoryGiB && assessed.RequiredStorageGiB == cpu.RequiredStorageGiB,
+                $"Parameter metadata {parameters?.ToString() ?? "unknown"} neither caps eligibility nor substitutes for exact artifact bytes and current memory");
+        }
         check(cpu.Limitations.Any(value => value.Contains("unverified", StringComparison.OrdinalIgnoreCase))
             && cpu.Limitations.Any(value => value.Contains("benchmark", StringComparison.OrdinalIgnoreCase)),
             "Resource candidates explicitly remain unverified and performance is not fabricated");

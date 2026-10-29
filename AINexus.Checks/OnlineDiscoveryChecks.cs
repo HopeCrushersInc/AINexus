@@ -173,6 +173,17 @@ internal static class OnlineDiscoveryChecks
                 check(await cache.LoadAsync(oldRequest) is null && File.ReadAllBytes(oldRolePath).SequenceEqual(oldRoleBytes),
                     $"{role} relevance rules do not reopen or delete earlier unscoped saved searches");
             }
+            foreach (var role in new[] { DiscoveryInterest.LocalAssistants, DiscoveryInterest.Coding, DiscoveryInterest.Agents })
+            {
+                var oldRequest = request with { Interest = role };
+                var previousSemantics = role == DiscoveryInterest.LocalAssistants ? "text-model-search-v3" : "task-purpose-text-models-v4";
+                var previousKey = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(
+                    $"{oldRequest.Interest}\n{oldRequest.Query}\n{oldRequest.Limit}\n{previousSemantics}\n{oldRequest.SearchOrder}")));
+                var previousPath = Path.Combine(root, previousKey + ".json");
+                await File.WriteAllBytesAsync(previousPath, oldBytes);
+                check(await cache.LoadAsync(oldRequest) is null && File.ReadAllBytes(previousPath).SequenceEqual(oldBytes),
+                    $"{role} expanded variant searches preserve but do not reuse the old two-variant cache");
+            }
             await cache.SaveAsync(request, mixed);
             var saved = await cache.LoadAsync(request);
             check(saved is { IsCached: true } && saved.Items.Count == 1 && saved.Items[0].Kind == "Model"

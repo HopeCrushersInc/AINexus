@@ -1,6 +1,8 @@
 # Current project status
 
-Release: **0.2.0-preview.17**, Windows x64 development preview, 2026-10-29. This organizes 13 independent tasks under four parent groups, separates model results from runtime software, and scopes searches to task-relevant source metadata. Group headings select nothing; no AI engines or models are bundled or selected automatically.
+Release: **0.2.0-preview.18**, Windows x64 development preview, 2026-10-29. Broad text searches expose more standalone file variants within the existing result bounds. There is no parameter-count preset or cap: exact file bytes, current RAM/VRAM, selected-volume space and runtime requirements determine eligibility. Group headings select nothing; no AI engines or models are bundled or selected automatically.
+
+Broad search still inspects at most 24 repositories and shows 48 files. Additional files are distributed across sources, without favoring a model size or quantization. Browse a selected repository for up to 48 of its standalone files. Split GGUF sets and combined CPU/GPU memory planning remain unfinished; missing runtime support cannot be replaced by ample disk space. Model downloads retain cancellation, stalled-transfer detection and exact size/hash verification, without a fixed total-duration cutoff.
 
 ## Working within tested limits
 

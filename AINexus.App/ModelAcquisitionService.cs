@@ -50,9 +50,9 @@ public sealed class ModelAcquisitionService(HttpClient httpClient)
         var partialCreated = false;
         try
         {
-            using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-            deadline.CancelAfter(TimeSpan.FromMinutes(45));
-            var token = deadline.Token;
+            // Large approved artifacts may take hours on a healthy connection. Bound each
+            // network wait below rather than discarding a progressing download by elapsed time.
+            var token = cancellationToken;
             var destination = plan.DestinationPath;
             RecheckDestination(destination);
             if (Directory.Exists(destination)) throw new IOException("The selected model destination is an existing directory. It was preserved.");

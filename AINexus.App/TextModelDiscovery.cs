@@ -27,7 +27,7 @@ public sealed partial class VerifiedOnlineDiscoveryProvider
         notes.Add("Source ordering: " + string.Join(", ", sorts) + ". Broad view interleaves the independent source lists and removes duplicate repository IDs; it does not compute a combined quality score.");
         notes.Add("Download popularity, trending position and repository modification time are not a quality rating, benchmark, writing assessment, release date or recommendation. Parameter counts are not inferred from names.");
         notes.Add("Broad searches use the source's text-generation task tag for the current GGUF text recipe. Other tasks and multimodal requirements can be inspected by an exact repository lookup; they are not declared unusable.");
-        notes.Add("Broad searches show one alphabetically listed standalone file per repository before additional variants. Search an exact owner/repository to browse more of its file variants; search text such as 32B matches repository names, not verified parameter counts.");
+        notes.Add("Broad searches interleave alphabetically listed standalone files across repositories, one variant per source per round, up to the result limit. There is no two-variant or parameter-count cap per source. Search an exact owner/repository to browse up to 48 of its file variants; search text such as 32B matches repository names, not verified parameter counts.");
 
         var scopes = TextScopes(request);
         if (request.Interest is DiscoveryInterest.Coding or DiscoveryInterest.Agents)
@@ -79,7 +79,7 @@ public sealed partial class VerifiedOnlineDiscoveryProvider
             token.ThrowIfCancellationRequested();
             var group = repositories.Skip(offset).Take(TextMetadataConcurrency).ToArray();
             var results = await Task.WhenAll(group.Select(repository => ReadTextCandidateAsync(repository, request.Interest,
-                Math.Min(2, modelSlots), purpose.TryGetValue(repository, out var facts) ? string.Join("; ", facts.Order(StringComparer.Ordinal)) : null, token)));
+                modelSlots, purpose.TryGetValue(repository, out var facts) ? string.Join("; ", facts.Order(StringComparer.Ordinal)) : null, token)));
             foreach (var result in results)
             {
                 notes.AddRange(result.Notes);
@@ -92,13 +92,20 @@ public sealed partial class VerifiedOnlineDiscoveryProvider
             token.ThrowIfCancellationRequested();
             if (items.Count >= modelSlots) break;
         }
-        foreach (var repositoryVariants in variants)
+        // Each repository tree is already bounded and fetched once. Keep its available
+        // variants instead of truncating to two, then distribute remaining slots fairly.
+        // Neither parameter names nor quantization labels establish fit or preference.
+        for (var variantIndex = 1; variantIndex < modelSlots; variantIndex++)
         {
-            foreach (var variant in repositoryVariants.Skip(1))
+            var added = false;
+            foreach (var repositoryVariants in variants)
             {
                 if (items.Count >= modelSlots) return;
-                items.Add(variant);
+                if (variantIndex >= repositoryVariants.Count) continue;
+                items.Add(repositoryVariants[variantIndex]);
+                added = true;
             }
+            if (!added) break;
         }
     }
 

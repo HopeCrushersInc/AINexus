@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.2.0-preview.18 — 2026-10-29 — More file variants, no parameter presets
+
+- Remove the two-file-per-repository truncation in broad text searches. Distribute additional standalone GGUF variants across repositories within the existing 48-result / 24-repository bounds, using the same metadata requests. Browse a selected repository for additional files. Alphabetical source order is not a model-size or quantization recommendation.
+- Preserve exact source sizes, including large artifacts, for separate local memory and selected-drive checks. Parameter totals remain informational: unknown, 7B, 27B, 32B, 120B and 1.2T metadata cannot change eligibility for otherwise identical artifacts. No 27B preset or parameter-count cap existed in the inspected source.
+- Give expanded text searches new cache keys, preserving earlier saved searches without silently reopening their truncated result sets or refreshing online.
+- Remove the fixed 45-minute model-transfer deadline. Healthy approved downloads can continue; cancellation, 30-second network waits, exact byte/SHA-256 checks, destination protections and owned-partial cleanup remain.
+- Actual development-PC checks reused an existing 7B coder through discovery, explicit review/approval, integrity verification, launch and two chat turns; an existing 32B assistant completed offline-mode launch and generation. Both test-owned servers stopped and released their ports. No new model or engine was installed, and neither model becomes a default or a recommendation.
+- Split GGUF acquisition and combined RAM/VRAM planning remain unfinished. A large disk does not establish runtime memory fit or architecture support. The existing per-GPU and CPU estimates remain conservative and unverified until actual loading.
+- Validation: 1,428 final regression/native checks passed. The earlier live run added 12 checks for the two existing models, including owned-server cleanup. Expanded-variant fixtures cover fair allocation, large artifact metadata and unchanged request bounds; earlier two-variant caches are preserved but not reused.
+
 ## 0.2.0-preview.17 — 2026-10-29 — Clear task groups and relevant source results
 
 - Organize all 13 unchecked tasks under four parent headings: Assistants, Coding & software, Creative media, and CAD & 3D printing. CAD design and printing/slicing remain independent choices and searches. Group headings never select children. Compact the layout and make scanned hardware details expandable.

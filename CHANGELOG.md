@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.2.0-preview.16 — 2026-10-29 — Read-only tool archive inspection
+
+- Add explicit inspection of a locally available, user-selected 7z archive. Recheck exact size/SHA-256 before typed metadata parsing; no automatic inspection follows download.
+- Report declared entry/expanded sizes, engine filename markers and potential license filenames separately from installation, payload integrity, complete terms and runtime-readiness claims. Reject traversal, device/ADS names, duplicate/case-colliding destinations, parent-file conflicts, encryption, links, anti/split entries and excessive metadata/expansion.
+- Parse in the portal's own hidden worker with Windows job memory/process limits, bounded request/report size and a parent deadline. Cancellation stops the owned worker. This limits resource use; it is not a general OS security sandbox.
+- Inspection grants no download or extraction approval. It writes/extracts no files and executes no archive payload. Tool selection stays explicit; no AI tools, engines or models are bundled.
+- Pin the SharpCompress 0.50.7 archive-reading application library, preserve its MIT license and unchanged package attribution in release notices, and restore development dependencies into the portable F: cache. Refresh the roadmap against current implementation.
+- Validation: 1,359 regression/native checks passed, including real inert 7z containers, actual limited-worker success/rejection, active cancellation, read-only UI behavior and unsafe metadata policies. No real engine archive or model was downloaded, installed or run.
+
 ## 0.2.0-preview.15 — 2026-10-29 — No default or preinstalled AI tools
 
 - Remove the direct ComfyUI download shortcut from Images. Start with neutral tool discovery and blank engine, path, endpoint and checkpoint choices. Selecting an image workload does not choose a tool.

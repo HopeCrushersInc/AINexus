@@ -39,6 +39,8 @@ internal static class Program
             RuntimeFilePlanChecks.Run(Check);
             RuntimeReleaseLookupChecks.RunAsync(Check).GetAwaiter().GetResult();
             RuntimeArchiveChecks.RunAsync(Check).GetAwaiter().GetResult();
+            SevenZipInspectionChecks.RunAsync(Check).GetAwaiter().GetResult();
+            SevenZipInspectionChecks.RunWorkerAsync(Check).GetAwaiter().GetResult();
             RuntimeInstallationChecks.RunAsync(Check).GetAwaiter().GetResult();
             RuntimeDownloadChecks.RunAsync(Check).GetAwaiter().GetResult();
             ComfyPortableChecks.RunAsync(Check).GetAwaiter().GetResult();

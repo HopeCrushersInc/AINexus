@@ -1,0 +1,8 @@
+{
+  "Package": "SharpCompress",
+  "Version": "0.50.7",
+  "SourceCommit": "b4af8afe6683d019d504954a3b4e4f18b06e2cd6",
+  "LicenseUrl": "https://raw.githubusercontent.com/adamhathcock/sharpcompress/b4af8afe6683d019d504954a3b4e4f18b06e2cd6/LICENSE.txt",
+  "LicenseSha256": "b7ca2b6174cee11afe41d78b48527e3d7659a4435c25019a4a5e072299a2f8ed",
+  "BundledAttribution": "Copy unchanged restored package README.md and nuspec alongside this license; README retains embedded third-party notices."
+}

@@ -1,6 +1,6 @@
 # Releases and portable Windows packages
 
-AI Nexus releases are development previews. Published previews and their exact assets are listed on the release page; the current source packaging example is **0.2.0-preview.15**. A version number in this guide does not mean that its release has already been uploaded; use the [GitHub Releases page](https://github.com/HopeCrushersInc/AINexus/releases) for actual published assets.
+AI Nexus releases are development previews. Published previews and their exact assets are listed on the release page; the current source packaging example is **0.2.0-preview.16**. A version number in this guide does not mean that its release has already been uploaded; use the [GitHub Releases page](https://github.com/HopeCrushersInc/AINexus/releases) for actual published assets.
 
 ## Run a published package
 
@@ -28,7 +28,7 @@ Building requires Windows, Git and the .NET 8 SDK. Run the repository's build an
 From the repository root:
 
 ```powershell
-./scripts/Publish-Portable.ps1 -Version '0.2.0-preview.15'
+./scripts/Publish-Portable.ps1 -Version '0.2.0-preview.16'
 ```
 
 Optional parameters:

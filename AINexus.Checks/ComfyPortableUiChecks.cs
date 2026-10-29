@@ -78,6 +78,23 @@ internal static class ComfyPortableUiChecks
                 && ((TextBlock)window.FindName("ComfyPortableStatusText")).Text.Contains("NOT installed")
                 && !window.OwnedLlamaServerRunning && !((Button)window.FindName("ImageStopButton")).IsEnabled,
                 "Comfy download receipt and UI distinguish acquired archive from extraction, installation and engine execution");
+            var inspections = 0;
+            window.ComfyPortableInspectionOverride = (request, _) =>
+            {
+                inspections++;
+                check(request.ArchivePath == archive && request.ExpectedBytes == bytes.Length
+                    && request.ExpectedSha256.Equals(Convert.ToHexString(SHA256.HashData(bytes)), StringComparison.OrdinalIgnoreCase),
+                    "Explicit archive inspection binds the selected acquired file's exact bytes and hash");
+                return Task.FromResult(new ToolArchiveInspection(request.ArchivePath, request.ExpectedBytes, request.ExpectedSha256,
+                    DateTimeOffset.UtcNow, 110, [], false, false, ["Synthetic metadata only; no extraction, license review or execution."]));
+            };
+            check(((Button)window.FindName("ComfyPortableInspectButton")).IsEnabled && inspections == 0,
+                "Verified archive acquisition offers inspection without running it automatically");
+            await window.InspectComfyPortableArchiveAsync();
+            check(inspections == 1 && calls.Count == 2 && consent.IsChecked != true && !download.IsEnabled
+                && ((TextBlock)window.FindName("ComfyPortableStatusText")).Text.Contains("Nothing extracted")
+                && File.ReadAllBytes(archive).SequenceEqual(bytes),
+                "Archive inspection is read-only, performs no download or execution and grants no installation approval");
             ((TextBox)window.FindName("ComfyPortableTagText")).Text = "v0.42.1";
             check(selector.Items.Count == 0 && selector.SelectedIndex == -1 && window.ComfyPortableReviewedPlanId is null,
                 "Changing release tag clears stale archive choices without fetching a replacement");

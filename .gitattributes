@@ -1,3 +1,4 @@
 # Vendored notice hashes refer to exact upstream bytes on every checkout.
 docs/third-party/sqlite/*.txt -text
 docs/third-party/sqlite/*.html -text
+docs/third-party/sharpcompress/LICENSE.txt -text

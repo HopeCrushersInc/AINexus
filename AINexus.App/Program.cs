@@ -7,10 +7,11 @@ namespace AINexus.App
     public class Program
     {
         [STAThread]
-        public static void Main()
+        public static int Main(string[] args)
         {
+            if (ToolArchiveInspector.IsWorker(args)) return ToolArchiveInspector.RunWorkerAsync().GetAwaiter().GetResult();
             var app = new Application();
-            app.Run(new MainWindow());
+            return app.Run(new MainWindow());
         }
     }
 }

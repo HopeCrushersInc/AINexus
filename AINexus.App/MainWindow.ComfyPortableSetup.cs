@@ -9,12 +9,14 @@ public partial class MainWindow
 {
     private ComfyPortableRelease? _comfyPortableRelease;
     private ComfyPortableDownloadPlan? _comfyPortablePlan;
+    private ToolArchiveInspectionRequest? _comfyPortableInspectionInput;
     private bool _comfyPortableBusy;
     private bool _closeAfterComfyPortable;
     private long _comfyPortableGeneration;
     private CancellationTokenSource? _comfyPortableOperation;
     internal Func<HttpClient>? ComfyPortableHttpOverride { get; set; }
     internal Action<Uri>? ComfyPortableSourceOpenOverride { get; set; }
+    internal Func<ToolArchiveInspectionRequest, CancellationToken, Task<ToolArchiveInspection>>? ComfyPortableInspectionOverride { get; set; }
     internal string? ComfyPortableReviewedPlanId => _comfyPortablePlan?.PlanId;
 
     private void InitializeComfyPortableSetup()
@@ -47,6 +49,7 @@ public partial class MainWindow
     {
         _comfyPortableGeneration++;
         _comfyPortablePlan = null;
+        _comfyPortableInspectionInput = null;
         if (ComfyPortableProgress is not null) ComfyPortableProgress.Value = 0;
         _comfyPortableOperation?.Cancel();
         if (ComfyPortableApprovalCheck is not null) ComfyPortableApprovalCheck.IsChecked = false;
@@ -86,6 +89,8 @@ public partial class MainWindow
         ComfyPortableDownloadButton.IsEnabled = idle && _comfyPortablePlan is not null && ComfyPortableApprovalCheck.IsChecked == true;
         ComfyPortableCancelButton.IsEnabled = _comfyPortableBusy;
         ComfyPortableTermsButton.IsEnabled = idle && _comfyPortableRelease is not null;
+        ComfyPortableInspectButton.IsEnabled = idle && (_comfyPortableInspectionInput is not null
+            || _comfyPortablePlan is { } review && System.IO.File.Exists(review.ArchivePath));
     }
 
     private async Task RunComfyPortableOperationAsync(Func<CancellationToken, Task> operation)
@@ -179,16 +184,49 @@ public partial class MainWindow
             using var http = ComfyPortableHttpOverride?.Invoke() ?? ComfyPortableDownloadService.CreateHttpClient();
             var progress = new Progress<AcquisitionProgress>(update =>
             {
-                if (!_comfyPortableBusy || token.IsCancellationRequested || generation != _comfyPortableGeneration) return;
+                if (!_comfyPortableBusy || _comfyPortableOperation?.Token != token || token.IsCancellationRequested || generation != _comfyPortableGeneration) return;
                 ComfyPortableProgress.Value = update.ExpectedBytes > 0 ? Math.Clamp(update.CompletedBytes * 100d / update.ExpectedBytes, 0, 100) : 0;
                 ComfyPortableStatusText.Text = $"{update.Stage}: {update.CompletedBytes:N0} / {update.ExpectedBytes:N0} bytes";
             });
             var result = await new ComfyPortableDownloadService(http).AcquireAsync(plan,
                 new ComfyPortableDownloadApproval(plan.PlanId, true, true, true), progress, token);
+            _comfyPortableInspectionInput = new(result.ArchivePath, plan.Asset.SizeBytes, plan.Asset.Sha256);
             ComfyPortableProgress.Value = 100;
             ComfyPortableDetailsText.Text = $"Archive: {result.ArchivePath}\nReceipt: {result.ReceiptPath}";
             ComfyPortableStatusText.Text = "Archive verified. Engine NOT installed: extraction and engine verification are not integrated yet. No engine was started.";
         });
     }
     private void ComfyPortableCancel_Click(object sender, RoutedEventArgs e) => _comfyPortableOperation?.Cancel();
+    private async void ComfyPortableInspect_Click(object sender, RoutedEventArgs e) => await InspectComfyPortableArchiveAsync();
+    internal async Task InspectComfyPortableArchiveAsync()
+    {
+        if (_comfyPortableBusy || _reviewedTool is null || !IsComfyPortableTool(_reviewedTool)) return;
+        var request = _comfyPortableInspectionInput ?? (_comfyPortablePlan is { } plan
+            ? new ToolArchiveInspectionRequest(plan.ArchivePath, plan.Asset.SizeBytes, plan.Asset.Sha256) : null);
+        if (request is null) return;
+        // Inspection grants no download/extraction approval; a subsequent transfer needs a fresh review.
+        _comfyPortablePlan = null;
+        ComfyPortableApprovalCheck.IsChecked = false;
+        _comfyPortableInspectionInput = request;
+        var generation = _comfyPortableGeneration;
+        await RunComfyPortableOperationAsync(async token =>
+        {
+            ComfyPortableProgress.IsIndeterminate = true;
+            ComfyPortableStatusText.Text = "Rechecking archive bytes and reading its file list in a limited inspector. Nothing is extracted...";
+            try
+            {
+                var result = await (ComfyPortableInspectionOverride is { } inspect ? inspect(request, token) : ToolArchiveInspector.InspectAsync(request, token));
+                if (generation != _comfyPortableGeneration || token.IsCancellationRequested) return;
+                var terms = result.Entries.Where(entry => entry.TermsCandidate).Select(entry => entry.RelativePath).ToArray();
+                ComfyPortableDetailsText.Text = $"ARCHIVE CONTENTS — READ ONLY\nFile: {result.ArchivePath}\nSHA-256: {result.Sha256}\n"
+                    + $"Listed entries: {result.Entries.Count:N0}\nDeclared expanded bytes: {result.DeclaredExpandedBytes:N0}\n"
+                    + $"Embedded Python filename listed: {result.HasEmbeddedPython}\nComfyUI main.py filename listed: {result.HasComfyMain}\n"
+                    + $"Potential terms files (contents not reviewed): {terms.Length:N0}\n" + string.Join("\n", terms.Take(32))
+                    + (terms.Length > 32 ? "\nAdditional candidates omitted from this summary." : "")
+                    + "\n\n" + string.Join("\n", result.Limitations);
+                ComfyPortableStatusText.Text = "Archive identity and declared contents inspected. Nothing extracted, installed or executed; installation needs a separate future review and approval.";
+            }
+            finally { ComfyPortableProgress.IsIndeterminate = false; }
+        });
+    }
 }

@@ -70,8 +70,10 @@ internal static class WorkloadSetupChecks
             && new[] { DiscoveryInterest.Coding, DiscoveryInterest.Images, DiscoveryInterest.MusicAudio }
                 .All(interest => choices.Any(choice => choice.Interest == interest && !choice.Selected)),
             "Coding, art and music remain visible in the expanded workload chooser after the hardware scan");
-        check(choices.Length == Enum.GetValues<DiscoveryInterest>().Length && choices.All(c => !c.Selected) && !proceed.IsEnabled,
-            "The post-scan chooser lists all interests with no first-use workload selected automatically");
+        check(choices.SelectMany(choice => choice.Interests).Distinct().Order().SequenceEqual(Enum.GetValues<DiscoveryInterest>().Order())
+            && choices.Length == Enum.GetValues<DiscoveryInterest>().Length && choices.All(c => !c.Selected) && !proceed.IsEnabled
+            && choices.Single(choice => choice.Interest == DiscoveryInterest.Cad).Group == "CAD & 3D printing",
+            "The unchecked chooser covers every task once with CAD and 3D printing grouped together");
         choices.Single(c => c.Interest == DiscoveryInterest.Images).Selected = true;
         check(proceed.IsEnabled && setup.IsSelected && navigation.Visibility == Visibility.Collapsed,
             "Checking an interest enables confirmation but does not build a workspace or launch software");

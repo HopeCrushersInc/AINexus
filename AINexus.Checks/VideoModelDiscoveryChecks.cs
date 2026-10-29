@@ -115,7 +115,7 @@ internal static class VideoModelDiscoveryChecks
 
     private static HttpResponseMessage Reply(Uri uri)
     {
-        if (uri.Host == "api.github.com") return Json("{\"items\":[{\"full_name\":\"Fixture/VideoTool\",\"license\":{\"spdx_id\":\"MIT\"}}]}");
+        if (uri.Host == "api.github.com") return Json("{\"items\":[{\"full_name\":\"Fixture/VideoTool\",\"description\":\"Video generation tool fixture\",\"license\":{\"spdx_id\":\"MIT\"}}]}");
         var repository = uri.AbsolutePath["/api/models/".Length..];
         return Json(Info(repository, repository.Contains("Image", StringComparison.Ordinal) ? "image-to-video" : "text-to-video"));
     }

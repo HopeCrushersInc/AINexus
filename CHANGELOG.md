@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.2.0-preview.17 — 2026-10-29 — Clear task groups and relevant source results
+
+- Organize all 13 unchecked tasks under four parent headings: Assistants, Coding & software, Creative media, and CAD & 3D printing. CAD design and printing/slicing remain independent choices and searches. Group headings never select children. Compact the layout and make scanned hardware details expandable.
+- Remove the automatic llama.cpp runtime append from text-model discovery, including empty searches. Explicit runtime-release lookup remains a separate action. Saved model searches omit runtime rows; earlier unscoped caches are preserved under separate keys.
+- Remove permanent/default backend choices from the model-task panel. Show only explicitly queried connections, label them as engines, and list only their actual reported model IDs with no automatic selection or fallback.
+- Scope Coding to source code/coding tags or explicit coder repository labels, and agent-model searches to function-calling/tool-use/tool-calling tags. Free text narrows those scopes; exact repository inspection remains a deliberate exception with capability unverified. Bound task-text searches to nine lists, 24 inspected repositories and 57 total metadata requests, with four concurrent reads. Missing source labels can omit capable models; no general-chat fallback or quality score is invented.
+- Keep tool queries task-specific, constrain searched fields, treat user text as literal words, exclude unrelated/archived/disabled/fork metadata, and retain exact CAD versus printing topic roles. Live streaming metadata no longer accepts generic data-streaming descriptions as broadcasting evidence.
+- Validation: 1,416 deterministic regression/native checks passed. Four separate live metadata checks returned relevant Coding, Agents, CAD and printing candidates; no model weights or tools were acquired. Inspected the rendered grouped chooser. Preserve the pre-existing category work in its original checkout and a private snapshot; integrate and test the reviewed increment in a separate worktree.
+
 ## 0.2.0-preview.16 — 2026-10-29 — Read-only tool archive inspection
 
 - Add explicit inspection of a locally available, user-selected 7z archive. Recheck exact size/SHA-256 before typed metadata parsing; no automatic inspection follows download.

@@ -49,6 +49,12 @@ internal static class Program
             WorkloadSetupChecks.RunAsync(Check).GetAwaiter().GetResult();
             OnlineDiscoveryChecks.RunAsync(Check).GetAwaiter().GetResult();
             MultiSourceTextDiscoveryChecks.RunAsync(Check).GetAwaiter().GetResult();
+            TaskTextDiscoveryChecks.RunAsync(Check).GetAwaiter().GetResult();
+            if (args.Contains("--task-search-live"))
+            {
+                TaskTextDiscoveryChecks.RunLiveAsync(Check).GetAwaiter().GetResult();
+                WorkflowToolDiscoveryChecks.RunLiveAsync(Check).GetAwaiter().GetResult();
+            }
             ModelEvaluationEvidenceChecks.Run(Check);
             ModelEvaluationUiChecks.RunAsync(Check).GetAwaiter().GetResult();
             ModelEvaluationCacheChecks.RunAsync(Check).GetAwaiter().GetResult();
@@ -233,6 +239,7 @@ internal static class Program
         AppearanceChecks.RunNative(window, Check);
         ComfyPortableUiChecks.RunNative(Check);
         ToolSelectionChecks.RunNative(Check);
+        WorkloadSelectionRelevanceChecks.RunNative(Check);
         var appearancePreview = Array.IndexOf(args, "--appearance-preview");
         if (appearancePreview >= 0)
         {
@@ -337,12 +344,15 @@ internal static class Program
             "Changing the native destination revokes the previous acquisition approval");
         window.RenderLlamaCppModels(["fixture-llama-model"], new("http://127.0.0.1:8080"));
         var models = (ComboBox)window.FindName("AgentModelSelector");
+        Check(((ComboBox)window.FindName("AgentRuntimeSelector")).SelectedIndex == -1 && models.Items.Count == 0,
+            "Querying a local engine does not select it as an assistant or choose a model");
+        ((ComboBox)window.FindName("AgentRuntimeSelector")).SelectedIndex = 0;
         Check(models.Items.Count == 1 && models.SelectedIndex == -1, "llama.cpp catalog requires explicit model selection");
         models.SelectedIndex = 0;
         Check(((Button)window.FindName("AgentEnqueueButton")).IsEnabled, "Actual catalog model selection enables llama.cpp task submission");
-        ((ComboBox)window.FindName("AgentRuntimeSelector")).SelectedIndex = 1;
+        ((ComboBox)window.FindName("AgentRuntimeSelector")).SelectedIndex = -1;
         Check(models.SelectedIndex == -1 && !((Button)window.FindName("AgentEnqueueButton")).IsEnabled,
-            "Changing runtime clears model selection and cannot reuse another backend's catalog");
+            "Clearing the queried connection clears model selection instead of falling back to a default runtime");
         var uiIndex = Array.IndexOf(args, "--llama-ui-live");
         if (uiIndex >= 0)
         {

@@ -180,7 +180,7 @@ internal static class ImageArtifactDiscoveryChecks
         => JsonSerializer.Serialize(new { id, sha = Revision, gated, pipeline_tag = pipeline, cardData = new { license } });
     private static HttpResponseMessage Reply(Uri uri, string info, string tree)
     {
-        if (uri.Host == "api.github.com") return Json("{\"items\":[{\"full_name\":\"Fixture/ImageTool\"},{\"full_name\":\"Fixture/AnotherTool\"}]}");
+        if (uri.Host == "api.github.com") return Json("{\"items\":[{\"full_name\":\"Fixture/ImageTool\",\"description\":\"Image generation tool fixture\"},{\"full_name\":\"Fixture/AnotherTool\",\"description\":\"Image editing tool fixture\"}]}");
         return Json(uri.AbsolutePath.Contains("/tree/", StringComparison.Ordinal) ? tree : info);
     }
     private static HttpResponseMessage Json(string content) => new(HttpStatusCode.OK)

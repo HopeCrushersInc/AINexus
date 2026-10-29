@@ -1,10 +1,10 @@
 # Project roadmap and projection
 
-Updated 2026-10-29 for preview.16. This is a delivery order, not a date commitment.
+Updated 2026-10-29 for preview.17. This is a delivery order, not a date commitment.
 
 ## Current checkpoint
 
-**Working within tested limits:** Windows hardware scans; user-selected workload discovery; private source catalog and offline browsing; exact approved model downloads; narrow CPU-runtime installation; local text chat; optional image-tool actions after explicit source selection; ten visible styles and hidden Retro. No AI engines, models or tool archives are preinstalled or selected automatically. Preview.16 passed 1,359 regression/native checks; historical live text/image evidence remains specific to its tested hardware, files and runtimes.
+**Working within tested limits:** Windows hardware scans; user-selected workload discovery; private source catalog and offline browsing; exact approved model downloads; narrow CPU-runtime installation; local text chat; optional image-tool actions after explicit source selection; ten visible styles and hidden Retro. No AI engines, models or tool archives are preinstalled or selected automatically. Preview.17 passed 1,416 regression/native checks, with four separate live task-source checks; historical live text/image evidence remains specific to its tested hardware, files and runtimes.
 
 **Next milestone:** complete user-selected tool setup: inspect the exact acquired archive, review bundled terms and expanded storage, separately approve extraction into a new folder, verify the installed engine, then explicitly configure and launch it. Download approval is never installation or execution approval. Read-only 7z archive inspection is now implemented in a resource-limited portal worker. Bundled-terms content review and separately approved extraction/verification are next; inspection does not complete installation.
 

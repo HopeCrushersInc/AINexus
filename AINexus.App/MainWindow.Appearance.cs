@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 
@@ -33,6 +34,8 @@ public partial class MainWindow
         SpaceBackdrop.Mode = CurrentAppearance;
         AppearanceStandardMenuItem.IsChecked = CurrentAppearance == NexusAppearanceMode.Standard;
         AppearanceLcarsMenuItem.IsChecked = CurrentAppearance is NexusAppearanceMode.Lcars or NexusAppearanceMode.Retro;
+        foreach (var item in AppearanceMenu.Items.OfType<MenuItem>().Where(item => item.Tag is string))
+            item.IsChecked = Enum.TryParse<NexusAppearanceMode>((string)item.Tag, out var mode) && mode == CurrentAppearance;
         UpdateUiScaleResources();
     }
 
@@ -46,6 +49,11 @@ public partial class MainWindow
     private void AppearanceStandard_Click(object sender, RoutedEventArgs e) => ApplyAppearanceSelection(NexusAppearanceMode.Standard, false);
     private void AppearanceLcars_Click(object sender, RoutedEventArgs e) =>
         ApplyAppearanceSelection(NexusAppearanceMode.Lcars, (Keyboard.Modifiers & ModifierKeys.Shift) != 0);
+    private void AppearanceChoice_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is MenuItem { Tag: string name } && Enum.TryParse<NexusAppearanceMode>(name, out var mode))
+            ApplyAppearanceSelection(mode, (Keyboard.Modifiers & ModifierKeys.Shift) != 0);
+    }
 
     private void Window_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
     {

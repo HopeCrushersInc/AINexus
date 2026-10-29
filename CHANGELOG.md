@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.2.0-preview.13 — 2026-10-28 — More appearances, same user control
+
+- Expand Appearance to ten visible choices: Standard, LCARS, Cyberpunk, Midnight, Ocean, Forest, Ember, Graphite, Paper and Terminal. Preserve the hidden Retro style through Shift-clicking LCARS; it has no separate visible menu entry.
+- Give the added styles distinct palettes, fonts and corner treatments. Paper is a light reading surface, Graphite a quiet neutral surface and Terminal a static monospace grid. Space styles retain the black-hole backdrop; no animated workers or downloaded assets are required.
+- Theme inputs, tables, selected cells, navigation and setup surfaces so the light palette stays readable. Keep exactly one appearance checked. Standard still starts each session; style selection does not restore tasks, models or approvals.
+- Preserve native window dragging/resizing and Shift-wheel text/button zoom. Switching appearances does not search, download, install, change GPU settings or start servers.
+- Validation: 1,247 regression/native checks passed, including primary-text contrast on five surfaces in every palette, menu exclusivity, hidden-mode selection and unchanged workflow/approval state. Rendered all eleven styles and inspected enlarged Retro previews. This appearance update adds no generator-engine installer or video generation support.
+
 ## 0.2.0-preview.12 — 2026-10-28 — Visible media choices, clear setup actions and saved evidence
 
 - Show all returned model, tool and runtime results by default. Rename the optional unchecked filter to **Show only estimated-fit results**, so tools without a compatibility recipe no longer disappear from the initial list. Keep unknown requirements distinct from hardware-fit claims.

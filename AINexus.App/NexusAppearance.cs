@@ -3,7 +3,7 @@ using System.Windows.Media;
 
 namespace AINexus.App;
 
-public enum NexusAppearanceMode { Standard, Lcars, Retro }
+public enum NexusAppearanceMode { Standard, Lcars, Retro, Cyberpunk, Midnight, Ocean, Forest, Ember, Graphite, Paper, Terminal }
 
 public sealed record NexusAppearancePalette(string Background, string Panel, string Button, string Hover,
     string Accent, string Secondary, string Text, string Muted, string Border, string Selected,
@@ -26,6 +26,22 @@ public static class NexusAppearance
             "#FFBC75", "#C7A3E7", "#FFF1DD", "#C6B4CB", "#BF8DAF", "#694961", "Segoe UI", 18),
         NexusAppearanceMode.Retro => new("#03050A", "#D9080614", "#0B061B", "#21103B",
             "#00FFF0", "#F100EB", "#C9FFF7", "#A6B7D4", "#00BFB6", "#22213F", "Consolas", 0),
+        NexusAppearanceMode.Cyberpunk => new("#100C20", "#EE19132A", "#30203E", "#49314F",
+            "#FFF176", "#FF74D4", "#FFF4FF", "#C9B7D7", "#A761A6", "#50334F", "Consolas", 2),
+        NexusAppearanceMode.Midnight => new("#080C1D", "#EA111A32", "#202D4B", "#344567",
+            "#AABEFF", "#D4B8FF", "#F0F3FF", "#B4BFD8", "#506488", "#354466", "Segoe UI", 12),
+        NexusAppearanceMode.Ocean => new("#04171F", "#EB092C38", "#124452", "#215C69",
+            "#6DE3EF", "#A5D7FF", "#E9FCFF", "#ABCAD0", "#467783", "#20505F", "Segoe UI", 10),
+        NexusAppearanceMode.Forest => new("#09170F", "#EB142C20", "#264333", "#3A5A46",
+            "#A5E39D", "#E2D593", "#F1FAED", "#B8CDB8", "#597B5D", "#34533B", "Segoe UI", 8),
+        NexusAppearanceMode.Ember => new("#1B100D", "#EE30201A", "#4B3026", "#664435",
+            "#FFB477", "#FFD19A", "#FFF4E9", "#D5BDB0", "#966B50", "#60402D", "Segoe UI", 6),
+        NexusAppearanceMode.Graphite => new("#17191C", "#24272C", "#34383E", "#484E56",
+            "#D6E0EB", "#B6C8DB", "#F3F5F7", "#B9C0C8", "#646D78", "#424A54", "Segoe UI", 3),
+        NexusAppearanceMode.Paper => new("#F3F0E8", "#FFFCF5", "#E4E8E8", "#CFDCDF",
+            "#165569", "#69417A", "#202D35", "#4C5B63", "#87969B", "#C4D7DB", "Segoe UI", 8),
+        NexusAppearanceMode.Terminal => new("#050B06", "#08120A", "#112417", "#213D28",
+            "#9DFBA1", "#D5ED91", "#D3F5D5", "#9CBD9F", "#507B55", "#24442C", "Consolas", 0),
         _ => throw new ArgumentOutOfRangeException(nameof(mode))
     };
 }
@@ -65,9 +81,25 @@ public sealed class NexusBackdrop : FrameworkElement
         drawing.PushClip(new RectangleGeometry(new Rect(0, 0, width, height)));
         drawing.DrawRectangle(Solid(palette.Background), null, new Rect(0, 0, width, height));
 
-        var haze = Glow(retro ? Color.FromArgb(48, 235, 0, 138) : Color.FromArgb(20, 123, 65, 170));
+        // Quiet surfaces for reading; terminal gets a static grid rather than space effects.
+        if (Mode is NexusAppearanceMode.Paper or NexusAppearanceMode.Graphite or NexusAppearanceMode.Terminal)
+        {
+            if (Mode == NexusAppearanceMode.Terminal)
+            {
+                var gridPen = new Pen(Solid("#182C7338"), 1);
+                gridPen.Freeze();
+                for (double x = 0; x < width; x += 40) drawing.DrawLine(gridPen, new Point(x, 0), new Point(x, height));
+                for (double y = 0; y < height; y += 40) drawing.DrawLine(gridPen, new Point(0, y), new Point(width, y));
+            }
+            drawing.Pop();
+            return;
+        }
+
+        var secondary = (Color)ColorConverter.ConvertFromString(palette.Secondary);
+        var accent = (Color)ColorConverter.ConvertFromString(palette.Accent);
+        var haze = Glow(Color.FromArgb(retro ? (byte)48 : (byte)20, secondary.R, secondary.G, secondary.B));
         drawing.DrawEllipse(haze, null, new Point(width * .10, height * .13), width * .36, height * .38);
-        var coolHaze = Glow(retro ? Color.FromArgb(24, 0, 224, 221) : Color.FromArgb(13, 42, 122, 160));
+        var coolHaze = Glow(Color.FromArgb(retro ? (byte)24 : (byte)13, accent.R, accent.G, accent.B));
         drawing.DrawEllipse(coolHaze, null, new Point(width * .87, height * .82), width * .35, height * .31);
 
         // A deterministic integer sequence keeps stars fixed across repaints and resizes.

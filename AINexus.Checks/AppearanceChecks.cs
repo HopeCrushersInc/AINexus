@@ -21,10 +21,15 @@ internal static class AppearanceChecks
         foreach (var mode in Enum.GetValues<NexusAppearanceMode>())
         {
             var palette = NexusAppearance.PaletteFor(mode);
+            check(NexusAppearance.ResolveSelection(mode, true) == (mode == NexusAppearanceMode.Lcars ? NexusAppearanceMode.Retro : mode),
+                $"Shift only unlocks retro through LCARS, including when selecting {mode}");
             check(!string.IsNullOrWhiteSpace(palette.FontFamily)
                 && ColorConverter.ConvertFromString(palette.Accent) is Color
                 && ColorConverter.ConvertFromString(palette.Panel) is Color,
                 $"{mode} appearance supplies a usable native font and palette without external assets");
+            foreach (var surface in new[] { palette.Background, palette.Panel, palette.Button, palette.Hover, palette.Selected })
+                check(Contrast(palette.Text, surface, palette.Background) >= 4.5,
+                    $"{mode} primary text meets 4.5:1 contrast on surface {surface}");
         }
     }
 
@@ -86,6 +91,24 @@ internal static class AppearanceChecks
             var initialAccent = ((SolidColorBrush)subject.FindResource("NexusAccentBrush")).Color;
             var initialPanel = ((SolidColorBrush)subject.FindResource("NexusPanelBrush")).Color;
 
+            var menu = (MenuItem)subject.FindName("AppearanceMenu");
+            check(menu.Items.OfType<MenuItem>().Count() == Enum.GetValues<NexusAppearanceMode>().Length - 1,
+                "Every public appearance has one menu entry and retro stays hidden");
+            foreach (var mode in Enum.GetValues<NexusAppearanceMode>())
+            {
+                subject.ApplyAppearanceSelection(mode, false);
+                var checkedItems = menu.Items.OfType<MenuItem>().Where(item => item.IsChecked).ToArray();
+                var expected = mode == NexusAppearanceMode.Retro ? NexusAppearanceMode.Lcars : mode;
+                check(checkedItems.Length == 1 && (expected switch
+                    {
+                        NexusAppearanceMode.Standard => checkedItems[0].Name == "AppearanceStandardMenuItem",
+                        NexusAppearanceMode.Lcars => checkedItems[0].Name == "AppearanceLcarsMenuItem",
+                        _ => checkedItems[0].Tag?.ToString() == expected.ToString()
+                    }), $"{mode} checks exactly its visible menu entry");
+                check(Near(subject.CurrentUiScale, 1.1) && ReferenceEquals(originalProfile, profileField.GetValue(subject)),
+                    $"{mode} preserves zoom and workspace configuration");
+            }
+
             subject.ApplyAppearanceSelection(NexusAppearanceMode.Lcars, shiftHeld: false);
             check(subject.CurrentAppearance == NexusAppearanceMode.Lcars
                 && ((SolidColorBrush)subject.FindResource("NexusAccentBrush")).Color != initialAccent,
@@ -125,6 +148,21 @@ internal static class AppearanceChecks
     }
 
     private static bool Near(double actual, double expected) => Math.Abs(actual - expected) < .000001;
+
+    private static double Contrast(string foreground, string surface, string background)
+    {
+        static double Linear(double value) => value <= .04045 ? value / 12.92 : Math.Pow((value + .055) / 1.055, 2.4);
+        static double Luminance(Color color) => .2126 * Linear(color.R / 255d) + .7152 * Linear(color.G / 255d) + .0722 * Linear(color.B / 255d);
+        var text = (Color)ColorConverter.ConvertFromString(foreground);
+        var panel = (Color)ColorConverter.ConvertFromString(surface);
+        var baseColor = (Color)ColorConverter.ConvertFromString(background);
+        var alpha = panel.A / 255d;
+        var blended = Color.FromRgb((byte)Math.Round(panel.R * alpha + baseColor.R * (1 - alpha)),
+            (byte)Math.Round(panel.G * alpha + baseColor.G * (1 - alpha)),
+            (byte)Math.Round(panel.B * alpha + baseColor.B * (1 - alpha)));
+        var first = Luminance(text); var second = Luminance(blended);
+        return (Math.Max(first, second) + .05) / (Math.Min(first, second) + .05);
+    }
 
     private sealed class CountingProvider : IOnlineDiscoveryProvider
     {

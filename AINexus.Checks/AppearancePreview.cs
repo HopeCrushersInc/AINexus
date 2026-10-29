@@ -34,6 +34,9 @@ internal static class AppearancePreview
                 host.UpdateLayout();
                 Save(host, Path.Combine(directory, mode.ToString().ToLowerInvariant() + ".png"));
             }
+            subject.ApplyAppearanceSelection(NexusAppearanceMode.Retro, false);
+            host.Background = subject.Background; host.Foreground = subject.Foreground;
+            host.FontFamily = subject.FontFamily;
             subject.HandleUiScaleWheel(true, 600);
             host.FontSize = subject.FontSize;
             await Dispatcher.Yield(DispatcherPriority.ApplicationIdle); host.UpdateLayout();

@@ -43,6 +43,9 @@ internal static class ComfyPortableUiChecks
                 "Comfy archive startup has no network request, selected asset, destination or approval");
             await window.DownloadComfyPortableArchiveAsync();
             check(calls.Count == 0 && !Directory.EnumerateFiles(folder).Any(), "Comfy UI refuses download before an exact approved review");
+            window.CompleteWorkloadScan(DiscoveryPipelineChecks.FixtureMachine());
+            window.ApplyWorkloadSelection([DiscoveryInterest.Images]);
+            window.SelectDiscoveredTool(ToolSelectionChecks.OfficialComfyFixture());
             await window.LookupComfyPortableReleaseAsync();
             check(calls.Count == 1 && calls[0].AbsolutePath.EndsWith("/releases/latest") && selector.Items.Count == 1 && selector.SelectedIndex == -1,
                 "Explicit current-release lookup shows actual archives without choosing one");

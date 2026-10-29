@@ -24,6 +24,8 @@ internal static class ComfyCheckpointFolderLiveChecks
             {
                 window.CompleteWorkloadScan(await HardwareCapabilityScanner.ScanAsync());
                 window.ApplyWorkloadSelection([DiscoveryInterest.Images]);
+                window.SelectDiscoveredTool(ToolSelectionChecks.OfficialComfyFixture());
+                window.UseSelectedImageTool();
                 check(window.OpenComfyCheckpointFolderSetup()
                     && string.IsNullOrEmpty(((TextBox)window.FindName("ComfyFolderEngineText")).Text)
                     && string.IsNullOrEmpty(((TextBox)window.FindName("ComfyFolderPathsText")).Text)

@@ -4,11 +4,11 @@
 
 AI Nexus scans the computer, shows workload categories, and searches live internet sources after the user asks. It does not choose a model, promote a provider, or install software automatically.
 
-### [Download for Windows x64](https://github.com/HopeCrushersInc/AINexus/releases/download/v0.2.0-preview.14/AINexus-0.2.0-preview.14-win-x64.zip)
+### [Download for Windows x64](https://github.com/HopeCrushersInc/AINexus/releases/download/v0.2.0-preview.15/AINexus-0.2.0-preview.15-win-x64.zip)
 
-**0.2.0-preview.14 · Development preview**
+**0.2.0-preview.15 · Development preview**
 
-[Release notes & checksums](https://github.com/HopeCrushersInc/AINexus/releases/tag/v0.2.0-preview.14) · [What works / what is unfinished](project-status.md) · [Changelog](../CHANGELOG.md) · [Discussions](https://github.com/HopeCrushersInc/AINexus/discussions)
+[Release notes & checksums](https://github.com/HopeCrushersInc/AINexus/releases/tag/v0.2.0-preview.15) · [What works / what is unfinished](project-status.md) · [Changelog](../CHANGELOG.md) · [Discussions](https://github.com/HopeCrushersInc/AINexus/discussions)
 
 ![Workload-first startup with unchecked categories](assets/workload-choices.png)
 
@@ -51,7 +51,7 @@ Download size and selected-drive space are shown separately from the conservativ
 
 Image discovery searches public Hugging Face text-to-image repositories for bounded root Safetensors candidates and also lists GitHub tools. Pinned file sizes, hashes and licenses are shown when supplied. Image file candidates appear with an explicit unverified notice; a file may be a component or adapter, and its hardware fit and complete checkpoint contents are not established. The **Available action** column distinguishes **Review image file download** from **View source / manual setup**. Most generator tools still require manual setup. The exact official ComfyUI result can open an archive-download review; this is not engine installation. Other tool reviews keep source details visible in Discover. **Open source page** opens the selected public page only when clicked and approves no download or installation.
 
-To acquire a supported image file, select its result and **Review selected item**, then **Choose existing folder → Review exact file download → approve the displayed source/license/plan → Download approved file**. The destination starts blank. Transfer verifies exact bytes and SHA-256, or rehashes a matching existing file when the review permits reuse. This acquires model data; it does not install a generator or prove that the checkpoint runs. After completion, **Connect this folder** opens a separate review for an existing portable ComfyUI engine; applying that configuration still requires its own approval.
+To acquire a supported image file, select its result and **Review selected item**, then **Choose existing folder → Review exact file download → approve the displayed source/license/plan → Download approved file**. The destination starts blank. Transfer verifies exact bytes and SHA-256, or rehashes a matching existing file when the review permits reuse. This acquires model data; it does not install a generator or prove that the checkpoint runs. After completion, **Choose tool / connect folder** returns to image-tool discovery if you have not chosen an engine. Only an explicitly chosen supported adapter can open its separate folder-configuration review.
 
 Video searches both Hugging Face **text-to-video** and **image-to-video** feeds, interleaves and deduplicates their repositories, and adds a separate GitHub tool search. It inspects at most four repositories per task and eight repositories total, with at most eleven metadata requests and no pagination. Exact publisher/repository queries inspect that source directly. A video candidate has a pinned repository/model-card source, task and available license metadata, **not a fabricated complete-file inventory or download size**. Video models may require multiple components and dedicated runtimes; video download, installation and generation recipes are not integrated. **Inspect video pipeline / manual setup** exposes those limits without assigning video GGUF files to the text runtime. Nexus does not apply text-model memory estimates to image or video candidates.
 
@@ -86,4 +86,8 @@ dotnet run --project AINexus.Checks/AINexus.Checks.csproj -c Release
 
 ## Get a ComfyUI archive
 
-In **Images**, choose **Get ComfyUI archive**. Click **Check releases**, select an archive yourself, choose an existing folder, then review and approve the exact download. **Read source terms** opens the chosen release license. Downloading verifies size and SHA-256, preserves conflicting files and records a private receipt. Nothing is extracted or started. GPU/driver compatibility and bundled dependency terms still need separate review; integrated extraction and engine verification are unfinished.
+In **Images**, choose **Find image tools**. Search online and select the tool you want. Only if you select the exact official ComfyUI tool, its details offer **Review archive download** as an optional action. Click **Check releases**, select an archive yourself, choose an existing folder, then review and approve the exact download. **Read source terms** opens the chosen release license. Downloading verifies size and SHA-256, preserves conflicting files and records a private receipt. Nothing is extracted or started. GPU/driver compatibility and bundled dependency terms still need separate review; integrated extraction and engine verification are unfinished.
+
+## No preinstalled AI tools
+
+The portal package includes its application dependencies, not AI engines, model weights or generator archives. Images starts with a neutral tool-discovery screen. Selecting an image workload does not select ComfyUI or any other engine. Selecting a source shows that tool's own actions; unsupported tools remain manual choices. Existing model and engine paths are not restored as startup selections. Previously approved files and saved configuration remain on disk.

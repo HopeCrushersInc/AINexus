@@ -282,6 +282,8 @@ internal static class ComfyCheckpointFolderUiChecks
         var window = new MainWindow { GuidedPersistPreferences = false };
         window.CompleteWorkloadScan(DiscoveryPipelineChecks.FixtureMachine());
         window.ApplyWorkloadSelection([DiscoveryInterest.Images, DiscoveryInterest.Coding]);
+        window.SelectDiscoveredTool(ToolSelectionChecks.OfficialComfyFixture());
+        window.UseSelectedImageTool();
         return window;
     }
     private static string MakeEngine(string path)

@@ -1,9 +1,10 @@
 # Current project status
 
-Release: **0.2.0-preview.15**, Windows x64 development preview, 2026-10-29. This removes the default image-engine assumption. No AI engine, model or tool archive is bundled. Select a discovery tool before seeing its optional adapter actions; no engine is installed or selected automatically. Previous user-approved files remain on disk.
+Release: **0.2.0-preview.16**, Windows x64 development preview, 2026-10-29. This adds explicit read-only 7z archive inspection after user-selected tool/archive review. Parsing runs in the portal's own resource-limited worker; it extracts, installs and launches no archive payload. Previous neutral tool selection and no-preinstalled-AI policy remain in place.
 
 ## Working within tested limits
 
+- Explicit 7z metadata inspection for the selected archive: verify exact size/SHA-256, list declared expanded sizes and possible license filenames, and reject unsafe metadata. A Windows job limits the owned worker to 768 MiB and one process, with a ten-minute parent deadline and bounded input/output. This is resource isolation, not a general OS security sandbox. Payload decompression, dependency terms, installation and execution remain unverified.
 - Official ComfyUI archive acquisition: **Find image tools → select the official ComfyUI result → Review archive download**, check releases, select an archive, choose an existing folder, review exact source/bytes/hash/terms/destination, approve, then download. Files are SHA-256 verified; conflicts preserved and owned partials cleaned. Receipts explicitly record no extraction, installation or execution. Source names do not prove GPU/driver compatibility.
 - Simpler task/action buttons and a static black-hole backdrop. Standard starts each session; choose among ten visible styles (Standard, LCARS, Cyberpunk, Midnight, Ocean, Forest, Ember, Graphite, Paper, Terminal). Paper and Graphite use quiet plain backgrounds; Terminal uses a static grid. Shift-clicking LCARS still opens hidden Retro. Shift-wheel or the Size menu scales text/buttons from 75% to 175%, with reset to 100%. Native title-bar dragging and all-edge/corner resizing remain available.
 - Actual CPU, RAM, GPU/driver and fixed-volume scans. Workload choices start unchecked and are not remembered.

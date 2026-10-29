@@ -4,11 +4,11 @@
 
 AI Nexus scans the computer, shows workload categories, and searches live internet sources after the user asks. It does not choose a model, promote a provider, or install software automatically.
 
-### [Download for Windows x64](https://github.com/HopeCrushersInc/AINexus/releases/download/v0.2.0-preview.15/AINexus-0.2.0-preview.15-win-x64.zip)
+### [Download for Windows x64](https://github.com/HopeCrushersInc/AINexus/releases/download/v0.2.0-preview.16/AINexus-0.2.0-preview.16-win-x64.zip)
 
-**0.2.0-preview.15 · Development preview**
+**0.2.0-preview.16 · Development preview**
 
-[Release notes & checksums](https://github.com/HopeCrushersInc/AINexus/releases/tag/v0.2.0-preview.15) · [What works / what is unfinished](project-status.md) · [Changelog](../CHANGELOG.md) · [Discussions](https://github.com/HopeCrushersInc/AINexus/discussions)
+[Release notes & checksums](https://github.com/HopeCrushersInc/AINexus/releases/tag/v0.2.0-preview.16) · [What works / what is unfinished](project-status.md) · [Changelog](../CHANGELOG.md) · [Discussions](https://github.com/HopeCrushersInc/AINexus/discussions)
 
 ![Workload-first startup with unchecked categories](assets/workload-choices.png)
 
@@ -91,3 +91,7 @@ In **Images**, choose **Find image tools**. Search online and select the tool yo
 ## No preinstalled AI tools
 
 The portal package includes its application dependencies, not AI engines, model weights or generator archives. Images starts with a neutral tool-discovery screen. Selecting an image workload does not select ComfyUI or any other engine. Selecting a source shows that tool's own actions; unsupported tools remain manual choices. Existing model and engine paths are not restored as startup selections. Previously approved files and saved configuration remain on disk.
+
+## Inspect an acquired archive
+
+After choosing a tool and reviewing its exact archive, **Inspect existing archive** is available for a local copy. A verified download also enables this action; it never runs automatically. Inspection rechecks size and SHA-256 and reads a typed 7z file list in the portal's own limited worker. It reports declared expanded bytes and possible license-file locations. Filenames are not proof of complete dependencies, reviewed terms, executable authenticity, GPU compatibility or engine readiness. No payload is extracted or run. Canceling or closing stops the owned inspector. Actual extraction and installation require a future separate review and approval.

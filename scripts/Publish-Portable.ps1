@@ -2,7 +2,7 @@
 param(
     [ValidateLength(1, 128)]
     [ValidatePattern('^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(?:-(?:(?:0|[1-9][0-9]*|[0-9]*[A-Za-z-][0-9A-Za-z-]*)(?:\.(?:0|[1-9][0-9]*|[0-9]*[A-Za-z-][0-9A-Za-z-]*))*))?$')]
-    [string]$Version = '0.2.0-preview.15',
+    [string]$Version = '0.2.0-preview.16',
     [string]$OutputRoot,
     [string]$SourceCommit
 )
@@ -157,6 +157,22 @@ foreach ($library in $sqliteLibraries) {
     $noticeIndex.Add("Published SQLite dependency: $($library.Name); $expectedLicense; copyright retained in unchanged nuspec.")
 }
 [IO.File]::Copy((Join-Path $sqliteSourceRoot 'sources.json'), (Join-Path $noticeDirectory 'sqlite-notice-sources.json'), $false)
+$archiveLibrary = @($dependencies.libraries.PSObject.Properties | Where-Object { $_.Name -eq 'SharpCompress/0.50.7' })
+if ($archiveLibrary.Count -ne 1) { throw 'Archive library version changed; review its pinned licenses and notices before packaging.' }
+$archivePackages = @($packageFolders | ForEach-Object { Join-Path $_ 'sharpcompress\0.50.7' } | Where-Object { Test-Path -LiteralPath $_ -PathType Container })
+if ($archivePackages.Count -eq 0) { throw 'The restored archive library package is missing.' }
+[xml]$archiveDeclaration = Get-Content -LiteralPath (Join-Path $archivePackages[0] 'sharpcompress.nuspec') -Raw
+if ($archiveDeclaration.package.metadata.license.InnerText -ne 'MIT') { throw 'The archive library license changed; review required.' }
+$archiveNoticeSource = Join-Path $repositoryRoot 'docs\third-party\sharpcompress'
+$archiveNoticeTarget = Join-Path $noticeDirectory 'sharpcompress\0.50.7'
+[IO.Directory]::CreateDirectory($archiveNoticeTarget) | Out-Null
+foreach ($name in @('README.md', 'sharpcompress.nuspec')) {
+    $source = Join-Path $archivePackages[0] $name
+    if (!(Test-Path -LiteralPath $source -PathType Leaf)) { throw 'Archive library attribution is missing.' }
+    [IO.File]::Copy($source, (Join-Path $archiveNoticeTarget $name), $false)
+}
+foreach ($name in @('LICENSE.txt', 'sources.json')) { [IO.File]::Copy((Join-Path $archiveNoticeSource $name), (Join-Path $archiveNoticeTarget $name), $false) }
+$noticeIndex.Add('Archive library: SharpCompress/0.50.7; MIT license and unchanged package README/nuspec, including embedded third-party attribution.')
 [IO.File]::WriteAllText((Join-Path $noticeDirectory 'README.txt'), ($noticeIndex -join "`n"), [Text.UTF8Encoding]::new($false))
 
 $readme = @"

@@ -1,14 +1,16 @@
 # Project roadmap and projection
 
-Updated 2026-10-27. This replaces the early baseline audit with the current implementation state and proposed delivery order. It is a direction and dependency plan, not a release-date commitment. See the [feature overview](feature-overview.md) for the user experience and platform matrix.
+Updated 2026-10-29 for preview.16. This is a delivery order, not a date commitment.
 
 ## Current checkpoint
 
-**Implemented, within documented limits:** Windows WPF hardware/software scans; hardware-aware GGUF discovery; saved metadata; exact-plan model acquisition and integrity receipts; runtime release/file reviews; approved single native CPU ZIP download, inspection and extraction; local library and generation; owned llama.cpp offline-mode launch and explicit smoke-test evidence; native workload navigation; narrow local ComfyUI generation.
+**Working within tested limits:** Windows hardware scans; user-selected workload discovery; private source catalog and offline browsing; exact approved model downloads; narrow CPU-runtime installation; local text chat; optional image-tool actions after explicit source selection; ten visible styles and hidden Retro. No AI engines, models or tool archives are preinstalled or selected automatically. Preview.16 passed 1,359 regression/native checks; historical live text/image evidence remains specific to its tested hardware, files and runtimes.
 
-Read-only per-model library integrity checking against an explicit acquisition receipt is now available; a separate read-only recovery review now proposes a preserved-source replacement path and fresh-review steps. Neither feature is automated repair or update management.
+**Next milestone:** complete user-selected tool setup: inspect the exact acquired archive, review bundled terms and expanded storage, separately approve extraction into a new folder, verify the installed engine, then explicitly configure and launch it. Download approval is never installation or execution approval. Read-only 7z archive inspection is now implemented in a resource-limited portal worker. Bundled-terms content review and separately approved extraction/verification are next; inspection does not complete installation.
 
-**Not yet implemented:** general model repair/update/rollback, live artifact editing, automatic switching, dockable/popout workspaces, durable multi-step workflows, service mode, training and non-Windows portal releases. GPU/multiple-archive runtime installation and dependency/source-build recipes remain incomplete. Preview.7 validation includes 893 default local regression/native checks, six live Library checks for each of two installed text models, and five actual image checks including explicit 1024×768 output. Publication CI is reported on the release; these checks do not establish all-model, four-GPU execution or cross-platform support.
+**Still unfinished:** broader optional tool adapters; complete video/music setup; general repair/update/rollback; automatic server switching; dockable/popout workflows; services; training; Linux/macOS/ARM portal packages. The immediate hardware scope is 1–4 local GPUs, with actual multi-GPU execution still unverified.
+
+
 
 ## Projected phases
 

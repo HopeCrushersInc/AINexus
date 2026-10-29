@@ -4,9 +4,9 @@
 
 A local AI library and launcher inspired by Steam, Playnite and Ninite. Find models and tools for your computer, approve their setup, and use supported models offline.
 
-### [Download for Windows x64](https://github.com/HopeCrushersInc/AINexus/releases/download/v0.2.0-preview.15/AINexus-0.2.0-preview.15-win-x64.zip)
+### [Download for Windows x64](https://github.com/HopeCrushersInc/AINexus/releases/download/v0.2.0-preview.16/AINexus-0.2.0-preview.16-win-x64.zip)
 
-**0.2.0-preview.15 · Development preview** · [Release notes & checksums](https://github.com/HopeCrushersInc/AINexus/releases/tag/v0.2.0-preview.15)
+**0.2.0-preview.16 · Development preview** · [Release notes & checksums](https://github.com/HopeCrushersInc/AINexus/releases/tag/v0.2.0-preview.16)
 
 ## How it works
 

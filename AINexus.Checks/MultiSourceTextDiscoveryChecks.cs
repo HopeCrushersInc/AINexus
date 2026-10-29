@@ -69,7 +69,7 @@ internal static class MultiSourceTextDiscoveryChecks
             return Task.FromResult(Reply(uri));
         })))
         {
-            var result = await new VerifiedOnlineDiscoveryProvider(http).SearchAsync(new(DiscoveryInterest.Coding, ""));
+            var result = await new VerifiedOnlineDiscoveryProvider(http).SearchAsync(new(DiscoveryInterest.LocalAssistants, "explicit fixture query"));
             check(result.Items.Any(item => item.Artifact?.Repository == "Fixture/Good")
                 && result.Items.All(item => item.Artifact?.Repository != "Fixture/ChangedTask")
                 && result.Notes.Any(note => note.Contains("trendingScore feed unavailable"))
@@ -86,11 +86,11 @@ internal static class MultiSourceTextDiscoveryChecks
                 : Reply(request.RequestUri));
         })))
         {
-            var result = await new VerifiedOnlineDiscoveryProvider(http).SearchAsync(new(DiscoveryInterest.Agents, "", 48));
-            check(result.Items.Count == 48 && result.Items.Count(item => item.Artifact is not null) == 47
+            var result = await new VerifiedOnlineDiscoveryProvider(http).SearchAsync(new(DiscoveryInterest.LocalAssistants, "explicit fixture query", 48));
+            check(result.Items.Count == 48 && result.Items.Count(item => item.Artifact is not null) == 48
                 && result.Items.Where(item => item.Artifact is not null).Select(item => item.Artifact!.Repository).Distinct().Count() == 24
-                && boundedRequests == 53,
-                "Expanded text discovery fills a forty-eight-result budget from at most twenty-four repositories and fifty-three metadata requests");
+                && boundedRequests == 51 && result.Items.All(item => item.Kind == "Model"),
+                "Expanded text discovery fills all forty-eight slots with models from at most twenty-four repositories and fifty-one metadata requests");
         }
 
         using (var http = new HttpClient(new Handler((request, _) => Task.FromResult(

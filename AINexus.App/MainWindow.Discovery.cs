@@ -27,7 +27,7 @@ public partial class MainWindow
         InitializeRuntimeInstallation();
         InitializeRuntimeDownload();
         _discoveryPipeline = new(new VerifiedOnlineDiscoveryProvider(_discoveryHttp), DiscoveryCacheStore.ForCurrentUser());
-        DiscoveryInterestSelector.ItemsSource = VerifiedOnlineDiscoveryProvider.Workflows;
+        DiscoveryInterestSelector.ItemsSource = WorkloadPresentation.Choices;
         DiscoveryInterestSelector.SelectedIndex = -1;
         DiscoveryOrderSelector.ItemsSource = new[]
         {
@@ -169,7 +169,8 @@ public partial class MainWindow
     {
         if (_discoveryBusy || DiscoveryResultsGrid.SelectedItem is not DiscoveryRow { Recommendation.Item.Artifact: { Format: "GGUF" } artifact } row) return;
         DiscoveryQueryText.Text = artifact.Repository;
-        DiscoveryInterestSelector.SelectedItem = VerifiedOnlineDiscoveryProvider.Workflows.Single(w => w.Interest == row.Recommendation.Item.Interest);
+        DiscoveryInterestSelector.SelectedItem = ((IEnumerable<DiscoveryWorkflow>)DiscoveryInterestSelector.ItemsSource)
+            .FirstOrDefault(w => w.Interest == row.Recommendation.Item.Interest);
         await RunDiscoverySearchAsync(online: true);
     }
     private async void DiscoverySearchAllButton_Click(object sender, RoutedEventArgs e) => await FindSelectedWorkloadsAsync();

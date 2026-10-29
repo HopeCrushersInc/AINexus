@@ -1,6 +1,7 @@
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
 
 namespace AINexus.App;
 
@@ -60,9 +61,11 @@ public partial class MainWindow
             string.Join("\n", machine.Hardware.Gpus.Select(gpu => gpu.Name + (gpu.VramGb is { } vram ? $" · {vram:N1} GiB VRAM" : " · VRAM unavailable"))) +
             "\n" + string.Join(" · ", machine.Volumes.Select(volume => $"{volume.Path} {volume.AvailableBytes / 1073741824d:N1} GiB free"));
         WorkloadScanStatusText.Text = "Hardware scan finished. Choose tasks below; model requirements are assessed separately.";
-        var choices = VerifiedOnlineDiscoveryProvider.Workflows.Select(workflow => new WorkloadChoice(workflow)).ToArray();
+        var choices = WorkloadPresentation.Choices.Select(workflow => new WorkloadChoice(workflow)).ToArray();
         foreach (var choice in choices) choice.PropertyChanged += (_, _) => RefreshWorkloadContinue();
         WorkloadChoices.ItemsSource = choices;
+        var view = CollectionViewSource.GetDefaultView(choices);
+        view.GroupDescriptions.Add(new PropertyGroupDescription(nameof(WorkloadChoice.Group)));
         WorkloadOptionsPanel.Visibility = Visibility.Visible;
         RefreshWorkloadContinue();
         RefreshGuidedControls();
@@ -83,9 +86,9 @@ public partial class MainWindow
         ImageWorkspaceNav.Visibility = profile.HasImages ? Visibility.Visible : Visibility.Collapsed;
         AssistantWorkspaceNav.Visibility = profile.HasAssistant ? Visibility.Visible : Visibility.Collapsed;
         CreateWorkspaceHeading.Visibility = profile.HasImages || profile.HasAssistant ? Visibility.Visible : Visibility.Collapsed;
-        var workflows = VerifiedOnlineDiscoveryProvider.Workflows.Where(w => profile.Interests.Contains(w.Interest)).ToArray();
+        var workflows = WorkloadPresentation.ForProfile(profile);
         DiscoveryInterestSelector.ItemsSource = workflows;
-        DiscoveryInterestSelector.SelectedIndex = workflows.Length == 1 ? 0 : -1;
+        DiscoveryInterestSelector.SelectedIndex = workflows.Count == 1 ? 0 : -1;
         WorkspaceWorkloadCards.ItemsSource = workflows.Select(workflow => new WorkloadWorkspaceCard(workflow.Interest, workflow.Name,
             new WorkloadChoice(workflow).Description,
             "Search online choices",
@@ -113,7 +116,7 @@ public partial class MainWindow
     internal async Task ConfirmWorkloadSelectionAsync()
     {
         if (_discoveryBusy || _workloadMachine is null || WorkloadChoices.ItemsSource is not IEnumerable<WorkloadChoice> choices) return;
-        ApplyWorkloadSelection(choices.Where(c => c.Selected).Select(c => c.Interest));
+        ApplyWorkloadSelection(choices.Where(c => c.Selected).SelectMany(c => c.Interests));
         await FindSelectedWorkloadsAsync();
     }
 

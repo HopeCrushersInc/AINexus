@@ -4,11 +4,11 @@
 
 AI Nexus scans the computer, shows workload categories, and searches live internet sources after the user asks. It does not choose a model, promote a provider, or install software automatically.
 
-### [Download for Windows x64](https://github.com/HopeCrushersInc/AINexus/releases/download/v0.2.0-preview.16/AINexus-0.2.0-preview.16-win-x64.zip)
+### [Download for Windows x64](https://github.com/HopeCrushersInc/AINexus/releases/download/v0.2.0-preview.17/AINexus-0.2.0-preview.17-win-x64.zip)
 
-**0.2.0-preview.16 · Development preview**
+**0.2.0-preview.17 · Development preview**
 
-[Release notes & checksums](https://github.com/HopeCrushersInc/AINexus/releases/tag/v0.2.0-preview.16) · [What works / what is unfinished](project-status.md) · [Changelog](../CHANGELOG.md) · [Discussions](https://github.com/HopeCrushersInc/AINexus/discussions)
+[Release notes & checksums](https://github.com/HopeCrushersInc/AINexus/releases/tag/v0.2.0-preview.17) · [What works / what is unfinished](project-status.md) · [Changelog](../CHANGELOG.md) · [Discussions](https://github.com/HopeCrushersInc/AINexus/discussions)
 
 ![Workload-first startup with unchecked categories](assets/workload-choices.png)
 
@@ -39,7 +39,7 @@ AI Nexus scans the computer, shows workload categories, and searches live intern
 
 **Discovery is not installation. A search result is not a recommendation or proof of compatibility.** Automated installation is currently limited to implemented recipes; finding an art or music tool does not mean its installer is supported.
 
-Text searches combine Hugging Face **popular, trending and recently updated text-generation GGUF** listings. Broad coverage interleaves those lists and deduplicates repositories; the optional search view can request one order instead. Confirmed text workloads and the native text search request up to **48 results**, including supporting runtime metadata, from at most **24 inspected repositories** with four concurrent reads and a 60-second deadline. A failed feed preserves successful results. Source ordering is preserved within hardware-assessment groups; no combined quality score is invented.
+Text searches combine Hugging Face **popular, trending and recently updated text-generation GGUF** listings. Broad coverage interleaves those lists and deduplicates repositories; the optional search view can request one order instead. Confirmed text workloads and the native text search request up to **48 results**, with no runtime software inserted into model choices, from at most **24 inspected repositories** with four concurrent reads and a 60-second deadline. A failed feed preserves successful results. Source ordering is preserved within hardware-assessment groups; no combined quality score is invented.
 
 Results show source-reported repository parameters, update dates and downloads when available. These are repository facts, not proof of an artifact's architecture, release date, quality or speed. No parameter count is guessed from a filename. Use a model/publisher term or explicitly browse a selected repository's standalone files to inspect more quantizations. Named projectors, importance matrices, draft models and adapters are excluded from primary-model discovery; complete split GGUF sets and pagination are not supported yet. Search coverage remains bounded. The [official Hub API](https://huggingface.co/docs/hub/en/api) documents the metadata source; independent task evaluations remain separate unfinished work.
 
@@ -95,3 +95,20 @@ The portal package includes its application dependencies, not AI engines, model 
 ## Inspect an acquired archive
 
 After choosing a tool and reviewing its exact archive, **Inspect existing archive** is available for a local copy. A verified download also enables this action; it never runs automatically. Inspection rechecks size and SHA-256 and reads a typed 7z file list in the portal's own limited worker. It reports declared expanded bytes and possible license-file locations. Filenames are not proof of complete dependencies, reviewed terms, executable authenticity, GPU compatibility or engine readiness. No payload is extracted or run. Canceling or closing stops the owned inspector. Actual extraction and installation require a future separate review and approval.
+
+## Categories and relevant searches
+
+| Group | Independently selectable subcategories |
+| --- | --- |
+| Assistants | Chat & writing; Automation & agents |
+| Coding & software | Coding; Game development; Reverse engineering |
+| Creative media | Images & artwork; Music & audio; Video; Speech & voice; 3D art & animation; Streaming & recording |
+| CAD & 3D printing | CAD design; 3D printing & slicing |
+
+Group headings select nothing. Choosing CAD alone does not search printing; choose both if you want both roles. All checks start empty. Scanned hardware details can be expanded separately.
+
+Assistant/model searches return model files, not runtime software. The model-task panel distinguishes an explicitly queried engine connection from its actual reported model IDs; neither is selected automatically.
+
+Coding searches combine source code/coding tags and explicit coder repository labels; agent-model searches use function-calling/tool-use/tool-calling tags. Free text such as `32B` narrows that selected role rather than replacing it. Source labels are relevance hints, not verified capability or quality, and missing labels may omit relevant models. An exact owner/repository remains a deliberate direct inspection, with task capability unverified. Maximum task-text coverage is nine list requests plus 48 repository/file reads, 24 repositories and four concurrent reads; general chat remains three lists plus 48 reads.
+
+Tool searches keep each task's fixed query and validate its returned name/description/topics, excluding unrelated, archived, disabled and fork sources. CAD and printing have distinct topic scopes; streaming uses live-streaming metadata rather than data-streaming matches. Older saved searches use separate keys and are preserved rather than silently reused under new criteria.

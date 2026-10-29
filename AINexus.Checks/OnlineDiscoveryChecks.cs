@@ -2,6 +2,8 @@ using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Text;
+using System.Text.Json;
+using System.Security.Cryptography;
 using AINexus.App;
 
 namespace AINexus.Checks;
@@ -32,13 +34,14 @@ internal static class OnlineDiscoveryChecks
         {
             var snapshot = await new VerifiedOnlineDiscoveryProvider(http).SearchAsync(new(DiscoveryInterest.LocalAssistants, "hello & x?search=", 3, SearchOrder: TextSearchOrder.Popular));
             var models = snapshot.Items.Where(item => item.Kind == "Model").ToArray();
-            check(models.Length == 2 && snapshot.Items.Count == 3, "Bounded discovery returns actual fixture artifacts and supporting release metadata");
+            check(models.Length == 2 && snapshot.Items.Count == 2, "Assistant discovery returns model files only without adding a runtime to fill empty slots");
             check(models[0].Artifact is { SizeBytes: 1024, Revision: Revision, Sha256: Hash, Gated: false, Format: "GGUF" },
                 "Online artifacts preserve reported byte size, SHA-256, revision, format and access state");
             check(models[0].License == "apache-2.0" && models[0].Publisher == "Fixture", "License and publisher come from source metadata");
             check(models.All(item => item.Sources.All(source => source.Url.Scheme == "https" && source.Url.AbsoluteUri.Contains(Revision))),
                 "Model sources point to the pinned repository revision");
-            check(snapshot.Items.Single(item => item.Kind == "Runtime").Name == "llama.cpp fixture-release", "Supporting runtime release name comes from the upstream response");
+            check(snapshot.Items.All(item => item.Kind == "Model") && requests.All(uri => uri.Host == "huggingface.co"),
+                "Assistant model discovery does not query or insert a predetermined llama.cpp runtime");
             check(snapshot.Notes.Any(note => note.Contains("shard")) && snapshot.Notes.Any(note => note.Contains("invalid artifact")),
                 "Sharded and unsafe artifact paths are excluded with explicit notes");
             check(models.All(item => !item.Artifact!.FileName.Contains("00001") && !item.Artifact.FileName.Contains("..")),
@@ -51,7 +54,7 @@ internal static class OnlineDiscoveryChecks
                     && !item.Artifact.FileName.Contains("lora", StringComparison.OrdinalIgnoreCase))
                 && snapshot.Notes.Any(note => note.Contains("importance matrix")),
                 "Importance-matrix, draft and adapter-labelled files are not offered as a repository's primary text model");
-            check(requests.Count == 5 && requests.All(uri => uri.Host is "huggingface.co" or "api.github.com"), "Discovery stays inside its fixed public sources and bounded request budget");
+            check(requests.Count == 3 && requests.All(uri => uri.Host == "huggingface.co"), "Model discovery stays inside its model metadata source and bounded request budget");
             check(requests[0].OriginalString.Contains("search=hello%20%26%20x%3Fsearch%3D", StringComparison.Ordinal), "User search text is escaped rather than interpreted as API parameters");
             check(requests.Any(uri => uri.AbsolutePath.Contains("/tree/" + Revision)), "Artifact metadata is read at the reported immutable revision");
         }
@@ -89,15 +92,99 @@ internal static class OnlineDiscoveryChecks
             var catalog = await new VerifiedOnlineDiscoveryProvider(http).SearchAsync(new(DiscoveryInterest.Coding, "Fixture/Model", 8));
             check(catalog.Items.Count(item => item.Artifact is not null) == 3 && catalog.Items.Any(item => item.Artifact?.FileName == "third.gguf"),
                 "An exact repository search exposes further file variants within the requested budget instead of restricting user choice to two files");
-            check(exactRepositoryRequests.Count == 4 && exactRepositoryRequests.All(uri => uri.AbsolutePath != "/api/models")
+            check(exactRepositoryRequests.Count == 2 && exactRepositoryRequests.All(uri => uri.AbsolutePath != "/api/models" && uri.Host == "huggingface.co")
                 && exactRepositoryRequests[0].AbsolutePath == "/api/models/Fixture/Model"
                 && catalog.Notes.Any(note => note.Contains("no broad search or repository substitution", StringComparison.Ordinal)),
                 "An explicitly chosen repository is inspected directly even when a broad source search would omit it, with no substitute repository");
         }
+        await CheckModelSearchScopeAsync(check);
+        await CheckSavedModelSearchScopeAsync(check);
         await CheckRepositoryCoverageAsync(check);
         await CheckPartialResultsAsync(check);
         await CheckMalformedMetadataAsync(check);
         await CheckLimitsAndCancellationAsync(check);
+    }
+
+    private static async Task CheckModelSearchScopeAsync(Action<bool, string> check)
+    {
+        foreach (var interest in new[] { DiscoveryInterest.LocalAssistants, DiscoveryInterest.Coding, DiscoveryInterest.Agents })
+        {
+            var requests = new List<Uri>();
+            using (var http = new HttpClient(new FixtureHandler((request, _) =>
+            {
+                requests.Add(request.RequestUri!);
+                if (request.RequestUri!.Host != "huggingface.co")
+                    throw new InvalidOperationException("A model-only search attempted a runtime source.");
+                return Task.FromResult(ReplyFor(request.RequestUri));
+            })))
+            {
+                var found = await new VerifiedOnlineDiscoveryProvider(http).SearchAsync(new(interest, "fixture", 3, SearchOrder: TextSearchOrder.Popular));
+                check(found.Items.Count == 2 && found.Items.All(item => item.Kind == "Model" && item.Interest == interest)
+                    && requests.Count == (interest == DiscoveryInterest.LocalAssistants ? 3 : 5) && requests.All(uri => uri.Host == "huggingface.co"),
+                    $"{interest} search returns model files without querying or substituting runtime software");
+            }
+            requests.Clear();
+            using (var empty = new HttpClient(new FixtureHandler((request, _) =>
+            {
+                requests.Add(request.RequestUri!);
+                return Task.FromResult(Json("[]"));
+            })))
+            {
+                var found = await new VerifiedOnlineDiscoveryProvider(empty).SearchAsync(new(interest, "no matching model", 3, SearchOrder: TextSearchOrder.Popular));
+                check(found.Items.Count == 0 && requests.Count == (interest == DiscoveryInterest.LocalAssistants ? 1 : 3) && requests.All(uri => uri.Host == "huggingface.co")
+                    && found.Notes.Any(note => note.Contains("No supported standalone GGUF artifacts")),
+                    $"Empty {interest} search stays empty instead of filling assistant choices with llama.cpp");
+            }
+        }
+    }
+
+    private static async Task CheckSavedModelSearchScopeAsync(Action<bool, string> check)
+    {
+        var root = Path.Combine(AppContext.BaseDirectory, "fixtures", "model-scope-cache-" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(root);
+        try
+        {
+            var request = new OnlineDiscoveryRequest(DiscoveryInterest.LocalAssistants, "fixture");
+            var snapshot = DiscoveryPipelineChecks.FixtureCatalog();
+            var runtime = snapshot.Items[0] with
+            {
+                Id = "fixture-runtime", Name = "llama.cpp fixture", Kind = "Runtime", Artifact = null,
+                RuntimeRelease = new("fixture", false, false, [], ["Inert runtime metadata fixture."]),
+                Sources = [new("Runtime fixture", new Uri("https://github.com/ggml-org/llama.cpp"), snapshot.RetrievedAt)]
+            };
+            var mixed = snapshot with { Items = [snapshot.Items[0], runtime] };
+            var oldKey = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(
+                $"{request.Interest}\n{request.Query}\n{request.Limit}\ntext-search-v2\n{request.SearchOrder}")));
+            var oldPath = Path.Combine(root, oldKey + ".json");
+            var oldBytes = JsonSerializer.SerializeToUtf8Bytes(new { Version = 1, Request = request, Snapshot = mixed });
+            await File.WriteAllBytesAsync(oldPath, oldBytes);
+            var cache = new DiscoveryCacheStore(root);
+            check(await cache.LoadAsync(request) is null && File.ReadAllBytes(oldPath).SequenceEqual(oldBytes),
+                "New model-only search semantics do not reopen or delete legacy mixed model/runtime caches");
+            foreach (var role in new[] { DiscoveryInterest.Coding, DiscoveryInterest.Agents, DiscoveryInterest.Cad })
+            {
+                var oldRequest = request with { Interest = role, Query = "32B" };
+                var oldSemantics = role == DiscoveryInterest.Cad ? "text-search-v2" : "text-model-search-v3";
+                var oldRoleKey = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(
+                    $"{oldRequest.Interest}\n{oldRequest.Query}\n{oldRequest.Limit}\n{oldSemantics}\n{oldRequest.SearchOrder}")));
+                var oldRolePath = Path.Combine(root, oldRoleKey + ".json");
+                var oldRoleBytes = JsonSerializer.SerializeToUtf8Bytes(new { Version = 1, Request = oldRequest, Snapshot = mixed });
+                await File.WriteAllBytesAsync(oldRolePath, oldRoleBytes);
+                check(await cache.LoadAsync(oldRequest) is null && File.ReadAllBytes(oldRolePath).SequenceEqual(oldRoleBytes),
+                    $"{role} relevance rules do not reopen or delete earlier unscoped saved searches");
+            }
+            await cache.SaveAsync(request, mixed);
+            var saved = await cache.LoadAsync(request);
+            check(saved is { IsCached: true } && saved.Items.Count == 1 && saved.Items[0].Kind == "Model"
+                && saved.RetrievedAt == snapshot.RetrievedAt && saved.Notes.Any(note => note.Contains("Non-model software entries")),
+                "A saved assistant model search omits runtime software while preserving source dates and disclosing the omission");
+            var explicitRuntime = request with { RuntimeReleaseTag = "fixture" };
+            await cache.SaveAsync(explicitRuntime, snapshot with { Items = [runtime] });
+            var named = await cache.LoadAsync(explicitRuntime);
+            check(named?.Items.Single().RuntimeRelease?.Tag == "fixture" && named.Items[0].Kind == "Runtime",
+                "Model-only cache filtering preserves explicitly requested runtime release evidence");
+        }
+        finally { Directory.Delete(root, recursive: true); }
     }
 
     private static async Task CheckRepositoryCoverageAsync(Action<bool, string> check)
@@ -120,13 +207,13 @@ internal static class OnlineDiscoveryChecks
         }));
         var snapshot = await new VerifiedOnlineDiscoveryProvider(http).SearchAsync(new(DiscoveryInterest.LocalAssistants, "", 12, SearchOrder: TextSearchOrder.Popular));
         var models = snapshot.Items.Where(item => item.Kind == "Model").ToArray();
-        check(models.Length == 11 && models.Select(item => item.Artifact!.Repository).Distinct().Count() == 11
+        check(models.Length == 12 && models.Select(item => item.Artifact!.Repository).Distinct().Count() == 12
             && models.Any(item => item.Artifact!.Repository == "Fixture/Writer-32B"),
             "Broad discovery reaches a source repository beyond the first four, including a source-named 32B entry, before allocating repeat variants");
-        check(snapshot.Items.Count == 12 && snapshot.Items.Count(item => item.Kind == "Runtime") == 1
-            && requests.Count <= 27 && requests[0].Query.Contains("limit=12", StringComparison.Ordinal)
+        check(snapshot.Items.Count == 12 && snapshot.Items.All(item => item.Kind == "Model")
+            && requests.Count <= 25 && requests[0].Query.Contains("limit=12", StringComparison.Ordinal)
             && requests[0].Query.Contains("sort=downloads&direction=-1", StringComparison.Ordinal),
-            "Expanded discovery requests explicit download ordering while retaining the twelve-result and twenty-seven-request bounds");
+            "Expanded discovery uses all twelve result slots for models within twenty-five metadata requests");
         check(snapshot.Notes.Any(note => note.Contains("No pagination", StringComparison.Ordinal))
             && snapshot.Notes.Any(note => note.Contains("not a quality rating", StringComparison.Ordinal))
             && snapshot.Notes.Any(note => note.Contains("Parameter counts are not inferred", StringComparison.Ordinal))
@@ -142,11 +229,8 @@ internal static class OnlineDiscoveryChecks
             && item.Artifact.FileName.Equals("qwen2.5-1.5b-instruct-q4_k_m.gguf", StringComparison.OrdinalIgnoreCase));
         check(artifact?.Artifact is { SizeBytes: > 0, Sha256: not null } && artifact.Sources.Count > 0,
             "Live online discovery retrieves real upstream Qwen artifact size/hash/revision without downloading weights");
-        var runtime = snapshot.Items.FirstOrDefault(item => item.Kind == "Runtime")?.RuntimeRelease;
-        check(runtime is not null && runtime.Archives.All(asset => asset.SizeBytes > 0 && asset.DownloadUrl.Host == "github.com")
-            && runtime.Notes.Any(note => note.Contains("No archive was downloaded")),
-            "Live runtime discovery reads published archive evidence without assuming binaries exist or installing software");
-        Console.WriteLine($"Live runtime metadata: {runtime?.Tag}; published archives: {runtime?.Archives.Count}.");
+        check(snapshot.Items.All(item => item.Kind == "Model" && item.RuntimeRelease is null),
+            "Live assistant discovery returns model artifacts without mixing runtime software into assistant choices");
         Console.WriteLine($"Live discovery: {snapshot.Items.Count} metadata entries, {snapshot.Notes.Count} notes.");
     }
 
@@ -155,7 +239,7 @@ internal static class OnlineDiscoveryChecks
         using var http = new HttpClient(new FixtureHandler((request, _) =>
         {
             var uri = request.RequestUri!;
-            if (uri.AbsolutePath == "/api/models") return Task.FromResult(Json("[{\"id\":\"Fixture/Unavailable\"},{\"id\":\"Fixture/Model\"}]"));
+            if (uri.AbsolutePath == "/api/models") return Task.FromResult(Json("[{\"id\":\"Fixture/Unavailable\",\"tags\":[\"code\",\"coding\"]},{\"id\":\"Fixture/Model\",\"tags\":[\"code\",\"coding\"]}]"));
             if (uri.AbsolutePath.EndsWith("/Unavailable")) return Task.FromResult(new HttpResponseMessage(HttpStatusCode.NotFound));
             return Task.FromResult(ReplyFor(uri));
         }));
@@ -233,7 +317,7 @@ internal static class OnlineDiscoveryChecks
     {
         if (uri.Host == "api.github.com") return uri.AbsolutePath.EndsWith("/latest")
             ? Json("{\"tag_name\":\"fixture-release\"}") : Json("{\"license\":{\"spdx_id\":\"MIT\"}}");
-        if (uri.AbsolutePath == "/api/models") return Json("[{\"id\":\"Fixture/Model\"}]");
+        if (uri.AbsolutePath == "/api/models") return Json("[{\"id\":\"Fixture/Model\",\"tags\":[\"code\",\"function-calling\",\"tool-use\",\"tool-calling\"]}]");
         if (uri.AbsolutePath.Contains("/tree/")) return Json(Tree);
         return Json(ModelInfo);
     }

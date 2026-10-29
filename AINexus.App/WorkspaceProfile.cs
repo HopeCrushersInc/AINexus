@@ -19,12 +19,19 @@ public sealed class WorkloadChoice(DiscoveryWorkflow workflow, bool selected = f
 {
     private bool _selected = selected;
     public DiscoveryInterest Interest => workflow.Interest;
+    public IReadOnlyList<DiscoveryInterest> Interests => WorkloadPresentation.Members(Interest);
     public string Name => workflow.Name;
+    public string Group => WorkloadPresentation.GroupFor(Interest);
     public string Description => Interest switch
     {
-        DiscoveryInterest.Images => "Review and approve a selected image-model file download, then connect its folder to an existing ComfyUI engine. Generator-tool installation still requires manual setup.",
-        DiscoveryInterest.Video => "Browse video-model pipelines and tools. Complete model files, runtime setup and hardware fit need separate review; video setup is not integrated yet.",
-        DiscoveryInterest.LocalAssistants or DiscoveryInterest.Coding or DiscoveryInterest.Agents => "Search compatible local text models, review the exact download, then configure your chosen runtime.",
+        DiscoveryInterest.Images => "Find image models and tools. Choose your tool, then review its available download, setup or local-use actions.",
+        DiscoveryInterest.Video => "Find video models and tools. Complete pipeline setup and generation are still being built.",
+        DiscoveryInterest.LocalAssistants => "Find local models for conversation and writing. Models and the tools that run them are separate choices.",
+        DiscoveryInterest.Coding => "Find local text models to evaluate for coding. Source metadata does not prove coding quality.",
+        DiscoveryInterest.Agents => "Find local text models to evaluate for automation. Tool use and unattended execution are not inferred.",
+        DiscoveryInterest.Cad => "Find CAD design and parametric modeling tools. Select printing separately for slicing or printer software.",
+        DiscoveryInterest.ThreeDPrinting => "Find slicing, print preparation and printer tools. This does not automatically search CAD design or image generation.",
+        DiscoveryInterest.ThreeD => "Find tools for meshes, sculpting and animation. CAD and printing have their own task group.",
         _ => "Search online tool sources for this task. Review the results yourself; automated installation support varies by tool."
     };
     public bool Selected

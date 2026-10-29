@@ -16,19 +16,19 @@ public sealed partial class VerifiedOnlineDiscoveryProvider(HttpClient httpClien
 
     public static IReadOnlyList<DiscoveryWorkflow> Workflows { get; } = Array.AsReadOnly(new[]
     {
-        new DiscoveryWorkflow(DiscoveryInterest.LocalAssistants, "Local assistants", "Search popular, trending and recently updated Hugging Face text-generation GGUF repositories. Choose a search view or browse source files. Source signals are not quality ratings; hardware estimates remain unverified."),
-        new DiscoveryWorkflow(DiscoveryInterest.Coding, "Coding and software development", "Search GGUF model metadata; coding ability requires separate evaluation."),
-        new DiscoveryWorkflow(DiscoveryInterest.Images, "Image generation and editing", "Search public image-artifact and tool metadata. Checkpoint completeness and hardware fit require separate evidence."),
-        new DiscoveryWorkflow(DiscoveryInterest.MusicAudio, "Music and audio production", "Search online tool sources; automated installation support is not yet implemented for this workflow."),
-        new DiscoveryWorkflow(DiscoveryInterest.Video, "Video generation", "Search public text-to-video and image-to-video model repositories and video tools. Complete model files, runtime setup, hardware fit and installation support require separate verification."),
-        new DiscoveryWorkflow(DiscoveryInterest.Speech, "Speech recognition and synthesis", "Search online tool sources; automated installation support is not yet implemented for this workflow."),
-        new DiscoveryWorkflow(DiscoveryInterest.ThreeD, "3D modeling", "Search online tool sources; automated installation support is not yet implemented for this workflow."),
-        new DiscoveryWorkflow(DiscoveryInterest.Cad, "CAD", "Search online tool sources; automated installation support is not yet implemented for this workflow."),
-        new DiscoveryWorkflow(DiscoveryInterest.ThreeDPrinting, "3D printing", "Search online tool sources; automated installation support is not yet implemented for this workflow."),
+        new DiscoveryWorkflow(DiscoveryInterest.LocalAssistants, "Chat & writing", "Search popular, trending and recently updated Hugging Face text-generation GGUF repositories. Choose a search view or browse source files. Source signals are not quality ratings; hardware estimates remain unverified."),
+        new DiscoveryWorkflow(DiscoveryInterest.Coding, "Coding", "Search GGUF model metadata; coding ability requires separate evaluation."),
+        new DiscoveryWorkflow(DiscoveryInterest.Images, "Images & artwork", "Search public image-artifact and tool metadata. Checkpoint completeness and hardware fit require separate evidence."),
+        new DiscoveryWorkflow(DiscoveryInterest.MusicAudio, "Music & audio", "Search online tool sources; automated installation support is not yet implemented for this workflow."),
+        new DiscoveryWorkflow(DiscoveryInterest.Video, "Video", "Search public text-to-video and image-to-video model repositories and video tools. Complete model files, runtime setup, hardware fit and installation support require separate verification."),
+        new DiscoveryWorkflow(DiscoveryInterest.Speech, "Speech & voice", "Search online tool sources; automated installation support is not yet implemented for this workflow."),
+        new DiscoveryWorkflow(DiscoveryInterest.ThreeD, "3D art & animation", "Search online tool sources; automated installation support is not yet implemented for this workflow."),
+        new DiscoveryWorkflow(DiscoveryInterest.Cad, "CAD design", "Search online tool sources; automated installation support is not yet implemented for this workflow."),
+        new DiscoveryWorkflow(DiscoveryInterest.ThreeDPrinting, "3D printing & slicing", "Search online tool sources; automated installation support is not yet implemented for this workflow."),
         new DiscoveryWorkflow(DiscoveryInterest.GameDevelopment, "Game development", "Search online tool sources; automated installation support is not yet implemented for this workflow."),
         new DiscoveryWorkflow(DiscoveryInterest.ReverseEngineering, "Reverse engineering", "Search online tool sources; automated installation support is not yet implemented for this workflow."),
-        new DiscoveryWorkflow(DiscoveryInterest.Streaming, "Streaming and OBS", "Search online tool sources; automated installation support is not yet implemented for this workflow."),
-        new DiscoveryWorkflow(DiscoveryInterest.Agents, "AI agents and automation", "Search GGUF model metadata; tool-use ability is not inferred from a model name.")
+        new DiscoveryWorkflow(DiscoveryInterest.Streaming, "Streaming & recording", "Search online tool sources; automated installation support is not yet implemented for this workflow."),
+        new DiscoveryWorkflow(DiscoveryInterest.Agents, "Automation & agents", "Search GGUF model metadata; tool-use ability is not inferred from a model name.")
     });
 
     public static bool Supports(DiscoveryInterest interest) => interest is
@@ -85,10 +85,12 @@ public sealed partial class VerifiedOnlineDiscoveryProvider(HttpClient httpClien
         }
         try
         {
-            var modelSlots = request.Limit == 1 ? 1 : request.Limit - 1;
+            var modelSlots = request.Limit;
             var exactRepositoryQuery = request.Query.Trim();
             if (IsRepositoryId(exactRepositoryQuery))
             {
+                if (request.Interest is DiscoveryInterest.Coding or DiscoveryInterest.Agents)
+                    notes.Add("You explicitly chose this repository. No coding, tool-use or agent capability is inferred or certified for its files.");
                 notes.Add($"Exact Hugging Face repository lookup: {exactRepositoryQuery}. Up to {modelSlots} alphabetically listed standalone GGUF files; no broad search or repository substitution. No pagination is followed; split models and other formats require separate support.");
                 notes.Add("File ordering is not a quality rating or recommendation. Parameter counts are not inferred from repository or file names.");
                 items.AddRange(await ReadRepositoryAsync(exactRepositoryQuery, request.Interest, modelSlots, notes, deadline.Token));
@@ -98,11 +100,6 @@ public sealed partial class VerifiedOnlineDiscoveryProvider(HttpClient httpClien
                 await SearchBroadTextModelsAsync(request, modelSlots, items, notes, deadline.Token);
             }
             if (items.Count == 0) notes.Add("No supported standalone GGUF artifacts were found in the bounded search. Try a publisher or model name.");
-            if (items.Count < request.Limit)
-            {
-                try { items.Add(await ReadRuntimeAsync(request.Interest, deadline.Token)); }
-                catch (Exception ex) when (IsSourceFailure(ex)) { notes.Add("Supporting runtime metadata is unavailable: " + FailureMessage(ex)); }
-            }
         }
         catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
         {

@@ -94,7 +94,7 @@
                 <RadioButton Style="{StaticResource NavStyle}" GroupName="StoreNav" Content="Library" Tag="CatalogLibraryTab" Click="StoreNavigate_Click"/>
                 <TextBlock x:Name="CreateWorkspaceHeading" Text="CREATE" Foreground="{DynamicResource NexusMutedBrush}" FontSize="{DynamicResource NexusFontSize11}" Margin="18,25,0,7"/>
                 <RadioButton x:Name="ImageWorkspaceNav" Style="{StaticResource NavStyle}" GroupName="StoreNav" Content="Images" Visibility="Collapsed" Tag="ImageStudioTab" Click="StoreNavigate_Click"/>
-                <RadioButton x:Name="AssistantWorkspaceNav" Style="{StaticResource NavStyle}" GroupName="StoreNav" Content="Assistant" Visibility="Collapsed" Tag="AssistantTab" Click="StoreNavigate_Click"/>
+                <RadioButton x:Name="AssistantWorkspaceNav" Style="{StaticResource NavStyle}" GroupName="StoreNav" Content="Model tasks" Visibility="Collapsed" Tag="AssistantTab" Click="StoreNavigate_Click"/>
                 <TextBlock Text="MANAGE" Foreground="{DynamicResource NexusMutedBrush}" FontSize="{DynamicResource NexusFontSize11}" Margin="18,25,0,7"/>
                 <RadioButton Style="{StaticResource NavStyle}" GroupName="StoreNav" Content="Downloads &amp; setup" Tag="DownloadsTab" Click="StoreNavigate_Click"/>
                 <RadioButton Style="{StaticResource NavStyle}" GroupName="StoreNav" Content="Performance" Tag="ResourcesTab" Click="StoreNavigate_Click"/>
@@ -146,13 +146,15 @@
             <Border Style="{StaticResource PanelStyle}"><StackPanel>
                 <DockPanel><Button x:Name="WorkloadRescanButton" DockPanel.Dock="Right" Content="Rescan hardware" Click="WorkloadRescanButton_Click" IsEnabled="False" Margin="12,0,0,0"/><TextBlock Text="1. Your hardware" FontSize="{DynamicResource NexusFontSize22}" FontWeight="SemiBold"/></DockPanel>
                 <ProgressBar x:Name="WorkloadScanProgress" IsIndeterminate="True" Height="4" Margin="0,16,0,12"/>
+                <Expander Header="Scanned hardware details" IsExpanded="False" Foreground="{DynamicResource NexusMutedBrush}">
                 <TextBlock x:Name="WorkloadHardwareText" Text="Waiting for the local hardware scan..." Foreground="{DynamicResource NexusTextBrush}" TextWrapping="Wrap" Margin="0,8,0,12"/>
+                </Expander>
                 <TextBlock x:Name="WorkloadScanStatusText" Text="The hardware scan runs first. No downloads, installs or engines will start." Foreground="{DynamicResource NexusMutedBrush}" TextWrapping="Wrap"/>
             </StackPanel></Border>
             <StackPanel x:Name="WorkloadOptionsPanel" Visibility="Collapsed" Margin="0,16,0,0">
                 <TextBlock Text="2. Choose what you want to do" FontSize="{DynamicResource NexusFontSize24}" FontWeight="SemiBold" Margin="0,6,0,8"/>
-                <TextBlock Text="Choose one or more interests, then find online choices. Nexus searches every selected category and checks the results against this hardware scan. This does not approve any download." Foreground="{DynamicResource NexusMutedBrush}" TextWrapping="Wrap" Margin="0,0,0,16"/>
-                                <ItemsControl x:Name="WorkloadChoices"><ItemsControl.ItemsPanel><ItemsPanelTemplate><UniformGrid Columns="2"/></ItemsPanelTemplate></ItemsControl.ItemsPanel><ItemsControl.ItemTemplate><DataTemplate>
+                <TextBlock Text="Choose the subcategories you want. Group headings select nothing; CAD design and printing can be chosen separately or together. Searches follow only your checked tasks." Foreground="{DynamicResource NexusMutedBrush}" TextWrapping="Wrap" Margin="0,0,0,16"/>
+                                <ItemsControl x:Name="WorkloadChoices"><ItemsControl.ItemsPanel><ItemsPanelTemplate><UniformGrid Columns="2"/></ItemsPanelTemplate></ItemsControl.ItemsPanel><ItemsControl.GroupStyle><GroupStyle><GroupStyle.HeaderTemplate><DataTemplate><TextBlock Text="{Binding Name}" FontSize="{DynamicResource NexusFontSize18}" Foreground="{DynamicResource NexusAccentBrush}" FontWeight="SemiBold" Margin="0,8,0,4"/></DataTemplate></GroupStyle.HeaderTemplate><GroupStyle.Panel><ItemsPanelTemplate><StackPanel/></ItemsPanelTemplate></GroupStyle.Panel></GroupStyle></ItemsControl.GroupStyle><ItemsControl.ItemTemplate><DataTemplate>
                     <CheckBox IsChecked="{Binding Selected, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Foreground="{DynamicResource NexusTextBrush}" VerticalContentAlignment="Center" Margin="0,5,20,5" Padding="8,4" ToolTip="{Binding Description}"><TextBlock Text="{Binding Name}" FontSize="{DynamicResource NexusFontSize17}" TextWrapping="Wrap"/></CheckBox>
                 </DataTemplate></ItemsControl.ItemTemplate></ItemsControl>
                 <TextBlock Text="You will choose specific tools and models next. Nothing is installed or loaded until you explicitly ask." Foreground="{DynamicResource NexusMutedBrush}" TextWrapping="Wrap"/>
@@ -803,18 +805,20 @@
                 <TextBlock Grid.Row="3" x:Name="EmbeddedStatusText" Text="Enter the address of an existing local web interface. The portal does not start a server. Downloads and new windows are blocked." Foreground="{DynamicResource NexusMutedBrush}" TextWrapping="Wrap" Margin="0,12,0,0"/>
             </Grid>
         </TabItem>
-        <TabItem x:Name="AssistantTab" Header="Assistant" Padding="18,10">
+        <TabItem x:Name="AssistantTab" Header="Model tasks" Padding="18,10">
             <Grid Margin="18">
                 <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
                 <DockPanel Margin="0,0,0,10">
-                    <Button x:Name="AgentRefreshModelsButton" DockPanel.Dock="Right" Content="Refresh local models" Click="AgentRefreshModelsButton_Click" Padding="12,8"/>
-                    <TextBlock Text="LOCAL AGENT TASKS" FontSize="{DynamicResource NexusFontSize24}" FontWeight="Bold"/>
+                    <Button Content="Find models" Click="AgentFindModels_Click" DockPanel.Dock="Right" Margin="10,0,0,0"/><Button x:Name="AgentRefreshModelsButton" DockPanel.Dock="Right" Content="Refresh chosen connection" Click="AgentRefreshModelsButton_Click" Padding="12,8"/>
+                    <TextBlock Text="TASKS WITH YOUR MODEL" FontSize="{DynamicResource NexusFontSize24}" FontWeight="Bold"/>
                 </DockPanel>
                 <Grid Grid.Row="1" Margin="0,0,0,10">
-                    <Grid.ColumnDefinitions><ColumnDefinition Width="150"/><ColumnDefinition/><ColumnDefinition/></Grid.ColumnDefinitions>
-                    <ComboBox x:Name="AgentRuntimeSelector" Padding="8" Margin="0,0,12,0" DisplayMemberPath="Name" SelectionChanged="AgentRuntimeSelector_SelectionChanged" ToolTip="Runtime retained by each queued task"/>
-                    <TextBox x:Name="AgentNameText" Grid.Column="1" Text="Local task" Padding="8" Margin="0,0,12,0" ToolTip="Task name" MaxLength="120"/>
-                    <ComboBox x:Name="AgentModelSelector" Grid.Column="2" Padding="8" SelectionChanged="AgentModelSelector_SelectionChanged" ToolTip="Select an actual model ID reported by the selected local runtime"/>
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="260"/><ColumnDefinition/><ColumnDefinition/></Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+                    <TextBlock Text="Queried connection (engine)" Foreground="{DynamicResource NexusMutedBrush}" Margin="0,0,0,5"/><TextBlock Grid.Column="1" Text="Task name" Foreground="{DynamicResource NexusMutedBrush}"/><TextBlock Grid.Column="2" Text="Model reported by that connection" Foreground="{DynamicResource NexusMutedBrush}"/>
+                    <ComboBox Grid.Row="1" x:Name="AgentRuntimeSelector" Padding="8" Margin="0,0,12,0" DisplayMemberPath="Name" SelectionChanged="AgentRuntimeSelector_SelectionChanged" ToolTip="Queried local engine connections, not assistant models. No connection is selected automatically."/>
+                    <TextBox x:Name="AgentNameText" Grid.Row="1" Grid.Column="1" Text="Local task" Padding="8" Margin="0,0,12,0" ToolTip="Task name" MaxLength="120"/>
+                    <ComboBox x:Name="AgentModelSelector" Grid.Row="1" Grid.Column="2" Padding="8" SelectionChanged="AgentModelSelector_SelectionChanged" ToolTip="Select an actual model ID reported by the selected local runtime"/>
                 </Grid>
                 <Grid Grid.Row="2" Margin="0,0,0,10">
                     <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition/></Grid.ColumnDefinitions>
@@ -851,7 +855,7 @@
                     </DataGrid.Columns>
                 </DataGrid>
                 <TextBox Grid.Row="5" x:Name="AgentOutputText" IsReadOnly="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" Background="{DynamicResource NexusPanelBrush}" Foreground="{DynamicResource NexusTextBrush}" Padding="10"/>
-                <TextBlock Grid.Row="6" x:Name="AgentStatusText" Text="Refresh local models, choose a model, and enter a prompt. Serial requests use resource admission checks, not OS quotas. Prompts and replies stay in this session. No model output is executed as code or tools." Foreground="{DynamicResource NexusMutedBrush}" TextWrapping="Wrap" Margin="0,10,0,0"/>
+                <TextBlock Grid.Row="6" x:Name="AgentStatusText" Text="No model or connection selected. Find a model in Discover, or explicitly query your chosen local tool. Engine names are connections, not assistants." Foreground="{DynamicResource NexusMutedBrush}" TextWrapping="Wrap" Margin="0,10,0,0"/>
             </Grid>
         </TabItem>
         <TabItem x:Name="OfflineVerificationTab" Header="Verify Offline" Padding="18,10">

@@ -16,20 +16,17 @@ public partial class MainWindow
     private const int LlamaCppTaskOutputTokens = 128;
 
     private sealed record AgentRuntimeChoice(LocalGenerationRuntime Runtime, string Name);
-    private LocalGenerationRuntime SelectedAgentRuntime =>
-        (AgentRuntimeSelector.SelectedItem as AgentRuntimeChoice)?.Runtime ?? LocalGenerationRuntime.LlamaCpp;
+    private LocalGenerationRuntime? SelectedAgentRuntime =>
+        (AgentRuntimeSelector.SelectedItem as AgentRuntimeChoice)?.Runtime;
 
     private void InitializeAgents()
     {
         var monitor = new ResourceMonitor();
         _agents = new AgentScheduler(new OllamaGenerationClient(_agentHttp), monitor.SampleAsync,
             new LlamaCppClient(_agentHttp, LlamaCppTaskOutputTokens));
-        AgentRuntimeSelector.ItemsSource = new[]
-        {
-            new AgentRuntimeChoice(LocalGenerationRuntime.LlamaCpp, "llama.cpp"),
-            new AgentRuntimeChoice(LocalGenerationRuntime.Ollama, "Ollama")
-        };
-        AgentRuntimeSelector.SelectedIndex = 0;
+        AgentRuntimeSelector.ItemsSource = Array.Empty<AgentRuntimeChoice>();
+        AgentRuntimeSelector.SelectedIndex = -1;
+        AgentRefreshModelsButton.IsEnabled = false;
         AgentJobGrid.ItemsSource = _agentRows;
         _agents.Updated += update =>
         {
@@ -47,6 +44,7 @@ public partial class MainWindow
             await _agents.DisposeAsync();
             _agentHttp.Dispose();
         };
+        RenderAgentModelCatalog();
     }
 
     private void UpdateAgentModels(OllamaSnapshot snapshot, Uri endpoint)
@@ -55,11 +53,16 @@ public partial class MainWindow
             ? snapshot.AvailableModels.Select(model => model.Name).Distinct().Order().ToArray() : null);
     }
 
-    private void SetAgentModelCatalog(LocalGenerationRuntime runtime, Uri endpoint, string[]? models)
+    internal void SetAgentModelCatalog(LocalGenerationRuntime runtime, Uri endpoint, string[]? models)
     {
+        var selected = SelectedAgentRuntime;
         if (models is null) _agentModelCatalogs.Remove(runtime);
         else _agentModelCatalogs[runtime] = (endpoint, models);
-        if (SelectedAgentRuntime == runtime) RenderAgentModelCatalog();
+        AgentRuntimeSelector.ItemsSource = _agentModelCatalogs.Keys.Order().Select(key =>
+            new AgentRuntimeChoice(key, (key == LocalGenerationRuntime.LlamaCpp ? "llama.cpp" : "Ollama") + " — queried connection")).ToArray();
+        AgentRuntimeSelector.SelectedItem = AgentRuntimeSelector.Items.Cast<AgentRuntimeChoice>().FirstOrDefault(choice => choice.Runtime == selected);
+        if (selected is null) AgentRuntimeSelector.SelectedIndex = -1;
+        RenderAgentModelCatalog();
     }
 
     private void AgentRuntimeSelector_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -69,10 +72,18 @@ public partial class MainWindow
 
     private void RenderAgentModelCatalog()
     {
-        var name = SelectedAgentRuntime == LocalGenerationRuntime.LlamaCpp ? "llama.cpp" : "Ollama";
         _agentEndpoint = null;
         AgentModelSelector.SelectedIndex = -1;
-        if (_agentModelCatalogs.TryGetValue(SelectedAgentRuntime, out var catalog))
+        AgentRefreshModelsButton.IsEnabled = SelectedAgentRuntime is not null;
+        if (SelectedAgentRuntime is not { } runtime)
+        {
+            AgentModelSelector.ItemsSource = Array.Empty<string>();
+            AgentStatusText.Text = "No assistant model or connection selected. Find a model in Discover. Connections appear here only after you explicitly query a chosen local server; engine names are not assistants.";
+            AgentEnqueueButton.IsEnabled = false;
+            return;
+        }
+        var name = runtime == LocalGenerationRuntime.LlamaCpp ? "llama.cpp" : "Ollama";
+        if (_agentModelCatalogs.TryGetValue(runtime, out var catalog))
         {
             _agentEndpoint = catalog.Endpoint;
             AgentModelSelector.ItemsSource = catalog.Models;
@@ -90,18 +101,28 @@ public partial class MainWindow
 
     private void AgentModelSelector_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (AgentEnqueueButton is not null) AgentEnqueueButton.IsEnabled = _agentEndpoint is not null && AgentModelSelector.SelectedItem is string;
+        if (AgentEnqueueButton is not null) AgentEnqueueButton.IsEnabled = SelectedAgentRuntime is not null && _agentEndpoint is not null && AgentModelSelector.SelectedItem is string;
+    }
+
+    private async void AgentFindModels_Click(object sender, RoutedEventArgs e)
+    {
+        if (!_workspaceConfigured || _discoveryBusy || _workspaceProfile?.HasAssistant != true) return;
+        DiscoveryInterestSelector.SelectedItem = ((IEnumerable<DiscoveryWorkflow>)DiscoveryInterestSelector.ItemsSource)
+            .FirstOrDefault(workflow => workflow.Interest is DiscoveryInterest.LocalAssistants or DiscoveryInterest.Coding or DiscoveryInterest.Agents);
+        DiscoveryTab.IsSelected = true;
+        await RunDiscoverySearchAsync(online: true);
     }
 
     private async void AgentRefreshModelsButton_Click(object sender, RoutedEventArgs e)
     {
+        if (SelectedAgentRuntime is null) return;
         if (SelectedAgentRuntime == LocalGenerationRuntime.LlamaCpp) await QueryLlamaCppAsync();
         else OllamaRefreshButton_Click(sender, e);
     }
 
     private void AgentEnqueueButton_Click(object sender, RoutedEventArgs e)
     {
-        if (_agents is null || _agentEndpoint is null || AgentModelSelector.SelectedItem is not string model) return;
+        if (_agents is null || _agentEndpoint is null || SelectedAgentRuntime is not { } runtime || AgentModelSelector.SelectedItem is not string model) return;
         if (_agentRows.Count >= 100)
         {
             AgentStatusText.Text = "This session has reached its 100-task history limit. Start a new session for additional tasks.";
@@ -114,7 +135,7 @@ public partial class MainWindow
             return;
         }
         var request = new AgentRequest(Guid.NewGuid(), AgentNameText.Text.Trim(), _agentEndpoint, model,
-            AgentSystemText.Text, AgentPromptText.Text, new ResourcePolicy(ram, cpu, vram), SelectedAgentRuntime);
+            AgentSystemText.Text, AgentPromptText.Text, new ResourcePolicy(ram, cpu, vram), runtime);
         var row = new AgentRow(request.Id, request.Name, model, request.Runtime == LocalGenerationRuntime.LlamaCpp ? "llama.cpp" : "Ollama");
         _agentRows.Add(row);
         try

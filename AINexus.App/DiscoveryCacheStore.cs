@@ -70,14 +70,31 @@ public sealed class DiscoveryCacheStore(string directory)
         if (request.RuntimeReleaseTag is { } tag && (envelope.Snapshot.Items.Count != 1
             || envelope.Snapshot.Items[0].Kind != "Runtime" || envelope.Snapshot.Items[0].RuntimeRelease?.Tag != tag))
             throw new InvalidDataException("Saved runtime evidence does not match the explicitly requested release.");
+        if (ModelOnlyQuery(request))
+        {
+            var models = envelope.Snapshot.Items.Where(item => item.Kind == "Model").ToArray();
+            return envelope.Snapshot with
+            {
+                Items = Array.AsReadOnly(models), IsCached = true,
+                Notes = models.Length == envelope.Snapshot.Items.Count ? envelope.Snapshot.Notes
+                    : Array.AsReadOnly(envelope.Snapshot.Notes.Concat(new[] { "Non-model software entries were omitted from this saved model search. Runtime setup requires a separate explicit choice." }).ToArray())
+            };
+        }
         return envelope.Snapshot with { IsCached = true };
     }
 
     private string CachePath(OnlineDiscoveryRequest request)
     {
+        var purposeScoped = request.Interest is DiscoveryInterest.Coding or DiscoveryInterest.Agents;
+        var semantics = request.RuntimeReleaseTag is not null ? "text-search-v2"
+            : ModelOnlyQuery(request) ? (purposeScoped ? "task-purpose-text-models-v4" : "text-model-search-v3")
+            : "workflow-task-metadata-v3";
         var key = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(
-            $"{request.Interest}\n{request.Query}\n{request.Limit}\ntext-search-v2\n{request.SearchOrder}" +
+            $"{request.Interest}\n{request.Query}\n{request.Limit}\n{semantics}\n{request.SearchOrder}" +
             (request.RuntimeReleaseTag is null ? "" : "\nruntime-tag\n" + request.RuntimeReleaseTag))));
         return Path.Combine(directory, key + ".json");
     }
+
+    private static bool ModelOnlyQuery(OnlineDiscoveryRequest request) => request.RuntimeReleaseTag is null
+        && request.Interest is DiscoveryInterest.LocalAssistants or DiscoveryInterest.Coding or DiscoveryInterest.Agents;
 }

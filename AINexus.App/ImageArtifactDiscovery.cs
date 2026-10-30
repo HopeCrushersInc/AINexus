@@ -25,25 +25,37 @@ public sealed partial class VerifiedOnlineDiscoveryProvider
             if (exactRepository) repositories = [query];
             else
             {
-                var count = Math.Min(4, modelSlots);
-                using var results = await GetJsonAsync(new Uri("https://huggingface.co/api/models?pipeline_tag=text-to-image&full=true&limit="
-                    + count + "&search=" + Uri.EscapeDataString(query)), deadline);
-                if (results.RootElement.ValueKind != JsonValueKind.Array)
-                    throw new InvalidDataException("The image model source did not return a repository list.");
-                repositories = results.RootElement.EnumerateArray().Take(count).Select(value => ReadString(value, "id"))
-                    .Where(id => id is not null && IsRepositoryId(id)).Cast<string>().Distinct(StringComparer.Ordinal).ToArray();
+                repositories = await ReadImageSearchRepositoriesAsync(request, notes, deadline);
             }
-            foreach (var repository in repositories)
+            var variants = new List<IReadOnlyList<DiscoveredItem>>();
+            for (var offset = 0; offset < repositories.Length; offset += 4)
             {
                 deadline.ThrowIfCancellationRequested();
-                if (items.Count >= modelSlots) break;
-                try
+                var batch = repositories.Skip(offset).Take(4).Select(async repository =>
                 {
-                    var fileSlots = exactRepository ? modelSlots - items.Count : Math.Min(2, modelSlots - items.Count);
-                    items.AddRange(await ReadImageArtifactRepositoryAsync(repository, fileSlots, notes, deadline));
+                    var sourceNotes = new List<string>();
+                    IReadOnlyList<DiscoveredItem> found = [];
+                    try { found = await ReadImageArtifactRepositoryAsync(repository, modelSlots, sourceNotes, deadline); }
+                    catch (Exception ex) when (IsSourceFailure(ex))
+                    { sourceNotes.Add($"Image artifact source unavailable for {repository}: {FailureMessage(ex)}"); }
+                    catch (OperationCanceledException) when (!caller.IsCancellationRequested)
+                    { sourceNotes.Add($"Image artifact deadline reached for {repository}; results are partial."); }
+                    return (found, sourceNotes);
+                });
+                foreach (var result in await Task.WhenAll(batch))
+                {
+                    variants.Add(result.found);
+                    notes.AddRange(result.sourceNotes);
+                    if (result.found.Count > 0 && items.Count < modelSlots) items.Add(result.found[0]);
                 }
-                catch (Exception ex) when (IsSourceFailure(ex))
-                { notes.Add($"Image artifact source unavailable for {repository}: {FailureMessage(ex)}"); }
+            }
+            for (var fileIndex = 1; fileIndex < modelSlots && items.Count < modelSlots; fileIndex++)
+            {
+                foreach (var source in variants)
+                {
+                    if (fileIndex < source.Count) items.Add(source[fileIndex]);
+                    if (items.Count == modelSlots) break;
+                }
             }
         }
         catch (OperationCanceledException) when (!caller.IsCancellationRequested)
@@ -71,6 +83,44 @@ public sealed partial class VerifiedOnlineDiscoveryProvider
         notes.Add("A root safetensors file is only an image artifact candidate; complete checkpoint contents, architecture, companion assets and ComfyUI compatibility remain unproven. No memory estimate was inferred from its size or filename.");
         notes.Add("Only public metadata was requested: no weight bytes, downloads, installations, model selection or engine execution. Results use a bounded source order, not recommendations or a complete catalog.");
         return Snapshot(items, notes);
+    }
+
+    private async Task<string[]> ReadImageSearchRepositoriesAsync(OnlineDiscoveryRequest request, List<string> notes, CancellationToken token)
+    {
+        string[] sorts = request.SearchOrder switch
+        {
+            TextSearchOrder.Popular => ["downloads"], TextSearchOrder.Trending => ["trendingScore"],
+            TextSearchOrder.RecentlyUpdated => ["lastModified"], _ => ["downloads", "trendingScore", "lastModified"]
+        };
+        const int feedLimit = 16;
+        const int repositoryLimit = 24;
+        var feeds = await Task.WhenAll(sorts.Select(async sort =>
+        {
+            try
+            {
+                using var results = await GetJsonAsync(new Uri("https://huggingface.co/api/models?pipeline_tag=text-to-image&full=true&limit="
+                    + feedLimit + "&sort=" + sort + "&direction=-1&search=" + Uri.EscapeDataString(request.Query.Trim())), token);
+                if (results.RootElement.ValueKind != JsonValueKind.Array)
+                    throw new InvalidDataException("The image model source did not return a repository list.");
+                var ids = results.RootElement.EnumerateArray().Take(feedLimit).Select(value => ReadString(value, "id"))
+                    .Where(id => id is not null && IsRepositoryId(id)).Cast<string>().Distinct(StringComparer.Ordinal).ToArray();
+                return (Ids: ids, Note: $"Image source {sort}: {ids.Length} repository IDs within a {feedLimit}-ID feed bound.");
+            }
+            catch (Exception ex) when (IsSourceFailure(ex))
+            { return (Ids: Array.Empty<string>(), Note: $"Image source {sort} unavailable: {FailureMessage(ex)}"); }
+        }));
+        notes.AddRange(feeds.Select(feed => feed.Note));
+        notes.Add("Image search mixes independent popular, trending and recently updated source lists; activity is not a quality or hardware-fit rating. No publisher or model family is pinned.");
+        notes.Add("At most 24 repositories are inspected, with four concurrent repository reads and 52 total metadata requests including tool search. Standalone root safetensors candidates share result slots across sources; nested/component-only pipelines still need a separate acquisition recipe.");
+        var repositories = new List<string>();
+        var seen = new HashSet<string>(StringComparer.Ordinal);
+        for (var rank = 0; rank < feedLimit && repositories.Count < repositoryLimit; rank++)
+            foreach (var feed in feeds)
+            {
+                if (rank < feed.Ids.Length && seen.Add(feed.Ids[rank])) repositories.Add(feed.Ids[rank]);
+                if (repositories.Count == repositoryLimit) break;
+            }
+        return repositories.ToArray();
     }
 
     private async Task<IReadOnlyList<DiscoveredItem>> ReadImageArtifactRepositoryAsync(string repository, int limit,

@@ -124,6 +124,8 @@ internal static class Program
             }
             var offlineIndex = Array.IndexOf(args, "--offline-verification-live");
             var imageIndex = Array.IndexOf(args, "--image-live");
+            if (args.Contains("--image-search-coverage-live"))
+                ImageSearchCoverageChecks.RunImageCoverageAsync(Check).GetAwaiter().GetResult();
             if (imageIndex >= 0)
             {
                 if (imageIndex + 3 >= args.Length) throw new ArgumentException("--image-live requires the approved portable root, checkpoint name and output folder.");
@@ -270,6 +272,7 @@ internal static class Program
         UserChoiceFlowChecks.RunNative(Check);
         ImageDiscoveryUiChecks.RunNative(Check);
         MediaDiscoveryActionChecks.Run(Check);
+        ImageSearchContextChecks.RunNative(Check);
         ImageArtifactSetupUiChecks.RunNative(Check);
         ComfyCheckpointFolderUiChecks.RunNative(Check);
         var comfyFoldersLive = Array.IndexOf(args, "--comfy-folders-live");

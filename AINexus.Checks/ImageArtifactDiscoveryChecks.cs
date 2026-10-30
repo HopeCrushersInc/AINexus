@@ -140,6 +140,7 @@ internal static class ImageArtifactDiscoveryChecks
             && !models.Any(item => item.Artifact!.FileName.StartsWith("conflicting-", StringComparison.Ordinal)),
             "Later duplicate source facts cannot restore an artifact after its identity was contradicted");
         await BroadBudgetAsync(check);
+        await ImageSearchCoverageChecks.RunAsync(check);
         using var cancelled = new CancellationTokenSource(); cancelled.Cancel();
         var before = requests.Count;
         var cancellationObserved = false;
@@ -154,15 +155,16 @@ internal static class ImageArtifactDiscoveryChecks
         var tree = JsonSerializer.Serialize(Enumerable.Range(0, 30).Select(index => File($"candidate-{index:D2}.safetensors", 1024, Hash)));
         using var http = new HttpClient(new Handler((request, _) =>
         {
-            var uri = request.RequestUri!; requests.Add(uri);
+            var uri = request.RequestUri!; lock (requests) requests.Add(uri);
             if (uri.Host == "huggingface.co" && uri.AbsolutePath == "/api/models")
                 return Task.FromResult(Json(JsonSerializer.Serialize(Enumerable.Range(0, 100).Select(index => new { id = "Fixture/Image" + index }))));
             var repository = uri.AbsolutePath.Split('/').Skip(3).Take(2);
             return Task.FromResult(Reply(uri, Info(string.Join('/', repository)), tree));
         }));
         var result = await new VerifiedOnlineDiscoveryProvider(http).SearchAsync(new(DiscoveryInterest.Images, "art & size=99", 8));
-        check(result.Items.Count <= 8 && result.Items.Count(item => item.Artifact is not null) == 6 && requests.Count == 8,
-            "Over-returning image sources remain bounded to four repositories, per-repository file shares and the combined model/tool result limit");
+        check(result.Items.Count <= 8 && result.Items.Count(item => item.Artifact is not null) == 6 && requests.Count == 36
+            && requests.Count(uri => uri.AbsolutePath == "/api/models") == 3,
+            "Over-returning image feeds stay within sixteen IDs each, deduplicate repository reads and respect the combined model/tool result limit");
         check(requests[0].Query.Contains("pipeline_tag=text-to-image", StringComparison.Ordinal)
             && requests[0].AbsoluteUri.Contains("art%20%26%20size%3D99", StringComparison.Ordinal)
             && requests.All(uri => uri.Host is "huggingface.co" or "api.github.com")

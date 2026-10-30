@@ -44,9 +44,47 @@ public partial class MainWindow
     private void DiscoveryInterestSelector_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         if (DiscoveryScopeText is null) return;
+        if (!_applyingWorkloadSearchScope) InvalidateDiscoverySearchContext(clearSearchOrder: false);
         DiscoveryScopeText.Text = DiscoveryInterestSelector.SelectedItem is DiscoveryWorkflow workflow ? workflow.Scope
             : "Search all confirmed workloads using this computer's hardware scan.";
         if (DiscoverySearchButton is not null) RefreshDiscoveryControls();
+    }
+
+    // A category is part of a search's identity. Changing it must not leave another
+    // task's models, approval or narrowing terms looking like results for this task.
+    private void InvalidateDiscoverySearchContext(bool clearSearchOrder)
+    {
+        _discoveryOperation?.Cancel();
+        _lastDiscoveryReport = null;
+        InvalidateAcquisitionReview();
+        InvalidateModelEvidenceForSelection();
+        if (!_guidedBusy && !_llamaLifecycleBusy && !_llamaServer.IsRunning)
+        {
+            _guidedModel = null;
+            _guidedUserSelection = null;
+            _guidedUserSnapshot = null;
+            _guidedModelPlan = null;
+            _guidedReceipt = null;
+            _guidedInstalledOnly = false;
+            if (GuidedModelApprovalCheck is not null) GuidedModelApprovalCheck.IsChecked = false;
+            InvalidateGuidedRuntimeReview();
+            if (GuidedModelTitleText is not null) GuidedModelTitleText.Text = "No model selected";
+            if (GuidedModelDetailsText is not null) GuidedModelDetailsText.Text = "Search scope changed. Select and review a result for the current task.";
+            if (GuidedStatusText is not null) GuidedStatusText.Text = "Previous model review and approval cleared. No new model or engine was selected.";
+            RefreshGuidedControls();
+        }
+        if (DiscoveryResultsGrid is not null)
+        {
+            DiscoveryResultsGrid.ItemsSource = null;
+            DiscoveryResultsGrid.SelectedIndex = -1;
+        }
+        if (DiscoveryQueryText is not null) DiscoveryQueryText.Text = "";
+        if (DiscoveryShowUnassessedCheck is not null) DiscoveryShowUnassessedCheck.IsChecked = false;
+        if (clearSearchOrder && DiscoveryOrderSelector is not null) DiscoveryOrderSelector.SelectedIndex = -1;
+        if (DiscoveryImageCandidatesNoticeText is not null) DiscoveryImageCandidatesNoticeText.Visibility = Visibility.Collapsed;
+        if (DiscoveryFitSummaryText is not null) DiscoveryFitSummaryText.Text = "Search scope changed. Search this category for its own models and tools.";
+        if (DiscoveryDetailsText is not null) DiscoveryDetailsText.Text = "Previous results and download approvals were cleared. No model or tool has been selected; no online request was started.";
+        if (DiscoveryStatusText is not null) DiscoveryStatusText.Text = "Choose Search online to find results for the current category. Previous category results are no longer shown.";
     }
 
     private void DiscoveryVolumeSelector_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -99,7 +137,7 @@ public partial class MainWindow
         DiscoveryCancelButton.IsEnabled = _discoveryBusy;
         if (DiscoveryBrowseVariantsButton is not null)
             DiscoveryBrowseVariantsButton.IsEnabled = !_discoveryBusy
-                && DiscoveryResultsGrid.SelectedItem is DiscoveryRow { Recommendation.Item.Artifact.Format: "GGUF" };
+                && DiscoveryResultsGrid.SelectedItem is DiscoveryRow variantRow && CanBrowseDiscoveredModelFiles(variantRow.Recommendation.Item);
         if (DiscoveryEvidenceButton is not null)
             DiscoveryEvidenceButton.IsEnabled = !_discoveryBusy && _modelEvidenceOperation is null
                 && DiscoveryResultsGrid.SelectedItem is DiscoveryRow { Recommendation.Item.Artifact.Format: "GGUF" };
@@ -167,12 +205,15 @@ public partial class MainWindow
 
     internal async Task BrowseSelectedModelFilesAsync()
     {
-        if (_discoveryBusy || DiscoveryResultsGrid.SelectedItem is not DiscoveryRow { Recommendation.Item.Artifact: { Format: "GGUF" } artifact } row) return;
-        DiscoveryQueryText.Text = artifact.Repository;
+        if (_discoveryBusy || DiscoveryResultsGrid.SelectedItem is not DiscoveryRow { Recommendation.Item.Artifact: { } artifact } row
+            || !CanBrowseDiscoveredModelFiles(row.Recommendation.Item)) return;
         DiscoveryInterestSelector.SelectedItem = ((IEnumerable<DiscoveryWorkflow>)DiscoveryInterestSelector.ItemsSource)
             .FirstOrDefault(w => w.Interest == row.Recommendation.Item.Interest);
+        DiscoveryQueryText.Text = artifact.Repository;
         await RunDiscoverySearchAsync(online: true);
     }
+    private static bool CanBrowseDiscoveredModelFiles(DiscoveredItem item) => item.Artifact is { Format: "GGUF" }
+        || item is { Interest: DiscoveryInterest.Images, Kind: "Model", Artifact.Format: "Safetensors" };
     private async void DiscoverySearchAllButton_Click(object sender, RoutedEventArgs e) => await FindSelectedWorkloadsAsync();
     private async void DiscoverySavedButton_Click(object sender, RoutedEventArgs e) => await RunDiscoverySearchAsync(online: false);
 

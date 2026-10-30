@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.2.0-preview.19 — 2026-10-30 — Complete split-model inventories
+
+- Discover complete canonical split-GGUF sets as one selectable text-model variant. Require all consecutive parts from one pinned repository revision with exact bytes and SHA-256; incomplete, duplicate, noncanonical, mixed or overflowing inventories stay unavailable. Existing metadata/result bounds remain; no parameter-size preset or preferred model is added.
+- Sum every part for memory/storage estimates and display the complete inventory in download review. Bind approval to every file's source, identity and destination. Transfer files serially, reuse matching existing files, verify each part and save complete per-file integrity evidence. A later failure/cancellation retains completed verified parts, removes only the active owned partial and grants no complete-model success.
+- Preserve legacy single-file JSON fingerprints. Receipts, catalog identity, library readiness and maintenance account for the entire inventory; one valid first file or offsetting part-size errors cannot establish readiness. Hold all files read-only and hash each before the selected runtime loads the first part and completes its initial response test.
+- Explicitly block single-file repair for split inventories; full set repair and combined RAM/VRAM planning remain unfinished. No runtime, model or approval is chosen automatically, and no engine or model is bundled. Document limits in `docs/split-models.md`.
+- Validation: 1,496 regression/native checks plus five actual split-model checks passed (1,501 total), with zero build warnings/errors. A temporary two-part copy derived from an existing local model completed approved reuse without HTTP, receipt/audit roundtrip and offline-mode generation; the owned server stopped and released its port. This is a specific development fixture, not a publisher-authenticity, model-quality or universal architecture claim. No new model or engine was downloaded; the existing personal 250W GPU setting was preserved.
+
 ## 0.2.0-preview.18 — 2026-10-29 — More file variants, no parameter presets
 
 - Remove the two-file-per-repository truncation in broad text searches. Distribute additional standalone GGUF variants across repositories within the existing 48-result / 24-repository bounds, using the same metadata requests. Browse a selected repository for additional files. Alphabetical source order is not a model-size or quantization recommendation.

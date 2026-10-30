@@ -25,6 +25,8 @@ public static class ModelRecoveryPlanner
         var original = Path.GetFullPath(modelPath);
         var receiptFile = Path.GetFullPath(receiptPath);
         var receipt = await OfflineModelVerifier.ReadReceiptAsync(receiptFile, token).ConfigureAwait(false);
+        if (receipt.Plan.Artifact.AdditionalFiles is not null)
+            throw new InvalidOperationException("Split-model recovery requires a complete file-set repair review, which is not implemented. Preserve all parts and prepare a fresh full-inventory acquisition review in a separate folder.");
         if (!string.Equals(original, receipt.Plan.DestinationPath, StringComparison.OrdinalIgnoreCase))
             throw new InvalidDataException("The selected acquisition receipt belongs to a different model path. No model bytes were read.");
 

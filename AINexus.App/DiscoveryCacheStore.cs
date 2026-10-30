@@ -50,6 +50,7 @@ public sealed class DiscoveryCacheStore(string directory)
             throw new InvalidDataException("Saved discovery evidence is invalid or belongs to another query.");
         foreach (var item in envelope.Snapshot.Items)
         {
+            if (item?.Artifact is { AdditionalFiles: not null } artifact) ModelFileSet.Validate(artifact);
             if (item is null || string.IsNullOrWhiteSpace(item.Id) || string.IsNullOrWhiteSpace(item.Name) ||
                 item.Sources is null || item.Sources.Count == 0 || item.Sources.Any(source =>
                     source is null || source.Url is null || !source.Url.IsAbsoluteUri || source.Url.Scheme != "https" || source.Url.UserInfo.Length > 0))
@@ -87,7 +88,7 @@ public sealed class DiscoveryCacheStore(string directory)
     {
         var purposeScoped = request.Interest is DiscoveryInterest.Coding or DiscoveryInterest.Agents;
         var semantics = request.RuntimeReleaseTag is not null ? "text-search-v2"
-            : ModelOnlyQuery(request) ? (purposeScoped ? "task-purpose-text-models-v5" : "text-model-search-v4")
+            : ModelOnlyQuery(request) ? (purposeScoped ? "task-purpose-text-models-v6" : "text-model-search-v5")
             : "workflow-task-metadata-v3";
         var key = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(
             $"{request.Interest}\n{request.Query}\n{request.Limit}\n{semantics}\n{request.SearchOrder}" +

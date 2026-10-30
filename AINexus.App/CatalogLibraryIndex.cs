@@ -8,6 +8,7 @@ public sealed record CatalogInstallation(string CatalogId, string ModelPath, str
     bool FilePresent, long? ActualBytes, DateTimeOffset ReceiptCompletedAt, string State)
 {
     public ModelAcquisitionPlan? Plan { get; init; }
+    public bool InventorySizeMatches { get; init; } = true;
 }
 
 public sealed record CatalogInstallationSnapshot(IReadOnlyList<CatalogInstallation> Installations,
@@ -93,23 +94,30 @@ public static class CatalogLibraryIndex
                                 [new("Recorded acquisition source", plan.LicenseReference, plan.MetadataRetrievedAt)],
                                 "Historical acquisition receipt; not current integrity or runtime evidence.", "text-generation");
                             var id = CatalogDatabase.CanonicalId(item);
-                            bool present;
-                            long? actualBytes = null;
-                            try
+                            var present = true;
+                            var sizesMatch = true;
+                            long? actualBytes = 0;
+                            foreach (var filePlan in ModelFileSet.FilePlans(plan))
                             {
-                                OfflineModelVerifier.CheckNoReparsePath(modelPath);
-                                if (File.GetAttributes(modelPath).HasFlag(FileAttributes.Directory))
-                                    throw new InvalidDataException("The recorded model destination is now a folder.");
-                                actualBytes = new FileInfo(modelPath).Length;
-                                present = true;
+                                try
+                                {
+                                    OfflineModelVerifier.CheckNoReparsePath(filePlan.DestinationPath);
+                                    if (File.GetAttributes(filePlan.DestinationPath).HasFlag(FileAttributes.Directory))
+                                        throw new InvalidDataException("A recorded model-file destination is now a folder.");
+                                    var bytes = new FileInfo(filePlan.DestinationPath).Length;
+                                    sizesMatch &= bytes == filePlan.Artifact.SizeBytes;
+                                    actualBytes = checked(actualBytes + bytes);
+                                }
+                                catch (FileNotFoundException) { present = false; }
+                                catch (DirectoryNotFoundException) { present = false; }
                             }
-                            catch (FileNotFoundException) { present = false; }
-                            catch (DirectoryNotFoundException) { present = false; }
+                            if (!present) actualBytes = null;
                             var state = !present ? "Receipt recorded; model file missing"
-                                : actualBytes != plan.Artifact.SizeBytes ? "Receipt recorded; file size mismatch"
-                                : "Receipt recorded; file present; integrity not rechecked";
+                                : !sizesMatch ? "Receipt recorded; file size mismatch"
+                                : plan.Artifact.AdditionalFiles is null ? "Receipt recorded; file present; integrity not rechecked"
+                                : "Receipt recorded; complete file inventory present; integrity not rechecked";
                             var installation = new CatalogInstallation(id, modelPath, Path.GetFullPath(path), present,
-                                actualBytes, receipt.Acquisition.CompletedAt, state) { Plan = plan };
+                                actualBytes, receipt.Acquisition.CompletedAt, state) { Plan = plan, InventorySizeMatches = sizesMatch };
                             if (!results.TryGetValue(modelPath, out var prior) || prior.ReceiptCompletedAt < installation.ReceiptCompletedAt)
                                 results[modelPath] = installation;
                         }

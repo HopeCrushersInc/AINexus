@@ -60,13 +60,8 @@ public static class OfflineModelVerifier
     {
         var started = DateTimeOffset.UtcNow;
         var receipt = await ReadReceiptAsync(receiptPath, token).ConfigureAwait(false);
-        CheckNoReparsePath(receipt.Plan.DestinationPath);
-        await using var modelLease = OpenReadLease(receipt.Plan.DestinationPath);
-        if (modelLease.Length != receipt.Plan.Artifact.SizeBytes)
-            throw new InvalidDataException("The current model byte count differs from the acquisition receipt. No runtime was launched.");
-        var modelHash = Convert.ToHexString(await SHA256.HashDataAsync(modelLease, token).ConfigureAwait(false));
-        if (!modelHash.Equals(receipt.Plan.Artifact.Sha256, StringComparison.OrdinalIgnoreCase))
-            throw new InvalidDataException("The current model hash differs from the acquisition receipt. No runtime was launched.");
+        using var modelLease = await ModelLease.CaptureAsync(receipt.Plan, token).ConfigureAwait(false);
+        var modelHash = modelLease.FirstHash;
 
         using var runtime = await RuntimeLease.CaptureAsync(executablePath, token).ConfigureAwait(false);
 
@@ -120,7 +115,7 @@ public static class OfflineModelVerifier
             modelId, response, machine, admission, capacity, endpoint, arguments, destination,
             Array.AsReadOnly(new[]
             {
-                "The selected runtime was launched with its advertised --offline option and an explicit local model. Verification HTTP used loopback only, with redirects and proxies disabled.",
+                "The selected runtime was launched with its advertised --offline option and an explicit local model. Every file in the reviewed model inventory was hashed and held read-only throughout this verification; ModelSha256 identifies the first file, while AcquisitionPlanId binds the complete file inventory. Verification HTTP used loopback only, with redirects and proxies disabled.",
                 "This was not an operating-system network-isolation or firewall test. No Windows firewall, service, environment-variable or system-wide configuration was changed.",
                 "Runtime fingerprints cover the selected executable and its top-level DLL files, not the complete Windows/driver dependency closure or publisher authenticity.",
                 "The smoke test establishes normally completed nonempty text generation, not response quality, tool-use capability, future performance or continued validity after model/runtime/hardware changes.",
@@ -177,10 +172,53 @@ public static class OfflineModelVerifier
             throw new InvalidDataException("Unsupported or incomplete acquisition receipt.");
         CheckNoReparsePath(receipt.Plan.DestinationPath);
         ModelAcquisitionPlanner.ValidateIdentity(receipt.Plan);
-        if (!evidence.Exists || !evidence.Matches || evidence.ActualBytes != receipt.Plan.Artifact.SizeBytes
-            || !string.Equals(evidence.Path, receipt.Plan.DestinationPath, StringComparison.OrdinalIgnoreCase)
-            || !string.Equals(evidence.ActualSha256, receipt.Plan.Artifact.Sha256, StringComparison.OrdinalIgnoreCase))
-            throw new InvalidDataException("The acquisition receipt lacks matching artifact integrity evidence.");
+        ModelFileSet.ValidateEvidence(receipt.Plan, evidence);
+    }
+
+    /// <summary>Locks the complete reviewed inventory before checking any bytes or starting a runtime.</summary>
+    internal sealed class ModelLease : IDisposable
+    {
+        private readonly List<FileStream> _files = [];
+        internal string FirstHash { get; private set; } = "";
+
+        internal static async Task<ModelLease> CaptureAsync(ModelAcquisitionPlan plan, CancellationToken token = default)
+        {
+            ModelAcquisitionPlanner.ValidateIdentity(plan);
+            var plans = ModelFileSet.FilePlans(plan);
+            var lease = new ModelLease();
+            try
+            {
+                foreach (var file in plans)
+                {
+                    token.ThrowIfCancellationRequested();
+                    CheckNoReparsePath(file.DestinationPath);
+                    lease._files.Add(OpenReadLease(file.DestinationPath));
+                }
+                for (var index = 0; index < plans.Count; index++)
+                {
+                    token.ThrowIfCancellationRequested();
+                    var stream = lease._files[index];
+                    if (stream.Length != plans[index].Artifact.SizeBytes)
+                        throw new InvalidDataException("A model file's current byte count differs from the acquisition receipt. No runtime was launched.");
+                    var hash = Convert.ToHexString(await SHA256.HashDataAsync(stream, token).ConfigureAwait(false));
+                    if (!string.Equals(hash, plans[index].Artifact.Sha256, StringComparison.OrdinalIgnoreCase))
+                        throw new InvalidDataException("A model file's current hash differs from the acquisition receipt. No runtime was launched.");
+                    if (index == 0) lease.FirstHash = hash;
+                }
+                return lease;
+            }
+            catch
+            {
+                lease.Dispose();
+                throw;
+            }
+        }
+
+        public void Dispose()
+        {
+            for (var index = _files.Count - 1; index >= 0; index--) _files[index].Dispose();
+            _files.Clear();
+        }
     }
 
     private static int SelectLoopbackPort()

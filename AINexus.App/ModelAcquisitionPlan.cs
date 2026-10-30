@@ -31,6 +31,7 @@ public static partial class ModelAcquisitionPlanner
         if (assessment.Status != RecommendationStatus.ResourceCandidate)
             throw new InvalidOperationException("Resolve the compatibility assessment's missing evidence or resource constraints before preparing a download plan.");
         var artifact = item.Artifact ?? throw new InvalidOperationException("No model artifact is attached.");
+        ModelFileSet.Validate(artifact);
         if (!RepositoryId().IsMatch(artifact.Repository) || !Hex40().IsMatch(artifact.Revision) ||
             artifact.Sha256 is null || !Hex64().IsMatch(artifact.Sha256) || artifact.SizeBytes is not > 0 || artifact.Gated)
             throw new InvalidDataException("A public artifact, pinned revision, exact byte size and SHA-256 are required.");
@@ -45,8 +46,8 @@ public static partial class ModelAcquisitionPlanner
         var actions = new[]
         {
             "Review the source and its declared license terms before approving acquisition.",
-            $"Download exactly {artifact.SizeBytes.Value:N0} bytes of model data from the pinned source to the selected destination.",
-            "Verify the complete file's byte count and SHA-256 before exposing it as an acquired model.",
+            $"Acquire exactly {ModelFileSet.TotalBytes(artifact):N0} bytes across {1 + (artifact.AdditionalFiles?.Count ?? 0)} model file(s) from the pinned source to the selected destination.",
+            "Verify every file's byte count and SHA-256 before exposing the complete inventory as an acquired model.",
             "If a destination already exists, verify it for reuse; never overwrite a different file.",
             "Save a local acquisition receipt beside the model with its pinned identity and integrity evidence.",
             "Select an existing compatible runtime or prepare a separate runtime installation/build plan.",
@@ -89,6 +90,7 @@ public static partial class ModelAcquisitionPlanner
         if (!string.Equals(plan.PlanId, ComputeFingerprint(plan), StringComparison.Ordinal))
             throw new InvalidDataException("The recorded plan fingerprint does not match its content.");
         var artifact = plan.Artifact ?? throw new InvalidDataException("The acquisition plan has no artifact identity.");
+        ModelFileSet.Validate(artifact);
         if (artifact.Repository is null || !RepositoryId().IsMatch(artifact.Repository)
             || artifact.Revision is null || !Hex40().IsMatch(artifact.Revision)
             || artifact.Sha256 is null || !Hex64().IsMatch(artifact.Sha256) || artifact.SizeBytes is not > 0
@@ -160,7 +162,9 @@ public static partial class ModelAcquisitionPlanner
 }
 
 public sealed record ModelIntegrityEvidence(string Path, bool Exists, bool Matches, long? ActualBytes, string? ActualSha256,
-    DateTimeOffset CheckedAt, string Description);
+    DateTimeOffset CheckedAt, string Description,
+    [property: System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+    IReadOnlyList<ModelIntegrityEvidence>? AdditionalFiles = null);
 
 public static class ModelArtifactVerifier
 {
@@ -169,6 +173,25 @@ public static class ModelArtifactVerifier
     {
         ArgumentNullException.ThrowIfNull(plan);
         token.ThrowIfCancellationRequested();
+        if (plan.Artifact.AdditionalFiles is not null)
+        {
+            var files = ModelFileSet.FilePlans(plan);
+            var evidence = new List<ModelIntegrityEvidence>();
+            foreach (var file in files)
+            {
+                token.ThrowIfCancellationRequested();
+                evidence.Add(await VerifyExistingAsync(file, token).ConfigureAwait(false));
+            }
+            var complete = evidence.All(file => file.Exists && file.Matches);
+            return evidence[0] with
+            {
+                Matches = complete,
+                AdditionalFiles = evidence.Skip(1).ToArray(),
+                Description = complete
+                    ? "All model files match their source-reported sizes and SHA-256 hashes. Runtime execution has not been verified by this check."
+                    : "The model file set is incomplete or has different bytes. Existing files were preserved; no download or runtime was started."
+            };
+        }
         ModelAcquisitionPlanner.ResolveDestination(Path.GetDirectoryName(plan.DestinationPath)!, Path.GetFileName(plan.DestinationPath));
         if (!File.Exists(plan.DestinationPath))
             return new(plan.DestinationPath, false, false, null, null, DateTimeOffset.UtcNow, "No existing artifact is present. No download was started.");

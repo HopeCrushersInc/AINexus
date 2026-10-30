@@ -120,7 +120,8 @@ public partial class MainWindow
             var local = _catalogInstallations.Installations.Where(i => i.CatalogId == record.Id).Select(i =>
                 record.Item.Artifact is { } source && i.Plan?.Artifact is { } receipt
                 && (source.Sha256 is { } hash && receipt.Sha256 is { } received && !hash.Equals(received, StringComparison.OrdinalIgnoreCase)
-                    || source.SizeBytes is { } size && receipt.SizeBytes is { } receivedSize && size != receivedSize)
+                    || source.SizeBytes is { } size && receipt.SizeBytes is { } receivedSize && size != receivedSize
+                    || (source.AdditionalFiles is not null || receipt.AdditionalFiles is not null) && !ModelFileSet.SameIdentity(source, receipt))
                     ? i with { State = "Receipt conflicts with saved source identity; review required" } : i).ToArray();
             var machine = _discoveryMachine ?? _workloadMachine;
             var estimate = machine is not null && _discoveryTargetVolume is { } volume
@@ -160,7 +161,14 @@ public partial class MainWindow
         var item = selected.Record.Item;
         var text = new StringBuilder($"{item.Name}\n{item.Description}\n\nSource license: {item.License ?? "Unknown"}\nLast source evidence: {selected.Record.LastCheckedAt.ToLocalTime():g}\n{selected.Fit}\n");
         if (item.Artifact is { } artifact)
+        {
             text.AppendLine($"Repository: {artifact.Repository}\nRevision: {artifact.Revision}\nFile: {artifact.FileName}\nBytes: {artifact.SizeBytes?.ToString() ?? "Unknown"}\nSHA-256: {artifact.Sha256 ?? "Unknown"}");
+            if (artifact.AdditionalFiles is { } parts)
+            {
+                text.AppendLine($"Complete inventory: {parts.Count + 1} files; {ModelFileSet.TotalBytes(artifact):N0} total bytes. The hash above identifies the first file, not the whole set.");
+                foreach (var part in parts) text.AppendLine($"Part: {part.FileName}\nBytes: {part.SizeBytes:N0}\nSHA-256: {part.Sha256}");
+            }
+        }
         foreach (var source in item.Sources) text.AppendLine($"\n{source.Name}\n{source.Url}\nRetrieved: {source.RetrievedAt.ToLocalTime():g}");
         foreach (var installation in selected.Installations)
             text.AppendLine($"\nPRIVATE LOCAL RECEIPT\n{installation.State}\n{installation.ModelPath}\n{installation.ReceiptPath}\nAcquired: {installation.ReceiptCompletedAt.ToLocalTime():g}");
@@ -186,7 +194,8 @@ public partial class MainWindow
         public string Kind => Record.Item.Kind;
         public string Categories => Record.Interests.Count == 0 ? "Local receipt; task unclassified"
             : string.Join(", ", VerifiedOnlineDiscoveryProvider.Workflows.Where(w => Record.Interests.Contains(w.Interest)).Select(w => w.Name));
-        public string Size => ByteSizeDisplay.ModelSize(Record.Item.Artifact?.SizeBytes);
+        public string Size => ByteSizeDisplay.ModelSize(Record.Item.Artifact is { AdditionalFiles: not null } artifact
+            ? ModelFileSet.TotalBytes(artifact) : Record.Item.Artifact?.SizeBytes);
         public string LocalState => Installations.Count == 0 ? "Listed; no tracked acquisition receipt" : string.Join(" · ", Installations.Select(i => i.State).Distinct());
         public string Checked => Record.LastCheckedAt.ToLocalTime().ToString("g");
     }

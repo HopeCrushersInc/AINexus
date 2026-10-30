@@ -91,7 +91,7 @@ public sealed partial class VerifiedOnlineDiscoveryProvider(HttpClient httpClien
             {
                 if (request.Interest is DiscoveryInterest.Coding or DiscoveryInterest.Agents)
                     notes.Add("You explicitly chose this repository. No coding, tool-use or agent capability is inferred or certified for its files.");
-                notes.Add($"Exact Hugging Face repository lookup: {exactRepositoryQuery}. Up to {modelSlots} alphabetically listed standalone GGUF files; no broad search or repository substitution. No pagination is followed; split models and other formats require separate support.");
+                notes.Add($"Exact Hugging Face repository lookup: {exactRepositoryQuery}. Up to {modelSlots} alphabetically listed GGUF models, each a standalone file or complete split-file inventory; no broad search or repository substitution. No pagination is followed; other formats require separate support.");
                 notes.Add("File ordering is not a quality rating or recommendation. Parameter counts are not inferred from repository or file names.");
                 items.AddRange(await ReadRepositoryAsync(exactRepositoryQuery, request.Interest, modelSlots, notes, deadline.Token));
             }
@@ -99,7 +99,7 @@ public sealed partial class VerifiedOnlineDiscoveryProvider(HttpClient httpClien
             {
                 await SearchBroadTextModelsAsync(request, modelSlots, items, notes, deadline.Token);
             }
-            if (items.Count == 0) notes.Add("No supported standalone GGUF artifacts were found in the bounded search. Try a publisher or model name.");
+            if (items.Count == 0) notes.Add("No supported complete GGUF inventories or complete split-file sets were found in the bounded search. Try a publisher or model name.");
         }
         catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
         {
@@ -135,13 +135,11 @@ public sealed partial class VerifiedOnlineDiscoveryProvider(HttpClient httpClien
         using var tree = await GetJsonAsync(treeUri, token);
         if (tree.RootElement.ValueKind != JsonValueKind.Array) throw new InvalidDataException("The source repository tree was not a list.");
         var files = new List<(string Path, long? Bytes, string? Hash)>();
-        var shardFound = false;
         foreach (var file in tree.RootElement.EnumerateArray().Take(1000))
         {
             var path = ReadString(file, "path");
             if (ReadString(file, "type") != "file" || path is null || !path.EndsWith(".gguf", StringComparison.OrdinalIgnoreCase)) continue;
             if (!IsArtifactPath(path)) { notes.Add("An invalid artifact path was skipped."); continue; }
-            if (ShardRegex().IsMatch(path)) { shardFound = true; continue; }
             if (Path.GetFileName(path).Contains("mmproj", StringComparison.OrdinalIgnoreCase))
             {
                 notes.Add($"A named multimodal projector in {repository} was skipped; a companion file is not a complete text model.");
@@ -162,19 +160,61 @@ public sealed partial class VerifiedOnlineDiscoveryProvider(HttpClient httpClien
             }
             files.Add((path, bytes, hash));
         }
-        if (shardFound) notes.Add($"Split GGUF shards in {repository} were skipped; a single shard is not a complete model.");
         if (tree.RootElement.GetArrayLength() >= 1000) notes.Add($"Only the first 1000 tree entries were checked for {repository}; results may be partial.");
+        var artifacts = new List<ModelArtifact>();
+        var shardGroups = new Dictionary<string, List<(string Path, long? Bytes, string? Hash)>>(StringComparer.Ordinal);
+        foreach (var file in files)
+        {
+            if (!ShardRegex().IsMatch(file.Path))
+            {
+                artifacts.Add(new(repository, revision, file.Path, file.Bytes, file.Hash, "GGUF", gated));
+                continue;
+            }
+            var match = CanonicalShardRegex().Match(file.Path);
+            if (!match.Success)
+            {
+                notes.Add($"A noncanonical split GGUF shard in {repository} was skipped; complete five-digit shard names are required.");
+                continue;
+            }
+            var key = match.Groups["prefix"].Value + "-of-" + match.Groups["count"].Value;
+            if (!shardGroups.TryGetValue(key, out var group)) shardGroups.Add(key, group = []);
+            group.Add(file);
+        }
+        foreach (var group in shardGroups.Values)
+        {
+            var ordered = group.OrderBy(file => file.Path, StringComparer.Ordinal).ToArray();
+            var first = ordered[0];
+            if (first.Bytes is null || first.Hash is null || ordered.Skip(1).Any(file => file.Bytes is null || file.Hash is null))
+            {
+                notes.Add($"An incomplete split GGUF shard identity in {repository} was skipped; every file needs source-reported positive bytes and SHA-256.");
+                continue;
+            }
+            var artifact = new ModelArtifact(repository, revision, first.Path, first.Bytes, first.Hash, "GGUF", gated,
+                ordered.Skip(1).Select(file => new ModelArtifactPart(file.Path, file.Bytes!.Value, file.Hash!)).ToArray());
+            try
+            {
+                ModelFileSet.Validate(artifact);
+                _ = ModelFileSet.TotalBytes(artifact);
+                artifacts.Add(artifact);
+            }
+            catch (Exception ex) when (ex is InvalidDataException or ArgumentException or OverflowException)
+            {
+                notes.Add($"An incomplete or invalid split GGUF shard set in {repository} was skipped; all consecutive files must belong to the same exact folder, base name and count.");
+            }
+        }
         var readAt = DateTimeOffset.UtcNow;
-        return files.OrderBy(file => file.Path, StringComparer.OrdinalIgnoreCase)
-            .Take(limit).Select(file => new DiscoveredItem(
-                $"huggingface:{repository}@{revision}:{file.Path}", repository + " / " + file.Path,
+        return artifacts.OrderBy(artifact => artifact.FileName, StringComparer.OrdinalIgnoreCase)
+            .Take(limit).Select(artifact => new DiscoveredItem(
+                $"huggingface:{repository}@{revision}:{artifact.FileName}", repository + " / " + artifact.FileName,
                 repository.Split('/')[0], interest, "Model", license,
-                new ModelArtifact(repository, revision, file.Path, file.Bytes, file.Hash, "GGUF", gated),
+                artifact,
                 Array.AsReadOnly(new[]
                 {
                     new DiscoverySource("Hugging Face model card", new Uri($"https://huggingface.co/{repoPath}/blob/{revision}/README.md"), readAt),
-                    new DiscoverySource("Pinned artifact metadata", new Uri($"https://huggingface.co/{repoPath}/blob/{revision}/{EncodePath(file.Path)}"), readAt)
-                }), "Standalone GGUF artifact reported by the repository. Model contents, license obligations, architecture support, and runtime behavior require verification.", pipeline, Signals: signals))
+                    new DiscoverySource("Pinned artifact metadata", new Uri($"https://huggingface.co/{repoPath}/blob/{revision}/{EncodePath(artifact.FileName)}"), readAt)
+                }), artifact.AdditionalFiles is { } additional
+                    ? $"Complete split GGUF inventory reported by the pinned repository: {additional.Count + 1} files, {ModelFileSet.TotalBytes(artifact):N0} total bytes. Every file must be acquired and verified together. Model contents, license obligations, architecture support, and runtime behavior remain unverified."
+                    : "Standalone GGUF artifact reported by the repository. Model contents, license obligations, architecture support, and runtime behavior require verification.", pipeline, Signals: signals))
             .ToList().AsReadOnly();
     }
 
@@ -255,6 +295,7 @@ public sealed partial class VerifiedOnlineDiscoveryProvider(HttpClient httpClien
     [GeneratedRegex("^[a-fA-F0-9]{40}$", RegexOptions.CultureInvariant)] private static partial Regex RevisionRegex();
     [GeneratedRegex("^[a-fA-F0-9]{64}$", RegexOptions.CultureInvariant)] private static partial Regex HashRegex();
     [GeneratedRegex(@"-\d+-of-\d+\.gguf$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)] private static partial Regex ShardRegex();
+    [GeneratedRegex(@"^(?<prefix>.+)-(?<index>[0-9]{5})-of-(?<count>[0-9]{5})\.gguf$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)] private static partial Regex CanonicalShardRegex();
     [GeneratedRegex(@"(?:^|[-_.])(?:imatrix|draft|lora|adapter|controlvector)(?:[-_.]|$)", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
     private static partial Regex TextCompanionName();
 }

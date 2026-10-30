@@ -70,6 +70,10 @@ internal static class Program
             CatalogLibraryIndexChecks.RunAsync(Check).GetAwaiter().GetResult();
             AcquisitionPlanChecks.RunAsync(Check).GetAwaiter().GetResult();
             ModelAcquisitionServiceChecks.RunAsync(Check).GetAwaiter().GetResult();
+            SplitModelDiscoveryChecks.RunAsync(Check).GetAwaiter().GetResult();
+            SplitModelAcquisitionChecks.RunAsync(Check).GetAwaiter().GetResult();
+            SplitModelLaunchChecks.RunAsync(Check).GetAwaiter().GetResult();
+            SplitModelLibraryChecks.RunAsync(Check).GetAwaiter().GetResult();
             OfflineVerificationChecks.RunAsync(Check).GetAwaiter().GetResult();
             EmbeddedChecks.RunPolicy(Check);
             CheckWindow(args);
@@ -149,6 +153,12 @@ internal static class Program
                 OfflineVerificationChecks.RunLiveAsync(args[offlineIndex + 1], args[offlineIndex + 2], Check).GetAwaiter().GetResult();
             }
             var offlineLaunchIndex = Array.IndexOf(args, "--offline-launch-live");
+            var splitLiveIndex = Array.IndexOf(args, "--split-model-live");
+            if (splitLiveIndex >= 0)
+            {
+                if (splitLiveIndex + 2 >= args.Length) throw new ArgumentException("--split-model-live requires an existing runtime and explicit existing split-model test directory.");
+                SplitModelLiveChecks.RunAsync(args[splitLiveIndex + 1], args[splitLiveIndex + 2], Check).GetAwaiter().GetResult();
+            }
             if (offlineLaunchIndex >= 0)
             {
                 if (offlineLaunchIndex + 2 >= args.Length) throw new ArgumentException("--offline-launch-live requires an existing runtime executable and GGUF model.");

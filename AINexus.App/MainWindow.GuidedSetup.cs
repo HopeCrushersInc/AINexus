@@ -181,9 +181,9 @@ public partial class MainWindow
             token.ThrowIfCancellationRequested();
             _guidedModelPlan = plan;
             var fit = report.Recommendations.Single(result => result.Item.Id == item.Id);
-            GuidedModelDetailsText.Text = $"Download: {ByteSizeDisplay.Format(plan.Artifact.SizeBytes!.Value)}\nHardware estimate: {fit.ExecutionPath}\n"
+            GuidedModelDetailsText.Text = $"Download: {ByteSizeDisplay.Format(ModelFileSet.TotalBytes(plan.Artifact))}\nHardware estimate: {fit.ExecutionPath}\n"
                 + string.Join(" ", fit.Reasons) + "\n\n" + DescribeAcquisitionPlan(plan);
-            GuidedStatusText.Text = $"Download: {ByteSizeDisplay.Format(plan.Artifact.SizeBytes.Value)} · License: {plan.DeclaredLicense}. Read the source terms, approve below, then download. Hardware fit remains an estimate until an actual run.";
+            GuidedStatusText.Text = $"Download: {ByteSizeDisplay.Format(ModelFileSet.TotalBytes(plan.Artifact))} · License: {plan.DeclaredLicense}. Read the source terms, approve below, then download. Hardware fit remains an estimate until an actual run.";
         });
     }
 
@@ -228,14 +228,10 @@ public partial class MainWindow
             GuidedStatusText.Text = "Verifying installed model bytes, then loading the model. Large models can take several minutes; Cancel stops this load.";
             var validatedReceipt = await OfflineModelVerifier.ReadReceiptAsync(receipt, token);
             if (validatedReceipt.Plan.PlanId != plan.PlanId || plan.PlanId != ModelAcquisitionPlanner.ComputeFingerprint(plan)
-                || validatedReceipt.Plan.Artifact != plan.Artifact
+                || !ModelFileSet.SameIdentity(validatedReceipt.Plan.Artifact, plan.Artifact)
                 || !string.Equals(validatedReceipt.Plan.DestinationPath, plan.DestinationPath, StringComparison.OrdinalIgnoreCase))
                 throw new InvalidDataException("The receipt no longer matches the selected model review. Choose and review the installed copy again.");
-            OfflineModelVerifier.CheckNoReparsePath(plan.DestinationPath);
-            await using var modelLease = new FileStream(plan.DestinationPath, FileMode.Open, FileAccess.Read, FileShare.Read,
-                131072, FileOptions.Asynchronous | FileOptions.SequentialScan);
-            var integrity = await ModelArtifactVerifier.VerifyExistingAsync(plan, token);
-            if (!integrity.Matches) throw new InvalidDataException("The acquired model no longer matches its receipt. Run the download review again.");
+            using var modelLease = await OfflineModelVerifier.ModelLease.CaptureAsync(plan, token);
             var machine = GuidedHardwareOverride is { } scan ? await scan(token) : await HardwareCapabilityScanner.ScanAsync(token);
             var capacity = OfflineModelVerifier.EvaluateCapacity(validatedReceipt, machine);
             if (capacity.Status != RecommendationStatus.ResourceCandidate)

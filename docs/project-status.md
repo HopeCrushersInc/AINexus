@@ -1,8 +1,10 @@
 # Current project status
 
-Release: **0.2.0-preview.18**, Windows x64 development preview, 2026-10-29. Broad text searches expose more standalone file variants within the existing result bounds. There is no parameter-count preset or cap: exact file bytes, current RAM/VRAM, selected-volume space and runtime requirements determine eligibility. Group headings select nothing; no AI engines or models are bundled or selected automatically.
+Release: **0.2.0-preview.19**, Windows x64 development preview, 2026-10-30. Complete canonical split-GGUF inventories can be discovered, reviewed, acquired and verified as one text model. There is no parameter-count preset or cap: all file bytes, current RAM/VRAM, selected-volume space and runtime requirements determine eligibility. No AI engines or models are bundled or selected automatically.
 
-Broad search still inspects at most 24 repositories and shows 48 files. Additional files are distributed across sources, without favoring a model size or quantization. Browse a selected repository for up to 48 of its standalone files. Split GGUF sets and combined CPU/GPU memory planning remain unfinished; missing runtime support cannot be replaced by ample disk space. Model downloads retain cancellation, stalled-transfer detection and exact size/hash verification, without a fixed total-duration cutoff.
+Broad search still inspects at most 24 repositories and shows 48 model variants, each a standalone file or complete split inventory. A split model requires every consecutively named part from one pinned repository revision, with exact positive bytes and SHA-256 for each file. All parts contribute to memory/storage estimates and approval identity. Missing, conflicting or altered parts block successful verification and launch. Earlier single-file receipts retain their fingerprints. See [split-model support and limits](split-models.md).
+
+Combined CPU/GPU memory planning remains unfinished; missing runtime support cannot be replaced by ample disk space. Model downloads retain cancellation, stalled-transfer detection and exact size/hash verification, without a fixed total-duration cutoff. Successful completed parts are retained after a later transfer fails; the complete inventory must verify before it becomes usable. Split-set repair remains a separate unfinished recipe.
 
 ## Working within tested limits
 
@@ -41,7 +43,7 @@ Broad search still inspects at most 24 repositories and shows 48 files. Addition
 - Linux, macOS and ARM64 portal releases remain planned. Current packages are Windows x64 only.
 - iCUE investigation has installer inventory evidence, not a rebuilt/custom iCUE package. Ghidra-based analysis and feature transplantation remain unfinished.
 - Coding/agent category labels are search scope, not proof of capability or quality. Source metadata is publisher-supplied; missing requirements remain unknown.
-- No universal best-model score, independent Nexus task evaluation, comparable benchmark ranking or normalized benchmark-evidence catalog. Private raw evaluation snapshots can be reopened offline, but that does not establish freshness or independent verification. Reported source verification is not verification by Nexus, and a PR number does not establish acceptance. Source pagination and complete split-GGUF inventory support remain unfinished.
+- No universal best-model score, independent Nexus task evaluation, comparable benchmark ranking or normalized benchmark-evidence catalog. Private raw evaluation snapshots can be reopened offline, but that does not establish freshness or independent verification. Reported source verification is not verification by Nexus, and a PR number does not establish acceptance. Source pagination remains unfinished; split inventories must be complete within the bounded repository-tree response.
 
 ## Validation and release identity
 

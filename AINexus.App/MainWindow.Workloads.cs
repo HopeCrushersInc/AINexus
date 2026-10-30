@@ -11,6 +11,7 @@ public partial class MainWindow
     private WorkspaceProfile? _workspaceProfile;
     private bool _workloadScanBusy;
     private bool _workspaceConfigured;
+    private bool _applyingWorkloadSearchScope;
 
     private void InitializeWorkloadSetup()
     {
@@ -77,9 +78,12 @@ public partial class MainWindow
 
     internal void ApplyWorkloadSelection(IEnumerable<DiscoveryInterest> interests)
     {
-        if (_imageBusy || _imageServer.IsRunning || _comfyPortableBusy || _comfyFolderBusy)
-            throw new InvalidOperationException("Finish active tool operations and stop the owned image engine before changing workloads.");
+        if (_imageBusy || _imageServer.IsRunning || _comfyPortableBusy || _comfyFolderBusy
+            || _guidedBusy || _llamaLifecycleBusy || _llamaServer.IsRunning || _offlineBusy || _packageBusy)
+            throw new InvalidOperationException("Finish active setup operations and stop owned engines before changing workloads.");
         var profile = WorkspaceProfile.Create(_workloadMachine, interests);
+        var profileChanged = _workspaceProfile is null || !_workspaceProfile.Interests.SequenceEqual(profile.Interests);
+        if (profileChanged && _workspaceProfile is not null) InvalidateDiscoverySearchContext(clearSearchOrder: true);
         ResetToolSelection();
         _workspaceProfile = profile;
         _workspaceConfigured = true;
@@ -87,8 +91,13 @@ public partial class MainWindow
         AssistantWorkspaceNav.Visibility = profile.HasAssistant ? Visibility.Visible : Visibility.Collapsed;
         CreateWorkspaceHeading.Visibility = profile.HasImages || profile.HasAssistant ? Visibility.Visible : Visibility.Collapsed;
         var workflows = WorkloadPresentation.ForProfile(profile);
-        DiscoveryInterestSelector.ItemsSource = workflows;
-        DiscoveryInterestSelector.SelectedIndex = workflows.Count == 1 ? 0 : -1;
+        _applyingWorkloadSearchScope = true;
+        try
+        {
+            DiscoveryInterestSelector.ItemsSource = workflows;
+            DiscoveryInterestSelector.SelectedIndex = workflows.Count == 1 ? 0 : -1;
+        }
+        finally { _applyingWorkloadSearchScope = false; }
         WorkspaceWorkloadCards.ItemsSource = workflows.Select(workflow => new WorkloadWorkspaceCard(workflow.Interest, workflow.Name,
             new WorkloadChoice(workflow).Description,
             "Search online choices",

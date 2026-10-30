@@ -1,6 +1,6 @@
 # Project roadmap and projection
 
-Updated 2026-10-30 for preview.19. This is a delivery order, not a date commitment.
+Updated 2026-10-30 for preview.20. This is a delivery order, not a date commitment.
 
 ## Current checkpoint
 

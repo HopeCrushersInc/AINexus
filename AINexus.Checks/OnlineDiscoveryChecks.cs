@@ -161,10 +161,11 @@ internal static class OnlineDiscoveryChecks
             var cache = new DiscoveryCacheStore(root);
             check(await cache.LoadAsync(request) is null && File.ReadAllBytes(oldPath).SequenceEqual(oldBytes),
                 "New model-only search semantics do not reopen or delete legacy mixed model/runtime caches");
-            foreach (var role in new[] { DiscoveryInterest.Coding, DiscoveryInterest.Agents, DiscoveryInterest.Cad })
+            foreach (var role in new[] { DiscoveryInterest.Coding, DiscoveryInterest.Agents, DiscoveryInterest.Cad, DiscoveryInterest.Images })
             {
                 var oldRequest = request with { Interest = role, Query = "32B" };
-                var oldSemantics = role == DiscoveryInterest.Cad ? "text-search-v2" : "text-model-search-v3";
+                var oldSemantics = role == DiscoveryInterest.Images ? "workflow-task-metadata-v3"
+                    : role == DiscoveryInterest.Cad ? "text-search-v2" : "text-model-search-v3";
                 var oldRoleKey = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(
                     $"{oldRequest.Interest}\n{oldRequest.Query}\n{oldRequest.Limit}\n{oldSemantics}\n{oldRequest.SearchOrder}")));
                 var oldRolePath = Path.Combine(root, oldRoleKey + ".json");

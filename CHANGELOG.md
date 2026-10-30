@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.2.0-preview.20 — 2026-10-30 — Relevant image searches and clean category changes
+
+- Fix Images discovery inspecting only four repositories from the default source order. Interleave popular, trending and recently updated public text-to-image feeds; inspect up to 24 unique repositories with four concurrent reads and at most 52 metadata requests including tool search. Distribute root Safetensors candidates fairly across sources without pinning a vendor/model family or inventing quality scores. Keep successful source results if another feed fails; source/response/result bounds remain.
+- Clear the previous category's rows, narrowing terms, fit-only filter and idle model-review approvals when changing scope. Cancel the previous operation and reject late responses. Preserve deliberate terms on the initial workload confirmation and when rebinding the same profile. Changing a profile does not interrupt active engines or setup operations.
+- Enable explicit repository-file browsing for image results, preserving the exact repository query after changing category. Give expanded image-search caches a new key; preserve earlier snapshots without reusing their narrow results or refreshing them silently.
+- Validation: 1,514 regression/native checks passed in both test runs, plus two live source checks and five generation checks per tested model. The corrected blank Images search returned the official Stable Diffusion 1.5 and SDXL base repositories alongside other publishers. Existing local SD1.5 generated a real decoded 512×512 PNG; SDXL generated a real decoded 1024×1024 PNG. Each test-owned engine stopped afterward. Builds had zero warnings/errors; no models or engines were installed, and the personal 250W GPU setting was unchanged.
+- Image source candidates are not universal hardware-fit or complete-checkpoint certifications. Nested/component-only pipelines and unsupported engine adapters still require separate setup recipes. Nothing is selected or installed automatically.
+
 ## 0.2.0-preview.19 — 2026-10-30 — Complete split-model inventories
 
 - Discover complete canonical split-GGUF sets as one selectable text-model variant. Require all consecutive parts from one pinned repository revision with exact bytes and SHA-256; incomplete, duplicate, noncanonical, mixed or overflowing inventories stay unavailable. Existing metadata/result bounds remain; no parameter-size preset or preferred model is added.

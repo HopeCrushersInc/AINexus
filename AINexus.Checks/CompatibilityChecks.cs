@@ -15,6 +15,15 @@ internal static class CompatibilityChecks
             "GGUF CPU planning uses actual sufficient RAM and selected storage without requiring a preinstalled runtime");
         check(cpu.EstimatedMemoryGiB == 7 && cpu.RequiredStorageGiB == 5,
             "Model byte size drives explicit configurable weight/runtime/context/storage estimates");
+        var completeSplit = model with { Artifact = model.Artifact! with { FileName = "model-00001-of-00002.gguf",
+            SizeBytes = 2 * GiB, AdditionalFiles = [new("model-00002-of-00002.gguf", 2 * GiB, new string('c', 64))] } };
+        var splitFit = Evaluate(completeSplit, machine);
+        check(splitFit.Status == cpu.Status && splitFit.EstimatedMemoryGiB == cpu.EstimatedMemoryGiB
+            && splitFit.RequiredStorageGiB == cpu.RequiredStorageGiB,
+            "A complete split model uses every part's bytes for memory and storage, rather than only the first shard");
+        var incomplete = completeSplit with { Artifact = completeSplit.Artifact! with { AdditionalFiles = [] } };
+        check(Evaluate(incomplete, machine).Status == RecommendationStatus.NeedsDetails,
+            "An incomplete split inventory cannot become a resource candidate from its first-file size");
         foreach (var parameters in new long?[] { null, 7_000_000_000, 27_000_000_000, 32_000_000_000, 120_000_000_000, 1_200_000_000_000 })
         {
             var assessed = Evaluate(model with { Signals = new(null, null, null, parameters) }, machine);

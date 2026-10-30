@@ -46,6 +46,57 @@ public sealed class ModelAcquisitionService(HttpClient httpClient)
         if (!await _operation.WaitAsync(0, cancellationToken).ConfigureAwait(false))
             throw new InvalidOperationException("A model acquisition is already running. Wait for it to finish.");
 
+        try
+        {
+            if (plan.Artifact.AdditionalFiles is null)
+                return await AcquireSingleCoreAsync(plan, progress, cancellationToken).ConfigureAwait(false);
+
+            var files = ModelFileSet.FilePlans(plan);
+            var expectedTotal = ModelFileSet.TotalBytes(plan.Artifact);
+            long needed = 0;
+            // Inspect the whole reviewed inventory before contacting any source. Existing
+            // files are hashed later, never counted as new disk usage or overwritten.
+            foreach (var file in files)
+            {
+                RecheckDestination(file.DestinationPath);
+                if (Directory.Exists(file.DestinationPath))
+                    throw new IOException("A selected model-file destination is an existing directory. It was preserved.");
+                if (!File.Exists(file.DestinationPath)) needed = checked(needed + file.Artifact.SizeBytes!.Value);
+            }
+            var volume = new DriveInfo(Path.GetPathRoot(plan.DestinationPath)!);
+            if (!volume.IsReady || volume.AvailableFreeSpace < needed)
+                throw new IOException("The selected volume does not currently have enough available space for the complete approved model file set.");
+
+            var results = new List<ModelAcquisitionResult>();
+            long completed = 0;
+            foreach (var file in files)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                var prior = completed;
+                var fileProgress = new InlineProgress(value => Report(progress,
+                    new(checked(prior + value.CompletedBytes), expectedTotal,
+                        $"File {results.Count + 1}/{files.Count}: {value.Stage}")));
+                var result = await AcquireSingleCoreAsync(file, fileProgress, cancellationToken).ConfigureAwait(false);
+                results.Add(result);
+                completed = checked(completed + file.Artifact.SizeBytes!.Value);
+            }
+            cancellationToken.ThrowIfCancellationRequested();
+            var additional = results.Skip(1).Select(result => result.Evidence).ToArray();
+            var evidence = results[0].Evidence with
+            {
+                Matches = results.All(result => result.Evidence.Matches),
+                AdditionalFiles = Array.AsReadOnly(additional),
+                Description = "Every file in the approved model inventory matches its exact byte count and SHA-256. No runtime was installed or executed."
+            };
+            Report(progress, new(completed, expectedTotal, "Complete model file-set integrity verified"));
+            return new(evidence, results.All(result => result.ReusedExisting), DateTimeOffset.UtcNow);
+        }
+        finally { _operation.Release(); }
+    }
+
+    private async Task<ModelAcquisitionResult> AcquireSingleCoreAsync(ModelAcquisitionPlan plan,
+        IProgress<AcquisitionProgress>? progress, CancellationToken cancellationToken)
+    {
         string? partial = null;
         var partialCreated = false;
         try
@@ -136,8 +187,12 @@ public sealed class ModelAcquisitionService(HttpClient httpClient)
         finally
         {
             if (partialCreated && partial is not null) DeleteOwnPartial(partial, plan.DestinationPath);
-            _operation.Release();
         }
+    }
+
+    private sealed class InlineProgress(Action<AcquisitionProgress> report) : IProgress<AcquisitionProgress>
+    {
+        public void Report(AcquisitionProgress value) => report(value);
     }
 
     internal async Task<HttpResponseMessage> OpenSourceAsync(Uri source, long expectedBytes, CancellationToken token)

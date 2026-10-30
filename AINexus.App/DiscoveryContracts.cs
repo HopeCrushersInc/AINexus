@@ -12,9 +12,13 @@ public sealed record DiscoverySource(string Name, Uri Url, DateTimeOffset Retrie
 
 public sealed record DiscoverySignals(long? Downloads, long? Likes, DateTimeOffset? UpdatedAt, long? ParameterCount = null);
 
+public sealed record ModelArtifactPart(string FileName, long SizeBytes, string Sha256);
+
 public sealed record ModelArtifact(
     string Repository, string Revision, string FileName, long? SizeBytes, string? Sha256,
-    string Format, bool Gated);
+    string Format, bool Gated,
+    [property: System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+    IReadOnlyList<ModelArtifactPart>? AdditionalFiles = null);
 
 public sealed record DiscoveredItem(
     string Id, string Name, string Publisher, DiscoveryInterest Interest, string Kind,

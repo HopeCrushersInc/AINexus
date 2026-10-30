@@ -12,8 +12,8 @@ public partial class MainWindow
     {
         if (row.Record.Item.Kind != "Model" || row.Record.Item.Artifact is not { Format: "GGUF", Gated: false, SizeBytes: > 0, Sha256: not null } artifact
             || installation.Plan is not { } plan || !row.Installations.Contains(installation)
-            || !installation.FilePresent || installation.ActualBytes != artifact.SizeBytes
-            || plan.Artifact != artifact || row.Record.Id != installation.CatalogId
+            || !installation.FilePresent || !installation.InventorySizeMatches || installation.ActualBytes != ModelFileSet.TotalBytes(artifact)
+            || !ModelFileSet.SameIdentity(plan.Artifact, artifact) || row.Record.Id != installation.CatalogId
             || row.Record.Id != CatalogDatabase.CanonicalId(row.Record.Item)
             || plan.PlanId != ModelAcquisitionPlanner.ComputeFingerprint(plan)) return false;
         return Path.IsPathFullyQualified(installation.ModelPath)
@@ -74,13 +74,16 @@ public partial class MainWindow
                     return;
                 }
                 var plan = receipt.Plan;
-                if (plan.PlanId != installation.Plan!.PlanId || plan.Artifact != row.Record.Item.Artifact
+                if (plan.PlanId != installation.Plan!.PlanId || !ModelFileSet.SameIdentity(plan.Artifact, row.Record.Item.Artifact)
                     || !string.Equals(plan.DestinationPath, installation.ModelPath, StringComparison.OrdinalIgnoreCase))
                     throw new InvalidDataException("The receipt changed since this Library listing. Refresh the Library and choose the installed copy again.");
-                OfflineModelVerifier.CheckNoReparsePath(plan.DestinationPath);
-                var modelFile = new FileInfo(plan.DestinationPath);
-                if (!modelFile.Exists || modelFile.Length != plan.Artifact.SizeBytes)
-                    throw new InvalidDataException("The selected installed file is missing or its size changed. No model was loaded.");
+                foreach (var filePlan in ModelFileSet.FilePlans(plan))
+                {
+                    OfflineModelVerifier.CheckNoReparsePath(filePlan.DestinationPath);
+                    var modelFile = new FileInfo(filePlan.DestinationPath);
+                    if (!modelFile.Exists || modelFile.Length != filePlan.Artifact.SizeBytes)
+                        throw new InvalidDataException("A selected installed model file is missing or its size changed. No model was loaded.");
+                }
 
                 // Text-change handlers revoke existing reviews. Bind the selected immutable plan last.
                 _guidedModel = null;
@@ -99,7 +102,7 @@ public partial class MainWindow
                 GuidedModelTitleText.Text = plan.Name;
                 GuidedModelDetailsText.Text = $"INSTALLED MODEL REVIEW\n{plan.Name}\nPath: {plan.DestinationPath}\n"
                     + $"Repository: {plan.Artifact.Repository}\nRevision: {plan.Artifact.Revision}\nFile: {plan.Artifact.FileName}\n"
-                    + $"Bytes: {plan.Artifact.SizeBytes:N0}\nExpected SHA-256: {plan.Artifact.Sha256}\n"
+                    + $"Total bytes: {ModelFileSet.TotalBytes(plan.Artifact):N0}\nFiles: {ModelFileSet.GetFiles(plan.Artifact).Count}\nFirst-file SHA-256: {plan.Artifact.Sha256}\n"
                     + $"Recorded license: {plan.DeclaredLicense}\nPinned terms: {plan.LicenseReference}\n"
                     + $"Source evidence date: {plan.MetadataRetrievedAt.ToLocalTime():g}\n\n"
                     + "This is historical acquisition evidence, not a fresh source search or integrity check. "

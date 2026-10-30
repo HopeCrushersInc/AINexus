@@ -256,6 +256,14 @@ public sealed class CatalogDatabase
         {
             if (item.Kind != "Model" || artifact.SizeBytes is <= 0 || artifact.Sha256 is { } hash && !Hex(hash, 64)) throw new InvalidDataException("Catalog artifact requirements are invalid.");
             RequireText(artifact.Format, 32);
+            if (artifact.AdditionalFiles is not null)
+            {
+                if (artifact.Format != "GGUF" || item.PipelineTag != "text-generation")
+                    throw new InvalidDataException("Split-model inventories require the GGUF text-generation recipe.");
+                ModelFileSet.Validate(artifact);
+                foreach (var part in artifact.AdditionalFiles)
+                    if (!SafePath(part.FileName)) throw new InvalidDataException("A catalog model-part path is invalid.");
+            }
         }
         if (item.RuntimeRelease is { } runtime)
         {
@@ -275,6 +283,15 @@ public sealed class CatalogDatabase
             || prior.SizeBytes is { } a && incoming.SizeBytes is { } b && a != b
             || prior.Sha256 is { } x && incoming.Sha256 is { } y && !x.Equals(y, StringComparison.OrdinalIgnoreCase))
             throw new InvalidDataException("A pinned catalog artifact cannot change its size, hash, format or identity. Existing data was preserved.");
+        if (prior is not null && incoming is not null && !CompatibleParts(prior.AdditionalFiles, incoming.AdditionalFiles))
+            throw new InvalidDataException("A pinned catalog artifact cannot change or drop its complete model-file inventory. Existing data was preserved.");
+    }
+    private static bool CompatibleParts(IReadOnlyList<ModelArtifactPart>? prior, IReadOnlyList<ModelArtifactPart>? incoming)
+    {
+        if (prior is null || incoming is null) return prior is null && incoming is null;
+        return prior.Count == incoming.Count && prior.Zip(incoming).All(pair =>
+            pair.First.FileName == pair.Second.FileName && pair.First.SizeBytes == pair.Second.SizeBytes
+            && pair.First.Sha256.Equals(pair.Second.Sha256, StringComparison.OrdinalIgnoreCase));
     }
     private static DateTimeOffset ReadTime(string value)
     {

@@ -112,7 +112,7 @@ public static class ImageArtifactAcquisitionPlanner
         if (artifact is null || artifact.Repository is null
             || !Regex.IsMatch(artifact.Repository, @"^[A-Za-z0-9][A-Za-z0-9._-]{0,95}/[A-Za-z0-9][A-Za-z0-9._-]{0,95}\z", RegexOptions.CultureInvariant)
             || artifact.Revision is null || !Hex(artifact.Revision, 40) || artifact.Sha256 is null || !Hex(artifact.Sha256, 64)
-            || artifact.SizeBytes is not > 0 || artifact.SizeBytes > long.MaxValue - ReceiptReserveBytes || artifact.Gated
+            || artifact.SizeBytes is not > 0 || artifact.SizeBytes > long.MaxValue - ReceiptReserveBytes || artifact.Gated || artifact.AdditionalFiles is not null
             || !string.Equals(artifact.Format, "Safetensors", StringComparison.OrdinalIgnoreCase))
             throw new InvalidDataException("A public safetensors artifact with exact repository, pinned revision, positive bytes and SHA-256 is required.");
     }

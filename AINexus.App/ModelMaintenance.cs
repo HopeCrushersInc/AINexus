@@ -22,7 +22,9 @@ public static class ModelMaintenance
 
         var integrity = await ModelArtifactVerifier.VerifyExistingAsync(receipt.Plan, token).ConfigureAwait(false);
         token.ThrowIfCancellationRequested();
-        var status = !integrity.Exists ? "Missing file"
+        var status = integrity.AdditionalFiles is { } files && (!integrity.Exists || files.Any(file => !file.Exists)) ? "Incomplete file set"
+            : integrity.AdditionalFiles is not null && !integrity.Matches ? "File-set integrity mismatch"
+            : !integrity.Exists ? "Missing file"
             : integrity.ActualBytes != receipt.Plan.Artifact.SizeBytes ? "Size mismatch"
             : !integrity.Matches ? "Hash mismatch" : "Matches receipt";
         var summary = $"{status}. {integrity.Description} " +

@@ -58,9 +58,12 @@ public static partial class HardwareCompatibilityEngine
             || !string.Equals(Path.GetExtension(artifact.FileName), ".gguf", StringComparison.OrdinalIgnoreCase))
             return Result(RecommendationStatus.NeedsDetails, "Runtime recipe required",
                 "This recipe handles GGUF text-generation artifacts with llama.cpp. Other formats need their own runtime and memory requirements.");
-        if (SplitGgufName().IsMatch(artifact.FileName))
+        try { ModelFileSet.Validate(artifact); }
+        catch (InvalidDataException)
+        {
             return Result(RecommendationStatus.NeedsDetails, "Complete model inventory required",
-                "This artifact is a split GGUF shard. The complete shard set and aggregate size are required; one shard is not a whole model.");
+                "A split GGUF needs every consecutive part with exact bytes and SHA-256, in the same pinned inventory. A single shard is not a whole model.");
+        }
         if (artifact.FileName.Contains("mmproj", StringComparison.OrdinalIgnoreCase))
             return Result(RecommendationStatus.NeedsDetails, "Companion artifact requirements required",
                 "A multimodal projector is a companion artifact, not a complete text-generation model.");
@@ -71,12 +74,13 @@ public static partial class HardwareCompatibilityEngine
             return Result(RecommendationStatus.NeedsDetails, "Artifact size unavailable",
                 "The source did not report a positive artifact size. Model memory and storage requirements cannot be estimated honestly.");
 
-        var weights = artifact.SizeBytes.Value / BytesPerGiB;
+        var totalBytes = ModelFileSet.TotalBytes(artifact);
+        var weights = totalBytes / BytesPerGiB;
         memory = weights * policy.WeightMemoryMultiplier + policy.RuntimeReserveGiB + policy.ContextReserveGiB;
         storage = (artifactAlreadyPresent ? 0 : weights) + policy.StorageReserveGiB;
         if (!double.IsFinite(memory.Value) || !double.IsFinite(storage.Value))
             return Result(RecommendationStatus.NeedsDetails, "Not assessed", "The configured estimate policy produces an invalid memory or storage bound.");
-        reasons.Add($"Source-reported artifact size: {weights:N2} GiB ({artifact.SizeBytes.Value:N0} bytes).");
+        reasons.Add($"Source-reported complete model size: {weights:N2} GiB ({totalBytes:N0} bytes across {1 + (artifact.AdditionalFiles?.Count ?? 0)} file(s)).");
         reasons.Add($"Planning estimate: weights × {policy.WeightMemoryMultiplier.ToString("0.###", CultureInfo.InvariantCulture)} + {policy.RuntimeReserveGiB:N2} GiB runtime allowance + {policy.ContextReserveGiB:N2} GiB context allowance = {memory:N2} GiB.");
         reasons.Add(artifactAlreadyPresent
             ? $"The artifact is already present. Additional storage allowance: {policy.StorageReserveGiB:N3} GiB; no duplicate model download is budgeted."

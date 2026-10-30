@@ -495,7 +495,8 @@ public partial class MainWindow
         public string Name => Recommendation.Item.Name;
         public string Workload => VerifiedOnlineDiscoveryProvider.Workflows.Single(w => w.Interest == Recommendation.Item.Interest).Name;
         public string Publisher => Recommendation.Item.Publisher;
-        public string SizeDisplay => ByteSizeDisplay.ModelSize(Recommendation.Item.Artifact?.SizeBytes);
+        public string SizeDisplay => ByteSizeDisplay.ModelSize(Recommendation.Item.Artifact is { AdditionalFiles: not null } artifact
+            ? ModelFileSet.TotalBytes(artifact) : Recommendation.Item.Artifact?.SizeBytes);
         public string UpdatedDisplay => Recommendation.Item.Signals?.UpdatedAt?.ToUniversalTime().ToString("yyyy-MM-dd") ?? "Unknown";
         public string DownloadsDisplay => Recommendation.Item.Signals?.Downloads?.ToString("N0") ?? "Unknown";
         public string ParametersDisplay => Recommendation.Item.Signals?.ParameterCount is { } count ? $"{count / 1_000_000_000d:N2}B (source)" : "Unknown";

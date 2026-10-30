@@ -132,7 +132,7 @@ internal static class OnlineDiscoveryChecks
             {
                 var found = await new VerifiedOnlineDiscoveryProvider(empty).SearchAsync(new(interest, "no matching model", 3, SearchOrder: TextSearchOrder.Popular));
                 check(found.Items.Count == 0 && requests.Count == (interest == DiscoveryInterest.LocalAssistants ? 1 : 3) && requests.All(uri => uri.Host == "huggingface.co")
-                    && found.Notes.Any(note => note.Contains("No supported standalone GGUF artifacts")),
+                    && found.Notes.Any(note => note.Contains("No supported complete GGUF inventories")),
                     $"Empty {interest} search stays empty instead of filling assistant choices with llama.cpp");
             }
         }
@@ -176,7 +176,7 @@ internal static class OnlineDiscoveryChecks
             foreach (var role in new[] { DiscoveryInterest.LocalAssistants, DiscoveryInterest.Coding, DiscoveryInterest.Agents })
             {
                 var oldRequest = request with { Interest = role };
-                var previousSemantics = role == DiscoveryInterest.LocalAssistants ? "text-model-search-v3" : "task-purpose-text-models-v4";
+                var previousSemantics = role == DiscoveryInterest.LocalAssistants ? "text-model-search-v4" : "task-purpose-text-models-v5";
                 var previousKey = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(
                     $"{oldRequest.Interest}\n{oldRequest.Query}\n{oldRequest.Limit}\n{previousSemantics}\n{oldRequest.SearchOrder}")));
                 var previousPath = Path.Combine(root, previousKey + ".json");

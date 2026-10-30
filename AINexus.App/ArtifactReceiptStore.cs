@@ -22,6 +22,7 @@ public static class ArtifactReceiptStore
             || result.Evidence.ActualBytes != plan.Artifact.SizeBytes
             || !string.Equals(result.Evidence.ActualSha256, plan.Artifact.Sha256, StringComparison.OrdinalIgnoreCase))
             throw new InvalidOperationException("Only matching acquisition integrity evidence can be recorded for this exact plan.");
+        ModelFileSet.ValidateEvidence(plan, result.Evidence);
         ModelAcquisitionPlanner.ResolveDestination(Path.GetDirectoryName(plan.DestinationPath)!, Path.GetFileName(plan.DestinationPath));
         var directory = Path.Combine(Path.GetDirectoryName(plan.DestinationPath)!, ".ainexus", "receipts");
         CheckParents(directory);

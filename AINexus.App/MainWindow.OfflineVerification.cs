@@ -42,8 +42,8 @@ public partial class MainWindow
         var audit = await OfflineModelVerifier.AuditReceiptAsync(OfflineReceiptText.Text.Trim(), token);
         var plan = audit.Receipt.Plan;
         OfflineEvidenceText.Text = $"LOCAL ARTIFACT AUDIT\nModel: {plan.Name}\nPath: {plan.DestinationPath}\n" +
-            $"Recorded revision: {plan.Artifact.Revision}\nExpected SHA-256: {plan.Artifact.Sha256}\nActual SHA-256: {audit.Integrity.ActualSha256}\n" +
-            $"Actual bytes: {audit.Integrity.ActualBytes:N0}\nMatch: {audit.Integrity.Matches}\nAudited: {audit.AuditedAt.ToLocalTime():g}\n\n" +
+            $"Recorded revision: {plan.Artifact.Revision}\nFirst-file expected SHA-256: {plan.Artifact.Sha256}\nFirst-file actual SHA-256: {audit.Integrity.ActualSha256}\n" +
+            $"Expected inventory: {ModelFileSet.TotalBytes(plan.Artifact):N0} bytes across {1 + (plan.Artifact.AdditionalFiles?.Count ?? 0)} file(s)\nFirst-file actual bytes: {audit.Integrity.ActualBytes:N0}\nComplete inventory match: {audit.Integrity.Matches}\nAudited: {audit.AuditedAt.ToLocalTime():g}\n\n" +
             audit.Integrity.Description + "\n\nThis audit does not run inference or refresh the publisher's online metadata.";
         OfflineStatusText.Text = audit.Integrity.Matches ? "Local file integrity matches the saved source identity. Runtime execution is not established by this audit."
             : "Local file integrity did not match the saved identity. No runtime was started.";

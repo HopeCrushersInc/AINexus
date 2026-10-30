@@ -108,7 +108,7 @@ public partial class MainWindow
                 }
                 DiscoveryDetailsText.Text = DescribeAcquisitionPlan(plan) +
                     $"\n\nACQUISITION EVIDENCE\nPath: {_lastAcquisitionResult.Evidence.Path}\nReused existing file: {_lastAcquisitionResult.ReusedExisting}\n" +
-                    $"Verified bytes: {_lastAcquisitionResult.Evidence.ActualBytes:N0}\nSHA-256: {_lastAcquisitionResult.Evidence.ActualSha256}\n" +
+                    $"Verified inventory: {ModelFileSet.TotalBytes(plan.Artifact):N0} bytes across {1 + (plan.Artifact.AdditionalFiles?.Count ?? 0)} file(s)\nFirst-file SHA-256: {_lastAcquisitionResult.Evidence.ActualSha256}\n" +
                     _lastAcquisitionResult.Evidence.Description + receiptDescription;
                 DiscoveryStatusText.Text = "Model artifact verified. It has not been loaded or tested for offline inference. Add it to the library when ready.";
             });
@@ -165,6 +165,13 @@ public partial class MainWindow
         text.AppendLine("MODEL DATA ACQUISITION PLAN");
         text.AppendLine($"{plan.Name}\nPlan ID: {plan.PlanId}\nSource: {plan.DownloadUrl}\nDestination: {plan.DestinationPath}");
         text.AppendLine($"Expected bytes: {plan.Artifact.SizeBytes:N0}\nExpected SHA-256: {plan.Artifact.Sha256}\nPinned revision: {plan.Artifact.Revision}");
+        if (plan.Artifact.AdditionalFiles is not null)
+        {
+            text.AppendLine($"COMPLETE MODEL FILE SET: {1 + plan.Artifact.AdditionalFiles.Count} files, {ModelFileSet.TotalBytes(plan.Artifact):N0} total bytes. The identity above is the first file, not an aggregate hash.");
+            foreach (var file in ModelFileSet.FilePlans(plan))
+                text.AppendLine($"File: {file.Artifact.FileName}\nBytes: {file.Artifact.SizeBytes:N0}\nSHA-256: {file.Artifact.Sha256}\nSource: {file.DownloadUrl}\nDestination: {file.DestinationPath}");
+            text.AppendLine("Completed verified files are retained if a later file fails or is cancelled; the model is not ready until every file verifies.");
+        }
         text.AppendLine($"Declared license: {plan.DeclaredLicense}\nTerms reference: {plan.LicenseReference}\nOnly model data and an acquisition receipt are written. No runtime installer or Windows change is included.");
         text.AppendLine($"Source metadata: {plan.MetadataRetrievedAt.ToLocalTime():g}\nHardware evidence: {plan.HardwareScannedAt.ToLocalTime():g}");
         text.AppendLine("\nProposed actions:");
